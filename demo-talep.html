@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIA - Kayıt Ol</title>
+    <title>MIA - Demo Talep Et</title>
     <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
@@ -22,7 +22,7 @@
             <div class="nav-divider"></div>
             <div id="loggedOutNav">
                 <a href="login.html" class="btn btn-secondary btn-sm" data-i18n="nav_login">Giriş Yap</a>
-                <a href="signup.html" class="btn btn-primary btn-sm active" data-i18n="nav_signup">Kayıt Ol</a>
+                <a href="demo-talep.html" class="btn btn-primary btn-sm" data-i18n="nav_demo_request">Demo Talep Et</a>
             </div>
             <div id="loggedInNav" style="display:none;">
                 <a href="dashboard.html">Dashboard</a>
@@ -38,17 +38,43 @@
         </nav>
     </header>
 
-    <main class="page-auth">
-        <div class="auth-container">
-            <div class="auth-header"><h1 data-i18n="signup_title">Kayıt Ol</h1><p data-i18n="signup_subtitle">Ücretsiz hesap oluşturun</p></div>
-            <div class="auth-error" id="signupError"></div>
-            <form id="signupForm">
-                <div class="form-group"><label data-i18n="label_email">E-posta</label><input type="email" id="signupEmail" data-i18n-placeholder="placeholder_email" placeholder="ornek@email.com" required></div>
-                <div class="form-group"><label data-i18n="label_password">Şifre</label><input type="password" id="signupPassword" data-i18n-placeholder="placeholder_password" placeholder="En az 6 karakter" minlength="6" required></div>
-                <div class="form-group"><label data-i18n="label_password_confirm">Şifre Tekrar</label><input type="password" id="signupPasswordConfirm" placeholder="••••••••" required></div>
-                <button type="submit" class="auth-btn" id="signupBtn" data-i18n="signup_btn">Kayıt Ol</button>
-            </form>
-            <div class="auth-footer"><span data-i18n="signup_footer">Zaten hesabınız var mı?</span> <a href="login.html" data-i18n="signup_link">Giriş yapın</a></div>
+    <main class="demo-request-page">
+        <div class="demo-request-container">
+            <div class="demo-request-info">
+                <div class="demo-request-badge" data-i18n="demo_req_badge">Ücretsiz Demo</div>
+                <h1 data-i18n="demo_req_title">Uzmanlarımızla Görüşme Planlayın</h1>
+                <p data-i18n="demo_req_subtitle">Uzmanlarımız sorularınızı yanıtlayacak ve canlı bir demo anlatımı ile platform hakkında daha fazla bilgi verecekler. Formu doldurun, size hemen ulaşalım.</p>
+            </div>
+            <div class="demo-request-form">
+                <div class="demo-form-success" id="formSuccess" data-i18n="form_success">Talebiniz alındı! En kısa sürede sizinle iletişime geçeceğiz.</div>
+                <form id="demoRequestForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label data-i18n="form_name">Ad Soyad <span>*</span></label>
+                            <input type="text" id="reqName" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="form_company">Şirket Adı <span>*</span></label>
+                            <input type="text" id="reqCompany" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label data-i18n="form_email">E-Posta <span>*</span></label>
+                            <input type="email" id="reqEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="form_phone">Telefon <span>*</span></label>
+                            <input type="tel" id="reqPhone" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="form_message">Mesajınız</label>
+                        <textarea id="reqMessage" data-i18n-placeholder="form_message_placeholder" placeholder="Projeniz hakkında kısaca bilgi verin..."></textarea>
+                    </div>
+                    <button type="submit" class="demo-form-submit" id="demoSubmitBtn" data-i18n="form_submit">Gönder</button>
+                </form>
+            </div>
         </div>
     </main>
 

@@ -27,6 +27,9 @@ var translations = {
         // Founder details
         deniz_desc: "Boston University, Bilgisayar Müh.<br>HP & Trio Mobil AI Intern", ege_desc: "İş Geliştirme<br>Stratejik Ortaklıklar", gokberk_desc: "AS Teknolojik<br>Teknik Operasyonlar",
         contact_title: "İletişim", contact_subtitle: "Bizimle iletişime geçin", founders_title: "Kurucularımız", general_contact: "Genel İletişim", contact_cta: "Sorularınız için bize ulaşın",
+        // Demo request
+        nav_demo_request: "Demo Talep Et", demo_req_title: "Uzmanlarımızla Görüşme Planlayın", demo_req_subtitle: "Uzmanlarımız sorularınızı yanıtlayacak ve canlı bir demo anlatımı ile platform hakkında daha fazla bilgi verecekler. Formu doldurun, size hemen ulaşalım.", demo_req_badge: "Ücretsiz Demo",
+        form_name: "Ad Soyad", form_company: "Şirket Adı", form_email: "E-Posta", form_phone: "Telefon", form_message: "Mesajınız", form_message_placeholder: "Projeniz hakkında kısaca bilgi verin...", form_submit: "Gönder", form_success: "Talebiniz alındı! En kısa sürede sizinle iletişime geçeceğiz.", form_required: "Bu alan zorunludur",
         footer: "© 2026 MIA - Tüm hakları saklıdır.",
         no_analyses: "Henüz analiz yok", no_analyses_desc: "Yeni Analiz butonuna tıklayın", no_violations: "İhlal Yok", passwords_not_match: "Şifreler eşleşmiyor", reading_video: "Video okunuyor...", sending_gpu: "GPU'ya gönderiliyor...", error: "Hata"
     },
@@ -57,6 +60,9 @@ var translations = {
         // Founder details
         deniz_desc: "Boston University, Computer Engineering<br>HP & Trio Mobil AI Intern", ege_desc: "Business Development<br>Strategic Partnerships", gokberk_desc: "AS Teknolojik<br>Technical Operations",
         contact_title: "Contact", contact_subtitle: "Get in touch with us", founders_title: "Our Founders", general_contact: "General Contact", contact_cta: "Reach out for questions",
+        // Demo request
+        nav_demo_request: "Request Demo", demo_req_title: "Schedule a Meeting with Our Experts", demo_req_subtitle: "Our experts will answer your questions and provide a live demo walkthrough of the platform. Fill out the form and we'll get back to you right away.", demo_req_badge: "Free Demo",
+        form_name: "Full Name", form_company: "Company Name", form_email: "Email", form_phone: "Phone", form_message: "Your Message", form_message_placeholder: "Tell us briefly about your project...", form_submit: "Submit", form_success: "Your request has been received! We will contact you shortly.", form_required: "This field is required",
         footer: "© 2026 MIA - All rights reserved.",
         no_analyses: "No analyses yet", no_analyses_desc: "Click New Analysis to start", no_violations: "No Violations", passwords_not_match: "Passwords do not match", reading_video: "Reading video...", sending_gpu: "Sending to GPU...", error: "Error"
     }
@@ -288,6 +294,30 @@ if (uploadArea) {
     uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--accent)'; uploadArea.style.background = 'rgba(245,158,11,0.05)'; });
     uploadArea.addEventListener('dragleave', function(e) { e.preventDefault(); uploadArea.style.borderColor = ''; uploadArea.style.background = ''; });
     uploadArea.addEventListener('drop', function(e) { e.preventDefault(); uploadArea.style.borderColor = ''; uploadArea.style.background = ''; if (e.dataTransfer.files[0] && e.dataTransfer.files[0].type.startsWith('video/')) { processVideo(e.dataTransfer.files[0]); } });
+}
+
+// === DEMO REQUEST FORM ===
+var demoRequestForm = document.getElementById('demoRequestForm');
+if (demoRequestForm) {
+    demoRequestForm.onsubmit = function(e) {
+        e.preventDefault();
+        var btn = document.getElementById('demoSubmitBtn');
+        var data = {
+            name: document.getElementById('reqName').value,
+            company: document.getElementById('reqCompany').value,
+            email: document.getElementById('reqEmail').value,
+            phone: document.getElementById('reqPhone').value,
+            message: document.getElementById('reqMessage').value,
+            created_at: new Date().toISOString()
+        };
+        btn.disabled = true; btn.textContent = '...';
+        supabase.from('demo_requests').insert(data).then(function(r) {
+            btn.disabled = false; btn.textContent = translations[currentLang].form_submit;
+            if (r.error) { alert(translations[currentLang].error + ': ' + r.error.message); return; }
+            demoRequestForm.style.display = 'none';
+            document.getElementById('formSuccess').className = 'demo-form-success show';
+        });
+    };
 }
 
 // === INIT ===
