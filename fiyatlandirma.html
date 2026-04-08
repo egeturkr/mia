@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - Fiyatlandırma</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html">
+            <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <span class="logo-text">MIA</span>
+        </a>
+        <nav>
+            <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
+            <a href="sirket.html" data-i18n="nav_company">Şirket</a>
+            <a href="fiyatlandirma.html" class="active" data-i18n="nav_pricing">Fiyatlandırma</a>
+            <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
+            <div class="nav-divider"></div>
+            <div id="loggedOutNav">
+                <a href="login.html" class="btn btn-secondary btn-sm" data-i18n="nav_login">Giriş Yap</a>
+                <a href="signup.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Kayıt Ol</a>
+            </div>
+            <div id="loggedInNav" style="display:none;">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="demo.html" data-i18n="nav_analysis">Analiz</a>
+                <span class="user-email" id="userEmail"></span>
+                <button type="button" id="navLogout" class="btn btn-secondary btn-sm" data-i18n="nav_logout">Çıkış</button>
+            </div>
+            <div class="lang-switcher">
+                <button type="button" class="lang-btn active" id="langTR">TR</button>
+                <button type="button" class="lang-btn" id="langEN">EN</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="page-inner">
+        <section class="pricing-section">
+            <div class="pricing-container">
+                <div class="section-header"><h1 data-i18n="pricing_title">Fiyatlandırma</h1><p data-i18n="pricing_subtitle">SaaS abonelik modeli</p></div>
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <h3 data-i18n="plan1_name">Başlangıç</h3>
+                        <div class="pricing-price" data-i18n="plan1_price">₺5,000</div>
+                        <div class="pricing-period" data-i18n="plan1_period">/ay</div>
+                        <ul class="pricing-features">
+                            <li data-i18n="plan1_f1">5 kamera</li>
+                            <li data-i18n="plan1_f2">Temel raporlama</li>
+                            <li data-i18n="plan1_f3">E-posta bildirimleri</li>
+                        </ul>
+                        <a href="signup.html" class="pricing-cta pricing-cta-secondary" data-i18n="plan1_cta">Başla</a>
+                    </div>
+                    <div class="pricing-card featured">
+                        <div class="pricing-badge" data-i18n="plan2_badge">Popüler</div>
+                        <h3 data-i18n="plan2_name">Profesyonel</h3>
+                        <div class="pricing-price" data-i18n="plan2_price">₺15,000</div>
+                        <div class="pricing-period" data-i18n="plan2_period">/ay</div>
+                        <ul class="pricing-features">
+                            <li data-i18n="plan2_f1">25 kamera</li>
+                            <li data-i18n="plan2_f2">Gelişmiş analitik</li>
+                            <li data-i18n="plan2_f3">7/24 destek</li>
+                            <li data-i18n="plan2_f4">SMS + E-posta uyarıları</li>
+                        </ul>
+                        <a href="signup.html" class="pricing-cta pricing-cta-primary" data-i18n="plan2_cta">Başla</a>
+                    </div>
+                    <div class="pricing-card">
+                        <h3 data-i18n="plan3_name">Kurumsal</h3>
+                        <div class="pricing-price" data-i18n="plan3_price">Özel Teklif</div>
+                        <div class="pricing-period" data-i18n="plan3_period"></div>
+                        <ul class="pricing-features">
+                            <li data-i18n="plan3_f1">Sınırsız kamera</li>
+                            <li data-i18n="plan3_f2">Özel entegrasyon</li>
+                            <li data-i18n="plan3_f3">Dedike destek ekibi</li>
+                            <li data-i18n="plan3_f4">SLA garantisi</li>
+                        </ul>
+                        <a href="iletisim.html" class="pricing-cta pricing-cta-secondary" data-i18n="plan3_cta">İletişime Geç</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer><p data-i18n="footer">© 2026 MIA - Tüm hakları saklıdır.</p></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
