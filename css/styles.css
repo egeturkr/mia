@@ -1,4 +1,32 @@
+/* Dark theme (default) */
 :root { --bg-primary: #0a0a0a; --bg-secondary: #141414; --bg-card: #1a1a1a; --accent: #f59e0b; --accent-hover: #d97706; --success: #22c55e; --danger: #ef4444; --text-primary: #ffffff; --text-secondary: #a1a1aa; --text-muted: #71717a; --border: #27272a; }
+
+/* Light theme */
+[data-theme="light"] { --bg-primary: #f8f9fc; --bg-secondary: #eef0f5; --bg-card: #ffffff; --accent: #2563eb; --accent-hover: #1d4ed8; --success: #16a34a; --danger: #dc2626; --text-primary: #0f172a; --text-secondary: #475569; --text-muted: #94a3b8; --border: #e2e8f0; }
+[data-theme="light"] header { background: rgba(248,249,252,0.95); }
+[data-theme="light"] .logo-icon { background: var(--accent); }
+[data-theme="light"] .logo-icon svg { stroke: #fff; }
+[data-theme="light"] .home-title { background: linear-gradient(135deg, #0f172a 0%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+[data-theme="light"] #home, [data-theme="light"] .page-home { background: linear-gradient(135deg, #f8f9fc 0%, #eef0f5 100%); }
+[data-theme="light"] .page-auth { background: linear-gradient(135deg, #f8f9fc 0%, #eef0f5 100%); }
+[data-theme="light"] .pricing-card.featured { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; }
+[data-theme="light"] .pricing-card.featured h3 { color: #cbd5e1; }
+[data-theme="light"] .pricing-card.featured .pricing-price { color: var(--accent); }
+[data-theme="light"] .pricing-card.featured .pricing-features li { color: #e2e8f0; border-color: #334155; }
+[data-theme="light"] .btn-primary { color: #fff; }
+[data-theme="light"] .pricing-cta-primary { color: #fff; }
+[data-theme="light"] .pricing-badge { color: #fff; }
+[data-theme="light"] .home-badge { background: rgba(37,99,235,0.08); border-color: var(--accent); }
+[data-theme="light"] .solution-cta-box { background: var(--bg-secondary); }
+[data-theme="light"] .invest-banner { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; }
+[data-theme="light"] .invest-banner h3 { color: #fff; }
+[data-theme="light"] .invest-banner p { color: #cbd5e1; }
+
+/* Theme toggle */
+.theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; margin-left: 0.5rem; }
+.theme-toggle:hover { border-color: var(--accent); }
+.theme-toggle svg { width: 18px; height: 18px; stroke: var(--text-secondary); transition: all 0.2s; }
+.theme-toggle:hover svg { stroke: var(--accent); }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
 

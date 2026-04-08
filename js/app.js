@@ -2,7 +2,7 @@
 var translations = {
     tr: {
         nav_home: "Ana Sayfa", nav_company: "Şirket", nav_contact: "İletişim", nav_login: "Giriş Yap", nav_signup: "Kayıt Ol", nav_analysis: "Analiz", nav_logout: "Çıkış",
-        home_badge: "🛡️ Yapay Zeka Destekli Güvenlik", home_title: "İnşaat Güvenliğinin<br>Geleceği", home_subtitle: "MIA, yapay zeka ile inşaat şantiyelerinde gerçek zamanlı PPE tespiti yaparak iş kazalarını önler.", home_cta: "Hemen Başla", home_learn: "Daha Fazla",
+        home_badge: "Yapay Zeka Destekli Güvenlik", home_title: "İnşaat Güvenliğinin<br>Geleceği", home_subtitle: "MIA, yapay zeka ile inşaat şantiyelerinde gerçek zamanlı PPE tespiti yaparak iş kazalarını önler.", home_cta: "Hemen Başla", home_learn: "Daha Fazla",
         stat_accuracy: "Tespit Doğruluğu", stat_monitoring: "Kesintisiz İzleme", stat_sec: "sn", stat_alert: "Anlık Uyarı",
         login_title: "Giriş Yap", login_subtitle: "Hesabınıza giriş yapın", login_btn: "Giriş Yap", login_footer: "Hesabınız yok mu?", login_link: "Kayıt olun",
         signup_title: "Kayıt Ol", signup_subtitle: "Ücretsiz hesap oluşturun", signup_btn: "Kayıt Ol", signup_footer: "Zaten hesabınız var mı?", signup_link: "Giriş yapın",
@@ -32,7 +32,7 @@ var translations = {
     },
     en: {
         nav_home: "Home", nav_company: "Company", nav_contact: "Contact", nav_login: "Login", nav_signup: "Sign Up", nav_analysis: "Analysis", nav_logout: "Logout",
-        home_badge: "🛡️ AI-Powered Safety", home_title: "The Future of<br>Construction Safety", home_subtitle: "MIA uses AI to detect PPE violations in real-time at construction sites, preventing workplace accidents.", home_cta: "Get Started", home_learn: "Learn More",
+        home_badge: "AI-Powered Safety", home_title: "The Future of<br>Construction Safety", home_subtitle: "MIA uses AI to detect PPE violations in real-time at construction sites, preventing workplace accidents.", home_cta: "Get Started", home_learn: "Learn More",
         stat_accuracy: "Detection Accuracy", stat_monitoring: "24/7 Monitoring", stat_sec: "s", stat_alert: "Instant Alert",
         login_title: "Login", login_subtitle: "Sign in to your account", login_btn: "Login", login_footer: "Don't have an account?", login_link: "Sign up",
         signup_title: "Sign Up", signup_subtitle: "Create a free account", signup_btn: "Sign Up", signup_footer: "Already have an account?", signup_link: "Login",
@@ -91,6 +91,25 @@ function setLanguage(lang) {
 
 document.getElementById('langTR').onclick = function() { setLanguage('tr'); };
 document.getElementById('langEN').onclick = function() { setLanguage('en'); };
+
+// === THEME ===
+var sunIcon = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+var moonIcon = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('mia_theme', theme);
+    var icon = document.getElementById('themeIcon');
+    if (icon) icon.innerHTML = theme === 'light' ? moonIcon : sunIcon;
+}
+
+var savedTheme = localStorage.getItem('mia_theme') || 'dark';
+setTheme(savedTheme);
+
+document.getElementById('themeToggle').onclick = function() {
+    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+    setTheme(current === 'dark' ? 'light' : 'dark');
+};
 
 // === SUPABASE ===
 var SUPABASE_URL = 'https://djjyyaumwhrwzjohymad.supabase.co';
