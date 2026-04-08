@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIA - Mobil İş Sağlığı ve Güvenliği Aracı</title>
+    <title>MIA - Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
@@ -15,7 +15,7 @@
             <span class="logo-text">MIA</span>
         </a>
         <nav>
-            <a href="index.html" class="active" data-i18n="nav_home">Ana Sayfa</a>
+            <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
             <a href="sirket.html" data-i18n="nav_company">Şirket</a>
             <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
             <div class="nav-divider"></div>
@@ -24,7 +24,7 @@
                 <a href="signup.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Kayıt Ol</a>
             </div>
             <div id="loggedInNav" style="display:none;">
-                <a href="dashboard.html">Dashboard</a>
+                <a href="dashboard.html" class="active">Dashboard</a>
                 <a href="demo.html" data-i18n="nav_analysis">Analiz</a>
                 <span class="user-email" id="userEmail"></span>
                 <button type="button" id="navLogout" class="btn btn-secondary btn-sm" data-i18n="nav_logout">Çıkış</button>
@@ -36,20 +36,16 @@
         </nav>
     </header>
 
-    <main id="home" class="page-home">
-        <div class="home-content">
-            <div class="home-badge" data-i18n="home_badge">🛡️ Yapay Zeka Destekli Güvenlik</div>
-            <h1 class="home-title" data-i18n="home_title">İnşaat Güvenliğinin<br>Geleceği</h1>
-            <p class="home-subtitle" data-i18n="home_subtitle">MIA, yapay zeka ile inşaat şantiyelerinde gerçek zamanlı PPE tespiti yaparak iş kazalarını önler.</p>
-            <div class="home-buttons">
-                <a href="signup.html" class="btn btn-primary" id="heroStartBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg><span data-i18n="home_cta">Hemen Başla</span></a>
-                <a href="sirket.html" class="btn btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span data-i18n="home_learn">Daha Fazla</span></a>
+    <main class="page-inner page-dashboard">
+        <div class="dashboard-container">
+            <div class="dashboard-header"><h1>Dashboard</h1><a href="demo.html" class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span data-i18n="new_analysis">Yeni Analiz</span></a></div>
+            <div class="dashboard-stats">
+                <div class="dash-stat-card"><div class="dash-stat-label" data-i18n="dash_total">Toplam Analiz</div><div class="dash-stat-value" id="totalAnalyses">0</div></div>
+                <div class="dash-stat-card"><div class="dash-stat-label" data-i18n="dash_avg">Ortalama Skor</div><div class="dash-stat-value good" id="avgScore">-</div></div>
+                <div class="dash-stat-card"><div class="dash-stat-label" data-i18n="dash_violations">Toplam İhlal</div><div class="dash-stat-value bad" id="totalViolations">0</div></div>
+                <div class="dash-stat-card"><div class="dash-stat-label" data-i18n="dash_month">Bu Ay</div><div class="dash-stat-value" id="thisMonth">0</div></div>
             </div>
-            <div class="home-stats">
-                <div class="home-stat"><div class="home-stat-value">%99</div><div class="home-stat-label" data-i18n="stat_accuracy">Tespit Doğruluğu</div></div>
-                <div class="home-stat"><div class="home-stat-value">7/24</div><div class="home-stat-label" data-i18n="stat_monitoring">Kesintisiz İzleme</div></div>
-                <div class="home-stat"><div class="home-stat-value">&lt;1<span data-i18n="stat_sec">sn</span></div><div class="home-stat-label" data-i18n="stat_alert">Anlık Uyarı</div></div>
-            </div>
+            <div class="analyses-section"><h2 data-i18n="dash_history">Analiz Geçmişi</h2><div class="analyses-list" id="analysesList"></div></div>
         </div>
     </main>
 

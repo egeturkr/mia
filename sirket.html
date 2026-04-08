@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - Şirket</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html">
+            <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <span class="logo-text">MIA</span>
+        </a>
+        <nav>
+            <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
+            <a href="sirket.html" class="active" data-i18n="nav_company">Şirket</a>
+            <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
+            <div class="nav-divider"></div>
+            <div id="loggedOutNav">
+                <a href="login.html" class="btn btn-secondary btn-sm" data-i18n="nav_login">Giriş Yap</a>
+                <a href="signup.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Kayıt Ol</a>
+            </div>
+            <div id="loggedInNav" style="display:none;">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="demo.html" data-i18n="nav_analysis">Analiz</a>
+                <span class="user-email" id="userEmail"></span>
+                <button type="button" id="navLogout" class="btn btn-secondary btn-sm" data-i18n="nav_logout">Çıkış</button>
+            </div>
+            <div class="lang-switcher">
+                <button type="button" class="lang-btn active" id="langTR">TR</button>
+                <button type="button" class="lang-btn" id="langEN">EN</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="page-inner">
+        <div class="company-container">
+            <div class="section-header"><h1 data-i18n="company_title">Şirketimiz</h1><p data-i18n="company_subtitle">İş güvenliğini yapay zeka ile dönüştürüyoruz</p></div>
+            <div class="company-hero">
+                <div class="company-image"><img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80" alt="Construction"></div>
+                <div class="company-info"><h1 data-i18n="about_title">MIA Nedir?</h1><p data-i18n="about_p1">MIA, inşaat sektöründe iş kazalarını önlemek için geliştirilen yapay zeka platformudur.</p><p data-i18n="about_p2">YOLOv8 tabanlı teknoloji ile baret, yelek ve diğer PPE kullanımını tespit eder.</p></div>
+            </div>
+            <div class="company-values"><h2 data-i18n="why_mia">Neden MIA?</h2>
+                <div class="values-grid">
+                    <div class="value-card"><div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h3 data-i18n="value1_title">Gerçek Zamanlı</h3><p data-i18n="value1_desc">7/24 kesintisiz izleme</p></div>
+                    <div class="value-card"><div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3 data-i18n="value2_title">Yüksek Doğruluk</h3><p data-i18n="value2_desc">%99+ tespit doğruluğu</p></div>
+                    <div class="value-card"><div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><h3 data-i18n="value3_title">PDF Raporlar</h3><p data-i18n="value3_desc">Otomatik raporlama</p></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer><p data-i18n="footer">© 2026 MIA - Tüm hakları saklıdır.</p></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

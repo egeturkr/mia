@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIA - Mobil İş Sağlığı ve Güvenliği Aracı</title>
+    <title>MIA - Kayıt Ol</title>
     <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
@@ -15,13 +15,13 @@
             <span class="logo-text">MIA</span>
         </a>
         <nav>
-            <a href="index.html" class="active" data-i18n="nav_home">Ana Sayfa</a>
+            <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
             <a href="sirket.html" data-i18n="nav_company">Şirket</a>
             <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
             <div class="nav-divider"></div>
             <div id="loggedOutNav">
                 <a href="login.html" class="btn btn-secondary btn-sm" data-i18n="nav_login">Giriş Yap</a>
-                <a href="signup.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Kayıt Ol</a>
+                <a href="signup.html" class="btn btn-primary btn-sm active" data-i18n="nav_signup">Kayıt Ol</a>
             </div>
             <div id="loggedInNav" style="display:none;">
                 <a href="dashboard.html">Dashboard</a>
@@ -36,20 +36,17 @@
         </nav>
     </header>
 
-    <main id="home" class="page-home">
-        <div class="home-content">
-            <div class="home-badge" data-i18n="home_badge">🛡️ Yapay Zeka Destekli Güvenlik</div>
-            <h1 class="home-title" data-i18n="home_title">İnşaat Güvenliğinin<br>Geleceği</h1>
-            <p class="home-subtitle" data-i18n="home_subtitle">MIA, yapay zeka ile inşaat şantiyelerinde gerçek zamanlı PPE tespiti yaparak iş kazalarını önler.</p>
-            <div class="home-buttons">
-                <a href="signup.html" class="btn btn-primary" id="heroStartBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg><span data-i18n="home_cta">Hemen Başla</span></a>
-                <a href="sirket.html" class="btn btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span data-i18n="home_learn">Daha Fazla</span></a>
-            </div>
-            <div class="home-stats">
-                <div class="home-stat"><div class="home-stat-value">%99</div><div class="home-stat-label" data-i18n="stat_accuracy">Tespit Doğruluğu</div></div>
-                <div class="home-stat"><div class="home-stat-value">7/24</div><div class="home-stat-label" data-i18n="stat_monitoring">Kesintisiz İzleme</div></div>
-                <div class="home-stat"><div class="home-stat-value">&lt;1<span data-i18n="stat_sec">sn</span></div><div class="home-stat-label" data-i18n="stat_alert">Anlık Uyarı</div></div>
-            </div>
+    <main class="page-auth">
+        <div class="auth-container">
+            <div class="auth-header"><h1 data-i18n="signup_title">Kayıt Ol</h1><p data-i18n="signup_subtitle">Ücretsiz hesap oluşturun</p></div>
+            <div class="auth-error" id="signupError"></div>
+            <form id="signupForm">
+                <div class="form-group"><label data-i18n="label_email">E-posta</label><input type="email" id="signupEmail" data-i18n-placeholder="placeholder_email" placeholder="ornek@email.com" required></div>
+                <div class="form-group"><label data-i18n="label_password">Şifre</label><input type="password" id="signupPassword" data-i18n-placeholder="placeholder_password" placeholder="En az 6 karakter" minlength="6" required></div>
+                <div class="form-group"><label data-i18n="label_password_confirm">Şifre Tekrar</label><input type="password" id="signupPasswordConfirm" placeholder="••••••••" required></div>
+                <button type="submit" class="auth-btn" id="signupBtn" data-i18n="signup_btn">Kayıt Ol</button>
+            </form>
+            <div class="auth-footer"><span data-i18n="signup_footer">Zaten hesabınız var mı?</span> <a href="login.html" data-i18n="signup_link">Giriş yapın</a></div>
         </div>
     </main>
 

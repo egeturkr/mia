@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - Güvenlik Analizi</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html">
+            <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <span class="logo-text">MIA</span>
+        </a>
+        <nav>
+            <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
+            <a href="sirket.html" data-i18n="nav_company">Şirket</a>
+            <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
+            <div class="nav-divider"></div>
+            <div id="loggedOutNav">
+                <a href="login.html" class="btn btn-secondary btn-sm" data-i18n="nav_login">Giriş Yap</a>
+                <a href="signup.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Kayıt Ol</a>
+            </div>
+            <div id="loggedInNav" style="display:none;">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="demo.html" class="active" data-i18n="nav_analysis">Analiz</a>
+                <span class="user-email" id="userEmail"></span>
+                <button type="button" id="navLogout" class="btn btn-secondary btn-sm" data-i18n="nav_logout">Çıkış</button>
+            </div>
+            <div class="lang-switcher">
+                <button type="button" class="lang-btn active" id="langTR">TR</button>
+                <button type="button" class="lang-btn" id="langEN">EN</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="page-inner">
+        <div class="demo-container">
+            <div class="section-header"><h1 data-i18n="demo_title">Güvenlik Analizi</h1><p data-i18n="demo_subtitle">Video yükleyin ve yapay zeka destekli analizi deneyimleyin</p></div>
+            <div class="upload-section" id="uploadArea">
+                <div class="upload-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+                <p class="upload-text" data-i18n="upload_text">Video yükleyin veya sürükleyin</p>
+                <p class="upload-hint" data-i18n="upload_hint">MP4, MOV, AVI (Maks. 100MB)</p>
+                <input type="file" id="fileInput" accept="video/*">
+            </div>
+            <div class="progress-container" id="progressContainer"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><p class="progress-text" id="progressText" data-i18n="processing">İşleniyor...</p></div>
+            <div class="results-section" id="resultsSection">
+                <div class="results-header"><h2 data-i18n="results_title">Sonuçlar</h2><div class="results-actions"><button type="button" class="btn btn-success" id="downloadReportBtn" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF</button><button type="button" class="btn btn-primary" id="downloadBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Video</button><button type="button" class="btn btn-secondary" id="newAnalysisBtn" data-i18n="new_btn">Yeni</button></div></div>
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-value score" id="safetyScore">100%</div><div class="stat-label" data-i18n="label_safety">Güvenlik</div></div>
+                    <div class="stat-card"><div class="stat-value" id="framesAnalyzed">0</div><div class="stat-label" data-i18n="label_frames">Kare</div></div>
+                    <div class="stat-card"><div class="stat-value violations" id="violationsCount">0</div><div class="stat-label" data-i18n="label_violations">İhlal</div></div>
+                    <div class="stat-card"><div class="stat-value safe" id="safeCount">0</div><div class="stat-label" data-i18n="label_compliant">Uyumlu</div></div>
+                </div>
+                <div class="video-container">
+                    <div class="video-wrapper"><div class="video-header"><span>AI Analysis</span><span id="processingTime">0s</span></div><video id="resultVideo" controls></video></div>
+                    <div class="detections-panel"><div class="panel-header" data-i18n="detections">Tespitler</div><div class="detections-list" id="detectionsList"></div></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer><p data-i18n="footer">© 2026 MIA - Tüm hakları saklıdır.</p></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
