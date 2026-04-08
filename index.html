@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - Mobil İş Sağlığı ve Güvenliği Aracı</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo" id="logoBtn">
+            <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <span class="logo-text">MIA</span>
+        </div>
+        <nav>
+            <button type="button" id="navHome" class="active" data-i18n="nav_home">Ana Sayfa</button>
+            <button type="button" id="navSirket" data-i18n="nav_company">Şirket</button>
+            <button type="button" id="navIletisim" data-i18n="nav_contact">İletişim</button>
+            <div class="nav-divider"></div>
+            <div id="loggedOutNav">
+                <button type="button" id="navLogin" class="btn btn-secondary btn-sm" data-i18n="nav_login">Giriş Yap</button>
+                <button type="button" id="navSignup" class="btn btn-primary btn-sm" data-i18n="nav_signup">Kayıt Ol</button>
+            </div>
+            <div id="loggedInNav" style="display:none;">
+                <button type="button" id="navDashboard">Dashboard</button>
+                <button type="button" id="navDemo" data-i18n="nav_analysis">Analiz</button>
+                <span class="user-email" id="userEmail"></span>
+                <button type="button" id="navLogout" class="btn btn-secondary btn-sm" data-i18n="nav_logout">Çıkış</button>
+            </div>
+            <div class="lang-switcher">
+                <button type="button" class="lang-btn active" id="langTR">TR</button>
+                <button type="button" class="lang-btn" id="langEN">EN</button>
+            </div>
+        </nav>
+    </header>
+
+    <section id="home" class="page active">
+        <div class="home-content">
+            <div class="home-badge" data-i18n="home_badge">🛡️ Yapay Zeka Destekli Güvenlik</div>
+            <h1 class="home-title" data-i18n="home_title">İnşaat Güvenliğinin<br>Geleceği</h1>
+            <p class="home-subtitle" data-i18n="home_subtitle">MIA, yapay zeka ile inşaat şantiyelerinde gerçek zamanlı PPE tespiti yaparak iş kazalarını önler.</p>
+            <div class="home-buttons">
+                <button type="button" class="btn btn-primary" id="heroStartBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg><span data-i18n="home_cta">Hemen Başla</span></button>
+                <button type="button" class="btn btn-secondary" id="heroSirketBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span data-i18n="home_learn">Daha Fazla</span></button>
+            </div>
+            <div class="home-stats">
+                <div class="home-stat"><div class="home-stat-value">%99</div><div class="home-stat-label" data-i18n="stat_accuracy">Tespit Doğruluğu</div></div>
+                <div class="home-stat"><div class="home-stat-value">7/24</div><div class="home-stat-label" data-i18n="stat_monitoring">Kesintisiz İzleme</div></div>
+                <div class="home-stat"><div class="home-stat-value">&lt;1<span data-i18n="stat_sec">sn</span></div><div class="home-stat-label" data-i18n="stat_alert">Anlık Uyarı</div></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="login" class="page">
+        <div class="auth-container">
+            <div class="auth-header"><h1 data-i18n="login_title">Giriş Yap</h1><p data-i18n="login_subtitle">Hesabınıza giriş yapın</p></div>
+            <div class="auth-error" id="loginError"></div>
+            <form id="loginForm">
+                <div class="form-group"><label data-i18n="label_email">E-posta</label><input type="email" id="loginEmail" data-i18n-placeholder="placeholder_email" placeholder="ornek@email.com" required></div>
+                <div class="form-group"><label data-i18n="label_password">Şifre</label><input type="password" id="loginPassword" placeholder="••••••••" required></div>
+                <button type="submit" class="auth-btn" id="loginBtn" data-i18n="login_btn">Giriş Yap</button>
+            </form>
+            <div class="auth-footer"><span data-i18n="login_footer">Hesabınız yok mu?</span> <a id="goToSignup" data-i18n="login_link">Kayıt olun</a></div>
+        </div>
+    </section>
+
+    <section id="signup" class="page">
+        <div class="auth-container">
+            <div class="auth-header"><h1 data-i18n="signup_title">Kayıt Ol</h1><p data-i18n="signup_subtitle">Ücretsiz hesap oluşturun</p></div>
+            <div class="auth-error" id="signupError"></div>
+            <form id="signupForm">
+                <div class="form-group"><label data-i18n="label_email">E-posta</label><input type="email" id="signupEmail" data-i18n-placeholder="placeholder_email" placeholder="ornek@email.com" required></div>
+                <div class="form-group"><label data-i18n="label_password">Şifre</label><input type="password" id="signupPassword" data-i18n-placeholder="placeholder_password" placeholder="En az 6 karakter" minlength="6" required></div>
+                <div class="form-group"><label data-i18n="label_password_confirm">Şifre Tekrar</label><input type="password" id="signupPasswordConfirm" placeholder="••••••••" required></div>
+                <button type="submit" class="auth-btn" id="signupBtn" data-i18n="signup_btn">Kayıt Ol</button>
+            </form>
+            <div class="auth-footer"><span data-i18n="signup_footer">Zaten hesabınız var mı?</span> <a id="goToLogin" data-i18n="signup_link">Giriş yapın</a></div>
+        </div>
+    </section>
+
+    <section id="dashboard" class="page">
+        <div class="dashboard-container">
+            <div class="dashboard-header"><h1>Dashboard</h1><button type="button" class="btn btn-primary" id="newAnalysisFromDash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span data-i18n="new_analysis">Yeni Analiz</span></button></div>
+            <div class="dashboard-stats">
+                <div class="dash-stat-card"><div class="dash-stat-label" data-i18n="dash_total">Toplam Analiz</div><div class="dash-stat-value" id="totalAnalyses">0</div></div>
+                <div class="dash-stat-card"><div class="dash-stat-label" data-i18n="dash_avg">Ortalama Skor</div><div class="dash-stat-value good" id="avgScore">-</div></div>
+                <div class="dash-stat-card"><div class="dash-stat-label" data-i18n="dash_violations">Toplam İhlal</div><div class="dash-stat-value bad" id="totalViolations">0</div></div>
+                <div class="dash-stat-card"><div class="dash-stat-label" data-i18n="dash_month">Bu Ay</div><div class="dash-stat-value" id="thisMonth">0</div></div>
+            </div>
+            <div class="analyses-section"><h2 data-i18n="dash_history">Analiz Geçmişi</h2><div class="analyses-list" id="analysesList"></div></div>
+        </div>
+    </section>
+
+    <section id="demo" class="page">
+        <div class="demo-container">
+            <div class="section-header"><h1 data-i18n="demo_title">Güvenlik Analizi</h1><p data-i18n="demo_subtitle">Video yükleyin ve yapay zeka destekli analizi deneyimleyin</p></div>
+            <div class="upload-section" id="uploadArea">
+                <div class="upload-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+                <p class="upload-text" data-i18n="upload_text">Video yükleyin veya sürükleyin</p>
+                <p class="upload-hint" data-i18n="upload_hint">MP4, MOV, AVI (Maks. 100MB)</p>
+                <input type="file" id="fileInput" accept="video/*">
+            </div>
+            <div class="progress-container" id="progressContainer"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><p class="progress-text" id="progressText" data-i18n="processing">İşleniyor...</p></div>
+            <div class="results-section" id="resultsSection">
+                <div class="results-header"><h2 data-i18n="results_title">Sonuçlar</h2><div class="results-actions"><button type="button" class="btn btn-success" id="downloadReportBtn" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF</button><button type="button" class="btn btn-primary" id="downloadBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Video</button><button type="button" class="btn btn-secondary" id="newAnalysisBtn" data-i18n="new_btn">Yeni</button></div></div>
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-value score" id="safetyScore">100%</div><div class="stat-label" data-i18n="label_safety">Güvenlik</div></div>
+                    <div class="stat-card"><div class="stat-value" id="framesAnalyzed">0</div><div class="stat-label" data-i18n="label_frames">Kare</div></div>
+                    <div class="stat-card"><div class="stat-value violations" id="violationsCount">0</div><div class="stat-label" data-i18n="label_violations">İhlal</div></div>
+                    <div class="stat-card"><div class="stat-value safe" id="safeCount">0</div><div class="stat-label" data-i18n="label_compliant">Uyumlu</div></div>
+                </div>
+                <div class="video-container">
+                    <div class="video-wrapper"><div class="video-header"><span>AI Analysis</span><span id="processingTime">0s</span></div><video id="resultVideo" controls></video></div>
+                    <div class="detections-panel"><div class="panel-header" data-i18n="detections">Tespitler</div><div class="detections-list" id="detectionsList"></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="sirket" class="page">
+        <div class="company-container">
+            <div class="section-header"><h1 data-i18n="company_title">Şirketimiz</h1><p data-i18n="company_subtitle">İş güvenliğini yapay zeka ile dönüştürüyoruz</p></div>
+            <div class="company-hero">
+                <div class="company-image"><img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80" alt="Construction"></div>
+                <div class="company-info"><h1 data-i18n="about_title">MIA Nedir?</h1><p data-i18n="about_p1">MIA, inşaat sektöründe iş kazalarını önlemek için geliştirilen yapay zeka platformudur.</p><p data-i18n="about_p2">YOLOv8 tabanlı teknoloji ile baret, yelek ve diğer PPE kullanımını tespit eder.</p></div>
+            </div>
+            <div class="company-values"><h2 data-i18n="why_mia">Neden MIA?</h2>
+                <div class="values-grid">
+                    <div class="value-card"><div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h3 data-i18n="value1_title">Gerçek Zamanlı</h3><p data-i18n="value1_desc">7/24 kesintisiz izleme</p></div>
+                    <div class="value-card"><div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3 data-i18n="value2_title">Yüksek Doğruluk</h3><p data-i18n="value2_desc">%99+ tespit doğruluğu</p></div>
+                    <div class="value-card"><div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><h3 data-i18n="value3_title">PDF Raporlar</h3><p data-i18n="value3_desc">Otomatik raporlama</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="iletisim" class="page">
+        <div class="contact-container">
+            <div class="section-header"><h1 data-i18n="contact_title">İletişim</h1><p data-i18n="contact_subtitle">Bizimle iletişime geçin</p></div>
+            <div class="founders-section"><h2 data-i18n="founders_title">Kurucularımız</h2>
+                <div class="founders-grid">
+                    <div class="founder-card"><div class="founder-image"><img src="images/deniz.jpg" alt="Deniz Öge"></div><div class="founder-name">Deniz Öge</div><div class="founder-role">Co-Founder</div><div class="founder-contact"><a href="/cdn-cgi/l/email-protection#a6c2c3c8c8cfdcc9c1c3e6c1cbc7cfca88c5c9cb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span class="__cf_email__" data-cfemail="85e1e0ebebecffeae2e0c5e2e8e4ece9abe6eae8">[email&#160;protected]</span></a><a href="tel:+18573852649"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.83.36 1.64.7 2.41l.02.05"/></svg>+1 857 385 26 49</a></div></div>
+                    <div class="founder-card"><div class="founder-image"><img src="images/ege.jpg" alt="Ege Türker"></div><div class="founder-name">Ege Türker</div><div class="founder-role">Co-Founder</div><div class="founder-contact"><a href="/cdn-cgi/l/email-protection#83e6e4e6f7f6f1e8e6f1c3fae2ebececade0ecee"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span class="__cf_email__" data-cfemail="781d1f1d0c0d0a131d0a380119101717561b1715">[email&#160;protected]</span></a><a href="tel:+447393495988"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.83.36 1.64.7 2.41l.02.05"/></svg>+44 7393 495988</a></div></div>
+                    <div class="founder-card"><div class="founder-image"><img src="images/gokberk.jpg" alt="Gökberk Şahin"></div><div class="founder-name">Gökberk Şahin</div><div class="founder-role">Co-Founder</div><div class="founder-contact"><a href="/cdn-cgi/l/email-protection#4d2a22262f283f26633e2c2524230d2c3e39282623222122272426632e2220"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span class="__cf_email__" data-cfemail="8cebe3e7eee9fee7a2ffede4e5e2ccedfff8e9e7e2e3e0e3e6e5e7a2efe3e1">[email&#160;protected]</span></a><a href="tel:+12023914211"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.83.36 1.64.7 2.41l.02.05"/></svg>+1 202 391 4211</a></div></div>
+                </div>
+            </div>
+            <div class="contact-info"><h2 data-i18n="general_contact">Genel İletişim</h2><p data-i18n="contact_cta">Sorularınız için bize ulaşın</p><div class="contact-links"><a href="/cdn-cgi/l/email-protection#2a4e4f44444350454d4f6a4d474b434604494547" class="contact-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span class="__cf_email__" data-cfemail="27434249494e5d48404267404a464e4b0944484a">[email&#160;protected]</span></a></div></div>
+        </div>
+    </section>
+
+    <footer><p data-i18n="footer">© 2026 MIA - Tüm hakları saklıdır.</p></footer>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
