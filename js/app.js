@@ -99,6 +99,8 @@ function setLanguage(lang) {
             placeholders[j].placeholder = translations[lang][pkey];
         }
     }
+
+    if (typeof window.updateChatLang === 'function') window.updateChatLang();
 }
 
 document.getElementById('langTR').onclick = function() { setLanguage('tr'); };
@@ -428,6 +430,13 @@ if (demoRequestForm) {
         botReply(t('chat_default'), 1000);
         setTimeout(showQuickActions, 2200);
     }
+
+    window.updateChatLang = function() {
+        document.getElementById('chatName').textContent = t('chat_name');
+        document.getElementById('chatStatus').textContent = t('chat_status');
+        inputEl.placeholder = t('chat_placeholder');
+        if (chatOpened) showQuickActions();
+    };
 
     fab.onclick = function() {
         panel.classList.toggle('open');
