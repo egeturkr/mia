@@ -413,7 +413,11 @@ if (demoRequestForm) {
         document.getElementById('chatName').textContent = t('chat_name');
         document.getElementById('chatStatus').textContent = t('chat_status');
         inputEl.placeholder = t('chat_placeholder');
-        addMsg(t('chat_welcome'), 'bot');
+        var welcome = document.createElement('div');
+        welcome.className = 'chat-msg bot';
+        welcome.id = 'chatWelcome';
+        welcome.textContent = t('chat_welcome');
+        messagesEl.appendChild(welcome);
         showQuickActions();
     }
 
@@ -435,6 +439,8 @@ if (demoRequestForm) {
         document.getElementById('chatName').textContent = t('chat_name');
         document.getElementById('chatStatus').textContent = t('chat_status');
         inputEl.placeholder = t('chat_placeholder');
+        var welcome = document.getElementById('chatWelcome');
+        if (welcome) welcome.textContent = t('chat_welcome');
         if (chatOpened) showQuickActions();
     };
 
