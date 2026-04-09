@@ -19,7 +19,7 @@ var translations = {
         // How it works
         how_label: "Nasıl Çalışır", how_title: "Üç adımda güvenlik dönüşümü.", how1_title: "Bağlan", how1_desc: "Mevcut CCTV sistemini entegre et", how2_title: "Analiz Et", how2_desc: "AI görüntüleri gerçek zamanlı işler", how3_title: "Aksiyon Al", how3_desc: "Uyarı al ve rapor oluştur", how_tech: "Teknoloji: YOLOv8 • NVIDIA GPU • React • FastAPI • PostgreSQL",
         // Pricing
-        nav_pricing: "Fiyatlandırma", pricing_title: "Fiyatlandırma", pricing_subtitle: "SaaS abonelik modeli", plan1_name: "Başlangıç", plan1_price: "₺5,000", plan1_period: "/ay", plan1_f1: "5 kamera", plan1_f2: "Temel raporlama", plan1_f3: "E-posta bildirimleri", plan1_cta: "Başla", plan2_name: "Profesyonel", plan2_price: "₺15,000", plan2_period: "/ay", plan2_f1: "25 kamera", plan2_f2: "Gelişmiş analitik", plan2_f3: "7/24 destek", plan2_f4: "SMS + E-posta uyarıları", plan2_cta: "Başla", plan2_badge: "Popüler", plan3_name: "Kurumsal", plan3_price: "Özel Teklif", plan3_period: "", plan3_f1: "Sınırsız kamera", plan3_f2: "Özel entegrasyon", plan3_f3: "Dedike destek ekibi", plan3_f4: "SLA garantisi", plan3_cta: "İletişime Geç",
+        nav_pricing: "Çözümler", pricing_title: "Çözümler", pricing_subtitle: "SaaS abonelik modeli", plan1_name: "Başlangıç", plan1_price: "₺5,000", plan1_period: "/ay", plan1_f1: "5 kamera", plan1_f2: "Temel raporlama", plan1_f3: "E-posta bildirimleri", plan1_cta: "Başla", plan2_name: "Profesyonel", plan2_price: "₺15,000", plan2_period: "/ay", plan2_f1: "25 kamera", plan2_f2: "Gelişmiş analitik", plan2_f3: "7/24 destek", plan2_f4: "SMS + E-posta uyarıları", plan2_cta: "Başla", plan2_badge: "Popüler", plan3_name: "Kurumsal", plan3_price: "Özel Teklif", plan3_period: "", plan3_f1: "Sınırsız kamera", plan3_f2: "Özel entegrasyon", plan3_f3: "Dedike destek ekibi", plan3_f4: "SLA garantisi", plan3_cta: "İletişime Geç",
         // Market
         market_label: "Pazar Fırsatı", market_title: "Büyüyen pazarda erken hamle avantajı.", market1_val: "₺2.5T", market1_label: "Türkiye İnşaat Sektörü", market1_sub: "Yıllık Pazar Büyüklüğü", market2_val: "$12B", market2_label: "Global AI Safety Pazarı", market2_sub: "2028 Tahmini (CAGR %18)", market_target: "Hedef: Büyük inşaat firmaları, altyapı projeleri, sanayi tesisleri, enerji sektörü",
         // Traction
@@ -30,6 +30,9 @@ var translations = {
         // Demo request
         nav_demo_request: "Demo Talep Et", demo_req_title: "Uzmanlarımızla Görüşme Planlayın", demo_req_subtitle: "Uzmanlarımız sorularınızı yanıtlayacak ve canlı bir demo anlatımı ile platform hakkında daha fazla bilgi verecekler. Formu doldurun, size hemen ulaşalım.", demo_req_badge: "Ücretsiz Demo",
         form_name: "Ad Soyad", form_company: "Şirket Adı", form_email: "E-Posta", form_phone: "Telefon", form_message: "Mesajınız", form_message_placeholder: "Projeniz hakkında kısaca bilgi verin...", form_submit: "Gönder", form_success: "Talebiniz alındı! En kısa sürede sizinle iletişime geçeceğiz.", form_required: "Bu alan zorunludur",
+        // Chat
+        chat_name: "MIA Asistan", chat_status: "Çevrimiçi", chat_welcome: "Merhaba! Size nasıl yardımcı olabilirim?", chat_placeholder: "Mesajınızı yazın...", chat_q1: "Çözümleriniz neler?", chat_q2: "Demo talep et", chat_q3: "Fiyatlandırma", chat_q4: "İletişim",
+        chat_a1: "MIA, yapay zeka ile inşaat şantiyelerinde baret, yelek ve kemer gibi PPE kullanımını gerçek zamanlı tespit eder. 7/24 kamera analizi, anlık SMS/e-posta uyarıları ve detaylı PDF raporlar sunar.", chat_a2: "Harika! Demo talep formuna yönlendiriyorum.", chat_a3: "3 paketimiz var: Başlangıç (₺5,000/ay, 5 kamera), Profesyonel (₺15,000/ay, 25 kamera, 7/24 destek) ve Kurumsal (özel teklif, sınırsız kamera). Detaylar için Çözümler sayfamızı ziyaret edin.", chat_a4: "Bize dennizoge@gmail.com adresinden veya İletişim sayfamızdan ulaşabilirsiniz.", chat_default: "Teşekkürler! Mesajınız kaydedildi. Ekibimiz en kısa sürede sizinle iletişime geçecek.",
         footer: "© 2026 MIA - Tüm hakları saklıdır.",
         no_analyses: "Henüz analiz yok", no_analyses_desc: "Yeni Analiz butonuna tıklayın", no_violations: "İhlal Yok", passwords_not_match: "Şifreler eşleşmiyor", reading_video: "Video okunuyor...", sending_gpu: "GPU'ya gönderiliyor...", error: "Hata"
     },
@@ -52,7 +55,7 @@ var translations = {
         // How it works
         how_label: "How It Works", how_title: "Safety transformation in three steps.", how1_title: "Connect", how1_desc: "Integrate your existing CCTV system", how2_title: "Analyze", how2_desc: "AI processes footage in real-time", how3_title: "Take Action", how3_desc: "Get alerts and generate reports", how_tech: "Technology: YOLOv8 • NVIDIA GPU • React • FastAPI • PostgreSQL",
         // Pricing
-        nav_pricing: "Pricing", pricing_title: "Pricing", pricing_subtitle: "SaaS subscription model", plan1_name: "Starter", plan1_price: "₺5,000", plan1_period: "/mo", plan1_f1: "5 cameras", plan1_f2: "Basic reporting", plan1_f3: "Email notifications", plan1_cta: "Get Started", plan2_name: "Professional", plan2_price: "₺15,000", plan2_period: "/mo", plan2_f1: "25 cameras", plan2_f2: "Advanced analytics", plan2_f3: "24/7 support", plan2_f4: "SMS + Email alerts", plan2_cta: "Get Started", plan2_badge: "Popular", plan3_name: "Enterprise", plan3_price: "Custom", plan3_period: "", plan3_f1: "Unlimited cameras", plan3_f2: "Custom integration", plan3_f3: "Dedicated support team", plan3_f4: "SLA guarantee", plan3_cta: "Contact Us",
+        nav_pricing: "Solutions", pricing_title: "Solutions", pricing_subtitle: "SaaS subscription model", plan1_name: "Starter", plan1_price: "₺5,000", plan1_period: "/mo", plan1_f1: "5 cameras", plan1_f2: "Basic reporting", plan1_f3: "Email notifications", plan1_cta: "Get Started", plan2_name: "Professional", plan2_price: "₺15,000", plan2_period: "/mo", plan2_f1: "25 cameras", plan2_f2: "Advanced analytics", plan2_f3: "24/7 support", plan2_f4: "SMS + Email alerts", plan2_cta: "Get Started", plan2_badge: "Popular", plan3_name: "Enterprise", plan3_price: "Custom", plan3_period: "", plan3_f1: "Unlimited cameras", plan3_f2: "Custom integration", plan3_f3: "Dedicated support team", plan3_f4: "SLA guarantee", plan3_cta: "Contact Us",
         // Market
         market_label: "Market Opportunity", market_title: "First-mover advantage in a growing market.", market1_val: "₺2.5T", market1_label: "Turkey Construction Sector", market1_sub: "Annual Market Size", market2_val: "$12B", market2_label: "Global AI Safety Market", market2_sub: "2028 Forecast (CAGR 18%)", market_target: "Target: Large construction firms, infrastructure projects, industrial facilities, energy sector",
         // Traction
@@ -63,6 +66,9 @@ var translations = {
         // Demo request
         nav_demo_request: "Request Demo", demo_req_title: "Schedule a Meeting with Our Experts", demo_req_subtitle: "Our experts will answer your questions and provide a live demo walkthrough of the platform. Fill out the form and we'll get back to you right away.", demo_req_badge: "Free Demo",
         form_name: "Full Name", form_company: "Company Name", form_email: "Email", form_phone: "Phone", form_message: "Your Message", form_message_placeholder: "Tell us briefly about your project...", form_submit: "Submit", form_success: "Your request has been received! We will contact you shortly.", form_required: "This field is required",
+        // Chat
+        chat_name: "MIA Assistant", chat_status: "Online", chat_welcome: "Hello! How can I help you?", chat_placeholder: "Type your message...", chat_q1: "What are your solutions?", chat_q2: "Request a demo", chat_q3: "Pricing", chat_q4: "Contact",
+        chat_a1: "MIA uses AI to detect PPE usage like helmets, vests, and harnesses at construction sites in real-time. We offer 24/7 camera analysis, instant SMS/email alerts, and detailed PDF reports.", chat_a2: "Great! Redirecting you to the demo request form.", chat_a3: "We have 3 plans: Starter (₺5,000/mo, 5 cameras), Professional (₺15,000/mo, 25 cameras, 24/7 support) and Enterprise (custom pricing, unlimited cameras). Visit our Solutions page for details.", chat_a4: "You can reach us at dennizoge@gmail.com or through our Contact page.", chat_default: "Thank you! Your message has been saved. Our team will get back to you shortly.",
         footer: "© 2026 MIA - All rights reserved.",
         no_analyses: "No analyses yet", no_analyses_desc: "Click New Analysis to start", no_violations: "No Violations", passwords_not_match: "Passwords do not match", reading_video: "Reading video...", sending_gpu: "Sending to GPU...", error: "Error"
     }
@@ -319,6 +325,118 @@ if (demoRequestForm) {
         });
     };
 }
+
+// === CHAT WIDGET ===
+(function() {
+    var chatHTML = '<button class="chat-fab" id="chatFab"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>' +
+        '<div class="chat-panel" id="chatPanel">' +
+        '<div class="chat-header"><div class="chat-header-info"><div class="chat-header-avatar"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><div class="chat-header-name" id="chatName">MIA Asistan</div><div class="chat-header-status" id="chatStatus">Çevrimiçi</div></div></div><button class="chat-close" id="chatClose"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>' +
+        '<div class="chat-messages" id="chatMessages"></div>' +
+        '<div class="chat-quick-actions" id="chatQuickActions"></div>' +
+        '<div class="chat-input-area"><input class="chat-input" id="chatInput" type="text"><button class="chat-send" id="chatSend"><svg viewBox="0 0 24 24" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>' +
+        '</div>';
+
+    var chatContainer = document.createElement('div');
+    chatContainer.innerHTML = chatHTML;
+    document.body.appendChild(chatContainer);
+
+    var fab = document.getElementById('chatFab');
+    var panel = document.getElementById('chatPanel');
+    var closeBtn = document.getElementById('chatClose');
+    var messagesEl = document.getElementById('chatMessages');
+    var quickEl = document.getElementById('chatQuickActions');
+    var inputEl = document.getElementById('chatInput');
+    var sendBtn = document.getElementById('chatSend');
+    var chatOpened = false;
+
+    function t(key) { return translations[currentLang][key] || key; }
+
+    function addMsg(text, type) {
+        var div = document.createElement('div');
+        div.className = 'chat-msg ' + type;
+        div.textContent = text;
+        messagesEl.appendChild(div);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function showTyping() {
+        var div = document.createElement('div');
+        div.className = 'chat-typing';
+        div.id = 'chatTypingIndicator';
+        div.innerHTML = '<span></span><span></span><span></span>';
+        messagesEl.appendChild(div);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function hideTyping() {
+        var el = document.getElementById('chatTypingIndicator');
+        if (el) el.remove();
+    }
+
+    function botReply(text, delay) {
+        showTyping();
+        setTimeout(function() { hideTyping(); addMsg(text, 'bot'); }, delay || 800);
+    }
+
+    function showQuickActions() {
+        quickEl.innerHTML = '';
+        var actions = [
+            { key: 'chat_q1', answer: 'chat_a1' },
+            { key: 'chat_q2', answer: 'chat_a2', action: 'demo' },
+            { key: 'chat_q3', answer: 'chat_a3' },
+            { key: 'chat_q4', answer: 'chat_a4' }
+        ];
+        for (var i = 0; i < actions.length; i++) {
+            (function(a) {
+                var btn = document.createElement('button');
+                btn.className = 'chat-quick-btn';
+                btn.textContent = t(a.key);
+                btn.onclick = function() {
+                    addMsg(t(a.key), 'user');
+                    quickEl.innerHTML = '';
+                    botReply(t(a.answer), 800);
+                    if (a.action === 'demo') {
+                        setTimeout(function() { window.location.href = 'demo-talep.html'; }, 2000);
+                    } else {
+                        setTimeout(showQuickActions, 1200);
+                    }
+                };
+                quickEl.appendChild(btn);
+            })(actions[i]);
+        }
+    }
+
+    function initChat() {
+        messagesEl.innerHTML = '';
+        document.getElementById('chatName').textContent = t('chat_name');
+        document.getElementById('chatStatus').textContent = t('chat_status');
+        inputEl.placeholder = t('chat_placeholder');
+        addMsg(t('chat_welcome'), 'bot');
+        showQuickActions();
+    }
+
+    function handleSend() {
+        var msg = inputEl.value.trim();
+        if (!msg) return;
+        addMsg(msg, 'user');
+        inputEl.value = '';
+        quickEl.innerHTML = '';
+
+        // Save to Supabase
+        supabase.from('chat_messages').insert({ message: msg, lang: currentLang, page: window.location.pathname, created_at: new Date().toISOString() });
+
+        botReply(t('chat_default'), 1000);
+        setTimeout(showQuickActions, 2200);
+    }
+
+    fab.onclick = function() {
+        panel.classList.toggle('open');
+        if (!chatOpened) { initChat(); chatOpened = true; }
+    };
+    closeBtn.onclick = function() { panel.classList.remove('open'); };
+    sendBtn.onclick = handleSend;
+    inputEl.onkeydown = function(e) { if (e.key === 'Enter') handleSend(); };
+})();
 
 // === INIT ===
 setLanguage(currentLang);
