@@ -32,7 +32,7 @@ var translations = {
         form_name: "Ad Soyad", form_company: "Şirket Adı", form_email: "E-Posta", form_phone: "Telefon", form_message: "Mesajınız", form_message_placeholder: "Projeniz hakkında kısaca bilgi verin...", form_submit: "Gönder", form_success: "Talebiniz alındı! En kısa sürede sizinle iletişime geçeceğiz.", form_required: "Bu alan zorunludur",
         // Chat
         chat_name: "MIA Asistan", chat_status: "Çevrimiçi", chat_welcome: "Merhaba! Size nasıl yardımcı olabilirim?", chat_placeholder: "Mesajınızı yazın...", chat_q1: "Çözümleriniz neler?", chat_q2: "Demo talep et", chat_q3: "Fiyatlandırma", chat_q4: "İletişim",
-        chat_a1: "MIA, yapay zeka ile inşaat şantiyelerinde baret, yelek ve kemer gibi PPE kullanımını gerçek zamanlı tespit eder. 7/24 kamera analizi, anlık SMS/e-posta uyarıları ve detaylı PDF raporlar sunar.", chat_a2: "Harika! Demo talep formuna yönlendiriyorum.", chat_a3: "3 paketimiz var: Başlangıç (₺5,000/ay, 5 kamera), Profesyonel (₺15,000/ay, 25 kamera, 7/24 destek) ve Kurumsal (özel teklif, sınırsız kamera). Detaylar için Çözümler sayfamızı ziyaret edin.", chat_a4: "Bize dennizoge@gmail.com adresinden veya İletişim sayfamızdan ulaşabilirsiniz.", chat_default: "Teşekkürler! Mesajınız kaydedildi. Ekibimiz en kısa sürede sizinle iletişime geçecek.",
+        chat_a1: "MIA, yapay zeka ile inşaat şantiyelerinde baret, yelek ve kemer gibi PPE kullanımını gerçek zamanlı tespit eder. 7/24 kamera analizi, anlık SMS/e-posta uyarıları ve detaylı PDF raporlar sunar.", chat_a2: "Harika! Demo talep formuna yönlendiriyorum.", chat_a3: "3 paketimiz var: Başlangıç (₺5,000/ay, 5 kamera), Profesyonel (₺15,000/ay, 25 kamera, 7/24 destek) ve Kurumsal (özel teklif, sınırsız kamera). Detaylar için Çözümler sayfamızı ziyaret edin.", chat_a4: "Bize dennizoge@gmail.com adresinden veya İletişim sayfamızdan ulaşabilirsiniz.", chat_greet: "Merhaba! MIA'ya hoş geldiniz. Size çözümlerimiz, fiyatlandırma veya demo hakkında yardımcı olabilirim. Ne öğrenmek istersiniz?", chat_thanks: "Rica ederim! Başka bir sorunuz varsa çekinmeyin. Yardımcı olmaktan mutluluk duyarız!", chat_about: "MIA, Deniz Öge, Ege Türker ve Gökberk Şahin tarafından kurulan bir yapay zeka güvenlik platformudur. İnşaat şantiyelerinde iş kazalarını önlemeyi hedefliyoruz.", chat_safety: "MIA, baret, yelek ve emniyet kemeri gibi KKD kullanımını AI ile tespit ederek iş kazalarını önler. İhlaller anında SMS ve e-posta ile bildirilir, böylece kazalar oluşmadan müdahale edilir.", chat_integration: "MIA, mevcut CCTV kamera sistemlerinize entegre olur. Ek donanım gerektirmez. Kurulum 3 adımda tamamlanır: kameralarınızı bağlayın, AI analiz etsin, uyarı alın.", chat_default: "İlginiz için teşekkürler! Bu konuda size en iyi şekilde yardımcı olabilmemiz için ekibimiz en kısa sürede sizinle iletişime geçecek. Ayrıca demo talep edebilir veya aşağıdaki konulardan birini seçebilirsiniz.",
         footer: "© 2026 MIA - Tüm hakları saklıdır.",
         no_analyses: "Henüz analiz yok", no_analyses_desc: "Yeni Analiz butonuna tıklayın", no_violations: "İhlal Yok", passwords_not_match: "Şifreler eşleşmiyor", reading_video: "Video okunuyor...", sending_gpu: "GPU'ya gönderiliyor...", error: "Hata"
     },
@@ -68,7 +68,7 @@ var translations = {
         form_name: "Full Name", form_company: "Company Name", form_email: "Email", form_phone: "Phone", form_message: "Your Message", form_message_placeholder: "Tell us briefly about your project...", form_submit: "Submit", form_success: "Your request has been received! We will contact you shortly.", form_required: "This field is required",
         // Chat
         chat_name: "MIA Assistant", chat_status: "Online", chat_welcome: "Hello! How can I help you?", chat_placeholder: "Type your message...", chat_q1: "What are your solutions?", chat_q2: "Request a demo", chat_q3: "Pricing", chat_q4: "Contact",
-        chat_a1: "MIA uses AI to detect PPE usage like helmets, vests, and harnesses at construction sites in real-time. We offer 24/7 camera analysis, instant SMS/email alerts, and detailed PDF reports.", chat_a2: "Great! Redirecting you to the demo request form.", chat_a3: "We have 3 plans: Starter (₺5,000/mo, 5 cameras), Professional (₺15,000/mo, 25 cameras, 24/7 support) and Enterprise (custom pricing, unlimited cameras). Visit our Solutions page for details.", chat_a4: "You can reach us at dennizoge@gmail.com or through our Contact page.", chat_default: "Thank you! Your message has been saved. Our team will get back to you shortly.",
+        chat_a1: "MIA uses AI to detect PPE usage like helmets, vests, and harnesses at construction sites in real-time. We offer 24/7 camera analysis, instant SMS/email alerts, and detailed PDF reports.", chat_a2: "Great! Redirecting you to the demo request form.", chat_a3: "We have 3 plans: Starter (₺5,000/mo, 5 cameras), Professional (₺15,000/mo, 25 cameras, 24/7 support) and Enterprise (custom pricing, unlimited cameras). Visit our Solutions page for details.", chat_a4: "You can reach us at dennizoge@gmail.com or through our Contact page.", chat_greet: "Hello! Welcome to MIA. I can help you with our solutions, pricing, or scheduling a demo. What would you like to know?", chat_thanks: "You're welcome! Don't hesitate to ask if you have more questions. Happy to help!", chat_about: "MIA is an AI safety platform founded by Deniz Öge, Ege Türker, and Gökberk Şahin. Our mission is to prevent workplace accidents at construction sites.", chat_safety: "MIA detects PPE usage like helmets, vests, and safety harnesses using AI, preventing workplace accidents. Violations are instantly reported via SMS and email, enabling intervention before accidents happen.", chat_integration: "MIA integrates with your existing CCTV camera systems. No additional hardware required. Setup is completed in 3 steps: connect your cameras, let AI analyze, and receive alerts.", chat_default: "Thanks for your interest! Our team will get back to you shortly to help with this. You can also request a demo or choose one of the topics below.",
         footer: "© 2026 MIA - All rights reserved.",
         no_analyses: "No analyses yet", no_analyses_desc: "Click New Analysis to start", no_violations: "No Violations", passwords_not_match: "Passwords do not match", reading_video: "Reading video...", sending_gpu: "Sending to GPU...", error: "Error"
     }
@@ -421,6 +421,27 @@ if (demoRequestForm) {
         showQuickActions();
     }
 
+    function matchTopic(msg) {
+        var m = msg.toLowerCase();
+        var topics = [
+            { keys: ['fiyat', 'price', 'pricing', 'ücret', 'maliyet', 'cost', 'plan', 'paket', 'package', 'abonelik', 'subscription', 'how much', 'ne kadar', 'kaç'], answer: 'chat_a3' },
+            { keys: ['çözüm', 'solution', 'özellik', 'feature', 'ne yapıyor', 'what do', 'what does', 'nasıl çalış', 'how does', 'how it work', 'nedir', 'what is', 'hakkında', 'about', 'ppe', 'tespit', 'detect', 'kamera', 'camera', 'analiz', 'analy', 'izleme', 'monitor', 'baret', 'helmet', 'yelek', 'vest'], answer: 'chat_a1' },
+            { keys: ['demo', 'dene', 'try', 'test', 'göster', 'show', 'görüşme', 'meeting', 'toplantı', 'sunum', 'presentation'], answer: 'chat_a2', action: 'demo' },
+            { keys: ['iletişim', 'contact', 'ulaş', 'reach', 'mail', 'email', 'e-posta', 'telefon', 'phone', 'ara', 'call', 'adres', 'address', 'nerede', 'where'], answer: 'chat_a4' },
+            { keys: ['merhaba', 'selam', 'hello', 'hi ', 'hey', 'günaydın', 'good morning', 'iyi günler', 'good day'], answer: 'chat_greet' },
+            { keys: ['teşekkür', 'thanks', 'thank you', 'sağol', 'eyvallah'], answer: 'chat_thanks' },
+            { keys: ['kimsiniz', 'who are', 'ekip', 'team', 'kurucu', 'founder', 'şirket', 'company'], answer: 'chat_about' },
+            { keys: ['güvenli', 'safe', 'kaza', 'accident', 'ihlal', 'violation', 'risk', 'önle', 'prevent'], answer: 'chat_safety' },
+            { keys: ['entegr', 'integr', 'kurulum', 'setup', 'install', 'bağla', 'connect', 'cctv', 'mevcut', 'existing'], answer: 'chat_integration' }
+        ];
+        for (var i = 0; i < topics.length; i++) {
+            for (var j = 0; j < topics[i].keys.length; j++) {
+                if (m.indexOf(topics[i].keys[j]) !== -1) return topics[i];
+            }
+        }
+        return null;
+    }
+
     function handleSend() {
         var msg = inputEl.value.trim();
         if (!msg) return;
@@ -431,8 +452,18 @@ if (demoRequestForm) {
         // Save to Supabase
         supabase.from('chat_messages').insert({ message: msg, lang: currentLang, page: window.location.pathname, created_at: new Date().toISOString() });
 
-        botReply(t('chat_default'), 1000);
-        setTimeout(showQuickActions, 2200);
+        var topic = matchTopic(msg);
+        if (topic) {
+            botReply(t(topic.answer), 800);
+            if (topic.action === 'demo') {
+                setTimeout(function() { window.location.href = 'demo-talep.html'; }, 2000);
+            } else {
+                setTimeout(showQuickActions, 1200);
+            }
+        } else {
+            botReply(t('chat_default'), 1000);
+            setTimeout(showQuickActions, 2200);
+        }
     }
 
     window.updateChatLang = function() {
