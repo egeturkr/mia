@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - Video Safety Hazard Detector</title>
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMGEwYTBhIi8+CiAgPHBhdGggZD0iTTE2IDRMNSA5VjE2QzUgMjIuNiA5LjYgMjguNyAxNiAzMEMyMi40IDI4LjcgMjcgMjIuNiAyNyAxNlY5TDE2IDRaIiBzdHJva2U9IiNGNTlFMEIiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+CiAgPHBhdGggZD0iTTExIDE2TDE0IDE5TDIxIDEyIiBzdHJva2U9IiNGNTlFMEIiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+Cjwvc3ZnPgo=">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html">
+            <img src="images/mia-logo.png" alt="MIA" class="logo-img">
+        </a>
+        <nav>
+            <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
+            <a href="sirket.html" data-i18n="nav_company">Şirket</a>
+            <a href="cozumler.html" data-i18n="nav_pricing">Çözümler</a>
+            <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
+            <div class="nav-divider"></div>
+            <div id="loggedOutNav">
+                <a href="login.html" class="btn btn-secondary btn-sm" data-i18n="nav_login">Giriş Yap</a>
+                <a href="demo-talep.html" class="btn btn-primary btn-sm" data-i18n="nav_demo_request">Demo Talep Et</a>
+            </div>
+            <div id="loggedInNav" style="display:none;">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="demo.html" data-i18n="nav_analysis">Analiz</a>
+                <span class="user-email" id="userEmail"></span>
+                <button type="button" id="navLogout" class="btn btn-secondary btn-sm" data-i18n="nav_logout">Çıkış</button>
+            </div>
+            <div class="lang-switcher">
+                <button type="button" class="lang-btn active" id="langTR">TR</button>
+                <button type="button" class="lang-btn" id="langEN">EN</button>
+            </div>
+            <button type="button" class="theme-toggle" id="themeToggle" title="Toggle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+        </nav>
+    </header>
+
+    <main class="det-main">
+        <div class="det-container">
+            <!-- HEADER -->
+            <div class="det-header">
+                <div class="det-label" data-i18n="det_label">AI SAFETY DASHBOARD</div>
+                <h1 class="det-title" data-i18n="det_title">Video Safety Hazard Detector</h1>
+                <p class="det-subtitle" data-i18n="det_subtitle">Şantiye videolarını yükleyin, yapay zeka destekli güvenlik analizini simüle edin.</p>
+            </div>
+
+            <!-- STATE 1: UPLOAD -->
+            <section class="det-panel det-upload-panel" id="uploadPanel">
+                <div class="det-upload-zone" id="uploadZone">
+                    <input type="file" id="detFileInput" accept="video/*" hidden>
+                    <div class="det-upload-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <h3 class="det-upload-text" data-i18n="det_upload_text">Video dosyası yükleyin</h3>
+                    <p class="det-upload-hint" data-i18n="det_upload_hint">MP4, MOV veya AVI dosyasını buraya sürükleyin ya da seçin (maks. 100 MB)</p>
+                    <button type="button" class="det-btn det-btn-primary" id="detBrowseBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span data-i18n="det_browse">Dosya Seç</span>
+                    </button>
+                </div>
+                <div class="det-supported">
+                    <div class="det-supported-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> MP4</div>
+                    <div class="det-supported-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> MOV</div>
+                    <div class="det-supported-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> AVI</div>
+                    <div class="det-supported-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> WEBM</div>
+                </div>
+            </section>
+
+            <!-- STATE 2: PREVIEW & CONTROL -->
+            <section class="det-panel det-preview-panel" id="previewPanel" style="display:none;">
+                <div class="det-preview-grid">
+                    <div class="det-video-card">
+                        <div class="det-video-header">
+                            <div class="det-video-meta">
+                                <div class="det-video-name" id="videoName">video.mp4</div>
+                                <div class="det-video-size" id="videoSize">— MB</div>
+                            </div>
+                            <button type="button" class="det-btn-icon" id="removeVideoBtn" title="Kaldır">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        <video id="detVideoPreview" controls></video>
+                    </div>
+                    <div class="det-control-card">
+                        <div class="det-control-status" id="controlStatus">
+                            <div class="det-status-dot"></div>
+                            <span data-i18n="det_ready">Analize Hazır</span>
+                        </div>
+                        <h3 data-i18n="det_control_title">Analiz Kontrolleri</h3>
+                        <p data-i18n="det_control_desc">Yapay zeka modeli videodaki PPE kullanımını, tehlikeli bölgeleri ve riskleri tespit edecek.</p>
+                        <div class="det-control-options">
+                            <label class="det-check"><input type="checkbox" checked> <span data-i18n="det_opt1">PPE Tespiti</span></label>
+                            <label class="det-check"><input type="checkbox" checked> <span data-i18n="det_opt2">Tehlikeli Bölge Analizi</span></label>
+                            <label class="det-check"><input type="checkbox" checked> <span data-i18n="det_opt3">Davranışsal Risk</span></label>
+                            <label class="det-check"><input type="checkbox"> <span data-i18n="det_opt4">Termal Anomali (Beta)</span></label>
+                        </div>
+                        <button type="button" class="det-btn det-btn-primary det-btn-full" id="startAnalysisBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span data-i18n="det_start">Analizi Başlat</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress bar -->
+                <div class="det-progress" id="progressBar" style="display:none;">
+                    <div class="det-progress-header">
+                        <span class="det-progress-step" id="progressStep">Başlatılıyor...</span>
+                        <span class="det-progress-pct" id="progressPct">0%</span>
+                    </div>
+                    <div class="det-progress-track"><div class="det-progress-fill" id="progressFill"></div></div>
+                    <div class="det-progress-meta" id="progressMeta">Tahmini süre: <span id="progressEta">—</span></div>
+                </div>
+            </section>
+
+            <!-- STATE 3: RESULTS -->
+            <section class="det-panel det-results-panel" id="resultsPanel" style="display:none;">
+                <div class="det-results-header">
+                    <div>
+                        <div class="det-label" data-i18n="det_results_label">ANALİZ SONUÇLARI</div>
+                        <h2 class="det-h2" data-i18n="det_results_title">Tespit Özeti</h2>
+                    </div>
+                    <div class="det-results-actions">
+                        <button type="button" class="det-btn det-btn-outline" id="downloadJsonBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <span data-i18n="det_download_json">JSON Raporu</span>
+                        </button>
+                        <button type="button" class="det-btn det-btn-outline" id="resetBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                            <span data-i18n="det_new">Yeni Analiz</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Summary stats -->
+                <div class="det-summary-grid">
+                    <div class="det-sum-card">
+                        <div class="det-sum-icon det-sum-icon-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                        <div class="det-sum-val" id="totalHazards">0</div>
+                        <div class="det-sum-lbl" data-i18n="det_sum_total">Toplam Tehlike</div>
+                    </div>
+                    <div class="det-sum-card">
+                        <div class="det-sum-icon det-sum-icon-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+                        <div class="det-sum-val" id="highRisk">0</div>
+                        <div class="det-sum-lbl" data-i18n="det_sum_high">Yüksek Risk</div>
+                    </div>
+                    <div class="det-sum-card">
+                        <div class="det-sum-icon det-sum-icon-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                        <div class="det-sum-val" id="avgConfidence">0%</div>
+                        <div class="det-sum-lbl" data-i18n="det_sum_avg">Ortalama Güven</div>
+                    </div>
+                    <div class="det-sum-card">
+                        <div class="det-sum-icon det-sum-icon-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                        <div class="det-sum-val" id="processedTime">0:00</div>
+                        <div class="det-sum-lbl" data-i18n="det_sum_time">İşlenen Süre</div>
+                    </div>
+                </div>
+
+                <!-- Detection cards -->
+                <div class="det-cards-header">
+                    <h3 data-i18n="det_events_title">Tespit Edilen Olaylar</h3>
+                    <div class="det-filter-pills">
+                        <button type="button" class="det-pill active" data-filter="all">Tümü</button>
+                        <button type="button" class="det-pill det-pill-high" data-filter="Yüksek">Yüksek</button>
+                        <button type="button" class="det-pill det-pill-med" data-filter="Orta">Orta</button>
+                        <button type="button" class="det-pill det-pill-low" data-filter="Düşük">Düşük</button>
+                    </div>
+                </div>
+                <div class="det-events-grid" id="eventsGrid"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="hp-footer">
+        <div class="hp-container">
+            <div class="hp-footer-grid">
+                <div class="hp-footer-brand">
+                    <img src="images/mia-logo.png" alt="MIA" class="hp-footer-logo">
+                    <p class="hp-footer-tag" data-i18n="footer_tag">Yapay zeka ile güvenli yarınlar inşa ediyoruz.</p>
+                </div>
+                <div class="hp-footer-col">
+                    <h4 data-i18n="footer_quick">HIZLI ERİŞİM</h4>
+                    <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
+                    <a href="cozumler.html" data-i18n="nav_pricing">Çözümler</a>
+                    <a href="sirket.html" data-i18n="nav_company">Şirket</a>
+                    <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
+                </div>
+                <div class="hp-footer-col">
+                    <h4 data-i18n="footer_solutions">ÇÖZÜMLER</h4>
+                    <a href="cozumler.html" data-i18n="footer_ppe">PPE Tespiti</a>
+                    <a href="cozumler.html" data-i18n="footer_alert">Anlık Uyarı</a>
+                    <a href="cozumler.html" data-i18n="footer_report">Raporlama</a>
+                    <a href="detector.html" data-i18n="footer_detector">Hazard Detector</a>
+                </div>
+                <div class="hp-footer-col">
+                    <h4 data-i18n="footer_contact">İLETİŞİM</h4>
+                    <a href="mailto:info@mia.com.tr">info@mia.com.tr</a>
+                    <a href="tel:+902121234567">+90 (212) 123 45 67</a>
+                    <p>Maslak Mah. Büyükdere Cad.</p>
+                    <p>No: 123, Sarıyer / İstanbul</p>
+                </div>
+            </div>
+            <div class="hp-footer-bottom">
+                <div class="hp-footer-copy">© 2026 MIA. <span data-i18n="footer_rights">Tüm hakları saklıdır.</span></div>
+                <div class="hp-footer-socials">
+                    <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+                    <a href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+                    <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+                </div>
+                <div class="hp-footer-legal">
+                    <a href="#" data-i18n="footer_terms">Kullanım Şartları</a>
+                    <a href="#" data-i18n="footer_privacy">Gizlilik Politikası</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+    <script src="js/detector.js"></script>
+</body>
+</html>
