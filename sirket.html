@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIA - Şirket</title>
     <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMGEwYTBhIi8+CiAgPHBhdGggZD0iTTE2IDRMNSA5VjE2QzUgMjIuNiA5LjYgMjguNyAxNiAzMEMyMi40IDI4LjcgMjcgMjIuNiAyNyAxNlY5TDE2IDRaIiBzdHJva2U9IiNGNTlFMEIiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+CiAgPHBhdGggZD0iTTExIDE2TDE0IDE5TDIxIDEyIiBzdHJva2U9IiNGNTlFMEIiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+Cjwvc3ZnPgo=">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <header>
         <a class="logo" href="index.html">
-            <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-            <span class="logo-text">MIA</span>
+            <img src="images/mia-logo.png" alt="MIA" class="logo-img">
         </a>
         <nav>
             <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
@@ -39,64 +38,228 @@
         </nav>
     </header>
 
-    <main class="page-inner">
-        <div class="company-container">
-            <div class="section-header"><h1 data-i18n="company_title">Şirketimiz</h1><p data-i18n="company_subtitle">İş güvenliğini yapay zeka ile dönüştürüyoruz</p></div>
-            <div class="company-hero">
-                <div class="company-image"><img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80" alt="Construction"></div>
-                <div class="company-info"><h1 data-i18n="about_title">MIA Nedir?</h1><p data-i18n="about_p1">MIA, inşaat sektöründe iş kazalarını önlemek için geliştirilen yapay zeka platformudur.</p><p data-i18n="about_p2">YOLOv8 tabanlı teknoloji ile baret, yelek ve diğer PPE kullanımını tespit eder.</p></div>
-            </div>
-            <div class="company-values"><h2 data-i18n="why_mia">Neden MIA?</h2>
-                <div class="values-grid">
-                    <div class="value-card"><div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h3 data-i18n="value1_title">Gerçek Zamanlı</h3><p data-i18n="value1_desc">7/24 kesintisiz izleme</p></div>
-                    <div class="value-card"><div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3 data-i18n="value2_title">Yüksek Doğruluk</h3><p data-i18n="value2_desc">%99+ tespit doğruluğu</p></div>
-                    <div class="value-card"><div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><h3 data-i18n="value3_title">PDF Raporlar</h3><p data-i18n="value3_desc">Otomatik raporlama</p></div>
+    <main class="sk-main">
+        <!-- HERO -->
+        <section class="sk-hero">
+            <div class="sk-hero-grid">
+                <div class="sk-hero-left">
+                    <div class="sk-breadcrumb">
+                        <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
+                        <span class="sk-bc-sep">/</span>
+                        <span data-i18n="nav_company">Şirket</span>
+                    </div>
+                    <div class="sk-label" data-i18n="sk_label">HAKKIMIZDA</div>
+                    <h1 class="sk-hero-title">
+                        <span data-i18n="sk_title_1">İş güvenliğini</span><br>
+                        <span data-i18n="sk_title_2">yapay zeka ile</span><br>
+                        <span class="sk-gold" data-i18n="sk_title_3">dönüştürüyoruz.</span>
+                    </h1>
+                    <p class="sk-hero-text" data-i18n="sk_intro">MIA, şantiyelerdeki iş kazalarını önlemek için geliştirilmiş yapay zeka tabanlı bir güvenlik platformudur.</p>
+                    <div class="sk-bullets">
+                        <div class="sk-bullet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="sk_b1">Veri Odaklı</span></div>
+                        <div class="sk-bullet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="sk_b2">Gerçek Zamanlı</span></div>
+                        <div class="sk-bullet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="sk_b3">Yüksek Doğruluk</span></div>
+                    </div>
+                </div>
+                <div class="sk-hero-right">
+                    <div class="sk-hero-visual">
+                        <div class="sk-hero-bg"></div>
+                        <div class="sk-hero-overlay"></div>
+                        <div class="sk-hero-shield-wrap">
+                            <div class="sk-hero-shield-glow"></div>
+                            <svg class="sk-hero-shield" viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="skShieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#FFC247"/>
+                                        <stop offset="100%" stop-color="#F5A300"/>
+                                    </linearGradient>
+                                    <linearGradient id="skBldgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+                                        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.6"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M100 10 L185 40 V110 C185 165 145 200 100 215 C55 200 15 165 15 110 V40 Z" stroke="url(#skShieldGrad)" stroke-width="5" fill="none" stroke-linejoin="round"/>
+                                <rect x="92" y="70" width="16" height="105" fill="url(#skShieldGrad)" rx="1"/>
+                                <path d="M65 110 L85 90 L85 175 L65 175 Z" stroke="url(#skBldgGrad)" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+                                <path d="M50 130 L65 115 L65 175 L50 175 Z" stroke="url(#skBldgGrad)" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+                                <path d="M135 110 L115 90 L115 175 L135 175 Z" stroke="url(#skBldgGrad)" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+                                <path d="M150 130 L135 115 L135 175 L150 175 Z" stroke="url(#skBldgGrad)" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <img class="sk-hero-worker" src="images/worker-silhouette.png" alt="">
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <!-- STATS BAR -->
+        <section class="sk-stats-section">
+            <div class="sk-container">
+                <div class="sk-stats-bar">
+                    <div class="sk-stat">
+                        <div class="sk-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </div>
+                        <div class="sk-stat-val">2023</div>
+                        <div class="sk-stat-lbl" data-i18n="sk_st1">Kuruluş Yılı</div>
+                    </div>
+                    <div class="sk-stat-divider"></div>
+                    <div class="sk-stat">
+                        <div class="sk-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <div class="sk-stat-val">25+</div>
+                        <div class="sk-stat-lbl" data-i18n="sk_st2">Uzman Ekip</div>
+                    </div>
+                    <div class="sk-stat-divider"></div>
+                    <div class="sk-stat">
+                        <div class="sk-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="2" x2="9" y2="4"/><line x1="15" y1="2" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="22"/><line x1="15" y1="20" x2="15" y2="22"/><line x1="2" y1="9" x2="4" y2="9"/><line x1="20" y1="9" x2="22" y2="9"/><line x1="2" y1="15" x2="4" y2="15"/><line x1="20" y1="15" x2="22" y2="15"/></svg>
+                        </div>
+                        <div class="sk-stat-val">2.100+</div>
+                        <div class="sk-stat-lbl" data-i18n="sk_st3">Eğitilmiş AI Modeli</div>
+                    </div>
+                    <div class="sk-stat-divider"></div>
+                    <div class="sk-stat">
+                        <div class="sk-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        </div>
+                        <div class="sk-stat-val">10+</div>
+                        <div class="sk-stat-lbl" data-i18n="sk_st4">Aktif Proje</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MISSION & VISION -->
+        <section class="sk-mv-section">
+            <div class="sk-container">
+                <div class="sk-section-tag" data-i18n="sk_mv_tag">MİSYON & VİZYON</div>
+                <div class="sk-mv-grid">
+                    <div class="sk-mv-card">
+                        <div class="sk-mv-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
+                        </div>
+                        <h3 data-i18n="sk_mission_title">Misyonumuz</h3>
+                        <p data-i18n="sk_mission_text">Yapay zeka teknolojisi ile sahadaki riskleri azaltarak, her çalışanın güvenle evine dönebileceği bir iş ortamı oluşturmak.</p>
+                    </div>
+                    <div class="sk-mv-card">
+                        <div class="sk-mv-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </div>
+                        <h3 data-i18n="sk_vision_title">Vizyonumuz</h3>
+                        <p data-i18n="sk_vision_text">Dünyanın en güvenli çalışma alanlarını oluşturmak için lider yapay zeka güvenlik platformu olmak.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- JOURNEY TIMELINE -->
+        <section class="sk-journey-section">
+            <div class="sk-container">
+                <div class="sk-section-tag" data-i18n="sk_journey_tag">YOLCULUĞUMUZ</div>
+                <h2 class="sk-h2" data-i18n="sk_journey_title">Güvenlikte akıllı dönüşüm yolculuğumuz</h2>
+                <div class="sk-timeline">
+                    <div class="sk-tl-line"></div>
+                    <div class="sk-tl-item">
+                        <div class="sk-tl-dot"></div>
+                        <div class="sk-tl-year">2023</div>
+                        <h4 data-i18n="sk_tl1_title">MIA kuruldu</h4>
+                        <p data-i18n="sk_tl1_desc">İSG sektörüne yapay zeka vizyonumuzla adım attık.</p>
+                    </div>
+                    <div class="sk-tl-item">
+                        <div class="sk-tl-dot"></div>
+                        <div class="sk-tl-year">2023</div>
+                        <h4 data-i18n="sk_tl2_title">İlk MVP</h4>
+                        <p data-i18n="sk_tl2_desc">CCTV tabanlı PPE tespiti için ilk modelimizi geliştirdik.</p>
+                    </div>
+                    <div class="sk-tl-item">
+                        <div class="sk-tl-dot"></div>
+                        <div class="sk-tl-year">2024</div>
+                        <h4 data-i18n="sk_tl3_title">Pilot Projeler</h4>
+                        <p data-i18n="sk_tl3_desc">Sahada pilot projelerle çözümümüzü doğruladık ve büyümeye başladık.</p>
+                    </div>
+                    <div class="sk-tl-item">
+                        <div class="sk-tl-dot"></div>
+                        <div class="sk-tl-year">2025+</div>
+                        <h4 data-i18n="sk_tl4_title">Büyüme & Ölçekleme</h4>
+                        <p data-i18n="sk_tl4_desc">Global pazarlara açılarak yapay zeka güvenlikte lider olmayı hedefliyoruz.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INVESTMENT GOAL -->
+        <section class="sk-invest-section">
+            <div class="sk-container">
+                <div class="sk-section-tag" data-i18n="sk_invest_tag">YATIRIM HEDEFİMİZ</div>
+                <div class="sk-invest-card">
+                    <div class="sk-invest-left">
+                        <div class="sk-invest-amount">₺2.000.000</div>
+                        <div class="sk-invest-round" data-i18n="sk_invest_round">Seed Round</div>
+                        <p class="sk-invest-text" data-i18n="sk_invest_text">Ürün geliştirme, satış & pazarlama ve operasyonel büyüme için yatırım arıyoruz.</p>
+                        <a href="iletisim.html" class="sk-invest-btn">
+                            <span data-i18n="sk_invest_cta">Yatırımcı İletişim</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </a>
+                    </div>
+                    <div class="sk-invest-right">
+                        <ul class="sk-invest-list">
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="sk_inv1">AI model geliştirme ve Ar-Ge</span></li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="sk_inv2">Satış &amp; pazarlama faaliyetlerini büyütme</span></li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="sk_inv3">Ulusal ve uluslararası genişleme</span></li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="sk_inv4">Stratejik ortaklıklar</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <!-- Market Opportunity -->
-    <section class="market-section">
-        <div class="market-container">
-            <div class="section-label" data-i18n="market_label">Pazar Fırsatı</div>
-            <h2 class="market-title" data-i18n="market_title">Büyüyen pazarda erken hamle avantajı.</h2>
-            <div class="market-grid">
-                <div class="market-card"><div class="market-card-value accent" data-i18n="market1_val">₺2.5T</div><div class="market-card-label" data-i18n="market1_label">Türkiye İnşaat Sektörü</div><div class="market-card-sub" data-i18n="market1_sub">Yıllık Pazar Büyüklüğü</div></div>
-                <div class="market-card"><div class="market-card-value green" data-i18n="market2_val">$12B</div><div class="market-card-label" data-i18n="market2_label">Global AI Safety Pazarı</div><div class="market-card-sub" data-i18n="market2_sub">2028 Tahmini (CAGR %18)</div></div>
-            </div>
-            <p class="market-target" data-i18n="market_target">Hedef: Büyük inşaat firmaları, altyapı projeleri, sanayi tesisleri, enerji sektörü</p>
-        </div>
-    </section>
-
-    <!-- Traction & Roadmap -->
-    <section class="traction-section">
-        <div class="traction-container">
-            <div class="section-label" data-i18n="traction_label">Mevcut Durum</div>
-            <h2 class="traction-title" data-i18n="traction_title">Güçlü temeller, net hedefler.</h2>
-            <div class="traction-grid">
-                <div class="traction-list">
-                    <div class="traction-item"><div class="traction-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span data-i18n="trac1">Çalışan MVP ürünü</span></div>
-                    <div class="traction-item"><div class="traction-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span data-i18n="trac2">GPU-hızlandırılmış altyapı</span></div>
-                    <div class="traction-item"><div class="traction-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span data-i18n="trac3">2,100+ görüntü ile eğitilmiş AI</span></div>
-                    <div class="traction-item"><div class="traction-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span data-i18n="trac4">Canlı web platformu</span></div>
+    <!-- FOOTER -->
+    <footer class="hp-footer">
+        <div class="hp-container">
+            <div class="hp-footer-grid">
+                <div class="hp-footer-brand">
+                    <img src="images/mia-logo.png" alt="MIA" class="hp-footer-logo">
+                    <p class="hp-footer-tag" data-i18n="footer_tag">Yapay zeka ile güvenli yarınlar inşa ediyoruz.</p>
                 </div>
-                <div class="roadmap">
-                    <h3 data-i18n="roadmap_title">2026 Yol Haritası</h3>
-                    <div class="roadmap-item"><span class="roadmap-q">Q1</span><span data-i18n="road_q1">Pilot müşteriler</span></div>
-                    <div class="roadmap-item"><span class="roadmap-q">Q2</span><span data-i18n="road_q2">Mobil uygulama</span></div>
-                    <div class="roadmap-item"><span class="roadmap-q">Q3</span><span data-i18n="road_q3">10 aktif müşteri</span></div>
-                    <div class="roadmap-item"><span class="roadmap-q">Q4</span><span data-i18n="road_q4">Uluslararası genişleme</span></div>
+                <div class="hp-footer-col">
+                    <h4 data-i18n="footer_quick">HIZLI ERİŞİM</h4>
+                    <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
+                    <a href="cozumler.html" data-i18n="nav_pricing">Çözümler</a>
+                    <a href="sirket.html" data-i18n="nav_company">Şirket</a>
+                    <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
+                </div>
+                <div class="hp-footer-col">
+                    <h4 data-i18n="footer_solutions">ÇÖZÜMLER</h4>
+                    <a href="cozumler.html" data-i18n="footer_ppe">PPE Tespiti</a>
+                    <a href="cozumler.html" data-i18n="footer_alert">Anlık Uyarı</a>
+                    <a href="cozumler.html" data-i18n="footer_report">Raporlama</a>
+                    <a href="detector.html" data-i18n="footer_detector">Hazard Detector</a>
+                </div>
+                <div class="hp-footer-col">
+                    <h4 data-i18n="footer_contact">İLETİŞİM</h4>
+                    <a href="mailto:info@mia.com.tr">info@mia.com.tr</a>
+                    <a href="tel:+902121234567">+90 (212) 123 45 67</a>
+                    <p>Maslak Mah. Büyükdere Cad.</p>
+                    <p>No: 123, Sarıyer / İstanbul</p>
                 </div>
             </div>
-            <div class="invest-banner">
-                <h3 data-i18n="invest_title">Yatırım Hedefi: ₺2.000.000 Seed Round</h3>
-                <p data-i18n="invest_desc">Ürün geliştirme %40 • Satış & pazarlama %35 • Operasyon %25</p>
+            <div class="hp-footer-bottom">
+                <div class="hp-footer-copy">© 2026 MIA. <span data-i18n="footer_rights">Tüm hakları saklıdır.</span></div>
+                <div class="hp-footer-socials">
+                    <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+                    <a href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+                    <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+                </div>
+                <div class="hp-footer-legal">
+                    <a href="#" data-i18n="footer_terms">Kullanım Şartları</a>
+                    <a href="#" data-i18n="footer_privacy">Gizlilik Politikası</a>
+                </div>
             </div>
         </div>
-    </section>
-
-    <footer><p data-i18n="footer">© 2026 MIA - Tüm hakları saklıdır.</p></footer>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/app.js"></script>
