@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - Şifre Sıfırlama</title>
+    <link rel="icon" type="image/png" href="images/mia-shield.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html">
+            <img src="images/mia-logo.png" alt="MIA" class="logo-img">
+        </a>
+        <nav>
+            <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
+            <a href="sirket.html" data-i18n="nav_company">Şirket</a>
+            <a href="cozumler.html" data-i18n="nav_pricing">Çözümler</a>
+            <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
+            <div class="nav-divider"></div>
+            <div id="loggedOutNav">
+                <a href="giris-yap.html" class="btn btn-secondary btn-sm" data-i18n="nav_login">Giriş Yap</a>
+                <a href="kaydol.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Kaydol</a>
+            </div>
+            <div id="loggedInNav" style="display:none;">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="demo.html" data-i18n="nav_analysis">Analiz</a>
+                <span class="user-email" id="userEmail"></span>
+                <button type="button" id="navLogout" class="btn btn-secondary btn-sm" data-i18n="nav_logout">Çıkış</button>
+            </div>
+            <div class="lang-switcher">
+                <button type="button" class="lang-btn active" id="langTR">TR</button>
+                <button type="button" class="lang-btn" id="langEN">EN</button>
+            </div>
+            <button type="button" class="theme-toggle" id="themeToggle" title="Toggle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+        </nav>
+    </header>
+
+    <main class="page-auth">
+        <div class="auth-container">
+            <div class="auth-logo"><img src="images/mia-logo.png" alt="MIA"></div>
+
+            <!-- REQUEST RESET MODE -->
+            <div id="resetRequestSection">
+                <div class="auth-header">
+                    <h1 data-i18n="reset_title">Şifre Sıfırlama</h1>
+                    <p data-i18n="reset_subtitle">Hesabınıza bağlı e-posta adresini girin, sıfırlama bağlantısı gönderelim.</p>
+                </div>
+                <div class="auth-error" id="resetError"></div>
+                <form id="resetForm" autocomplete="on">
+                    <div class="form-group">
+                        <label data-i18n="label_email">E-posta</label>
+                        <input type="email" id="resetEmail" name="email" autocomplete="email" data-i18n-placeholder="placeholder_email" placeholder="ornek@email.com" required>
+                    </div>
+                    <button type="submit" class="auth-btn" id="resetBtn" data-i18n="reset_send">Sıfırlama Bağlantısı Gönder</button>
+                </form>
+                <div class="auth-success" id="resetSuccess">
+                    <div class="auth-success-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                    <h2 data-i18n="reset_sent_title">Bağlantı gönderildi</h2>
+                    <p data-i18n="reset_sent_msg">E-posta kutunuzdaki bağlantıyla yeni şifre oluşturabilirsiniz.</p>
+                    <div class="auth-success-actions">
+                        <a href="giris-yap.html" class="btn btn-secondary btn-sm" data-i18n="verify_back_login">Giriş Yap sayfasına dön</a>
+                    </div>
+                </div>
+                <div class="auth-footer">
+                    <a href="giris-yap.html" data-i18n="verify_back_login">Giriş Yap sayfasına dön</a>
+                </div>
+            </div>
+
+            <!-- UPDATE PASSWORD MODE (shown when ?mode=update or recovery token present) -->
+            <div id="resetUpdateSection" style="display:none;">
+                <div class="auth-header">
+                    <h1 data-i18n="new_password_title">Yeni Şifre Belirle</h1>
+                    <p data-i18n="new_password_subtitle">Hesabınız için yeni bir şifre belirleyin.</p>
+                </div>
+                <div class="auth-error" id="newPasswordError"></div>
+                <form id="newPasswordForm" autocomplete="on">
+                    <div class="form-group">
+                        <label data-i18n="label_password">Şifre</label>
+                        <input type="password" id="newPassword" name="new-password" autocomplete="new-password" data-i18n-placeholder="placeholder_password" placeholder="En az 8 karakter" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="label_password_confirm">Şifre Tekrar</label>
+                        <input type="password" id="newPasswordConfirm" name="new-password" autocomplete="new-password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="auth-btn" id="newPasswordBtn" data-i18n="new_password_btn">Şifreyi Güncelle</button>
+                </form>
+                <div class="auth-success" id="newPasswordSuccess">
+                    <div class="auth-success-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                    <h2 data-i18n="password_updated">Şifreniz güncellendi. Giriş yapabilirsiniz.</h2>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer><p data-i18n="footer">© 2026 MIA - Tüm hakları saklıdır.</p></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Show "update password" mode if the URL came from the recovery email.
+        // Supabase auto-puts the recovery tokens in the URL hash; detectSessionInUrl handles them.
+        (function() {
+            var url = new URL(window.location.href);
+            var hash = window.location.hash || '';
+            var isUpdate = url.searchParams.get('mode') === 'update' ||
+                           hash.indexOf('type=recovery') !== -1 ||
+                           hash.indexOf('access_token') !== -1;
+            if (isUpdate) {
+                document.getElementById('resetRequestSection').style.display = 'none';
+                document.getElementById('resetUpdateSection').style.display = 'block';
+            }
+        })();
+    </script>
+</body>
+</html>

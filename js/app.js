@@ -1,7 +1,7 @@
 // === TRANSLATIONS ===
 var translations = {
     tr: {
-        nav_home: "Ana Sayfa", nav_company: "Şirket", nav_contact: "İletişim", nav_login: "Giriş Yap", nav_signup: "Kayıt Ol", nav_analysis: "Analiz", nav_logout: "Çıkış",
+        nav_home: "Ana Sayfa", nav_company: "Şirket", nav_contact: "İletişim", nav_login: "Giriş Yap", nav_signup: "Kaydol", nav_analysis: "Analiz", nav_logout: "Çıkış",
         home_badge: "YAPAY ZEKA DESTEKLİ GÜVENLİK", home_title: "İnşaat Güvenliğinin<br>Geleceği", home_title_1: "İnşaat Güvenliğinin", home_title_2: "Geleceği", home_subtitle: "MIA, yapay zeka ile inşaat şantiyelerinde gerçek zamanlı PPE tespiti yaparak iş kazalarını önler.", home_cta: "Hemen Başla", home_learn: "Daha Fazla",
         hero_b1: "Kurulumu Kolay", hero_b2: "Hızlı Entegrasyon", hero_b3: "7/24 Destek",
         stat1_val: "1,800+", stat1_label: "Yıllık ölümlü iş kazası", stat1_sub: "Türkiye, 2023",
@@ -59,9 +59,31 @@ var translations = {
         det_sum_total: "Toplam Tehlike", det_sum_high: "Yüksek Risk", det_sum_avg: "Ortalama Güven", det_sum_time: "Video Süresi",
         det_events_title: "Tespit Edilen Olaylar",
         stat_accuracy: "Tespit Doğruluğu", stat_monitoring: "Kesintisiz İzleme", stat_sec: "sn", stat_alert: "Anlık Uyarı",
-        login_title: "Giriş Yap", login_subtitle: "Hesabınıza giriş yapın", login_btn: "Giriş Yap", login_footer: "Hesabınız yok mu?", login_link: "Kayıt olun",
-        signup_title: "Kayıt Ol", signup_subtitle: "Ücretsiz hesap oluşturun", signup_btn: "Kayıt Ol", signup_footer: "Zaten hesabınız var mı?", signup_link: "Giriş yapın",
-        label_email: "E-posta", label_password: "Şifre", label_password_confirm: "Şifre Tekrar", placeholder_email: "ornek@email.com", placeholder_password: "En az 6 karakter",
+        login_title: "Giriş Yap", login_subtitle: "Hesabınıza giriş yapın", login_btn: "Giriş Yap", login_footer: "Hesabınız yok mu?", login_link: "Kaydolun",
+        signup_title: "Kaydol", signup_subtitle: "MIA hesabınızı oluşturun", signup_btn: "Hesap Oluştur", signup_footer: "Zaten hesabınız var mı?", signup_link: "Giriş yapın",
+        label_name: "Ad Soyad", label_email: "E-posta", label_password: "Şifre", label_password_confirm: "Şifre Tekrar",
+        placeholder_name: "Ad ve soyadınız", placeholder_email: "ornek@email.com", placeholder_password: "En az 8 karakter",
+        remember_me: "Beni hatırla", forgot_password: "Şifremi unuttum",
+        pw_strength_label: "Şifre gücü:", pw_strength_weak: "Zayıf", pw_strength_fair: "Orta", pw_strength_good: "İyi", pw_strength_strong: "Güçlü",
+        pw_hint: "En az 8 karakter, bir büyük harf, bir rakam içermeli.",
+        terms_agree: "Hesap oluşturarak", terms_link: "Kullanım Şartlarını", terms_and: "ve", privacy_link: "Gizlilik Politikasını", terms_accept: "kabul etmiş olursunuz.",
+        // Auth feedback
+        signup_processing: "Hesap oluşturuluyor...", login_processing: "Giriş yapılıyor...", reset_processing: "Bağlantı gönderiliyor...",
+        signup_success_title: "Hesap oluşturuldu!", signup_success_msg: "E-postanızı kontrol edin. Doğrulama bağlantısına tıklayarak hesabınızı aktifleştirin.",
+        verify_open_inbox: "Gelen kutunuzu açın", verify_resend: "Yeniden gönder", verify_resent: "Doğrulama e-postası yeniden gönderildi.", verify_back_login: "Giriş Yap sayfasına dön",
+        verify_title: "Hesabınız doğrulanıyor...", verify_success_title: "Hesabınız aktif!", verify_success_msg: "MIA panelinize giriş yapabilirsiniz.", verify_fail_title: "Doğrulama başarısız", verify_fail_msg: "Bağlantı geçersiz veya süresi dolmuş olabilir.",
+        reset_title: "Şifre Sıfırlama", reset_subtitle: "Hesabınıza bağlı e-posta adresini girin, sıfırlama bağlantısı gönderelim.", reset_send: "Sıfırlama Bağlantısı Gönder", reset_sent_title: "Bağlantı gönderildi", reset_sent_msg: "E-posta kutunuzdaki bağlantıyla yeni şifre oluşturabilirsiniz.",
+        new_password_title: "Yeni Şifre Belirle", new_password_subtitle: "Hesabınız için yeni bir şifre belirleyin.", new_password_btn: "Şifreyi Güncelle", password_updated: "Şifreniz güncellendi. Giriş yapabilirsiniz.",
+        // Errors
+        err_invalid_email: "Geçerli bir e-posta adresi girin.",
+        err_weak_password: "Şifre en az 8 karakter, bir büyük harf ve bir rakam içermelidir.",
+        err_password_mismatch: "Şifreler eşleşmiyor.",
+        err_name_required: "Lütfen ad ve soyadınızı girin.",
+        err_email_taken: "Bu e-posta adresi zaten kayıtlı. Giriş yapmayı deneyin.",
+        err_invalid_credentials: "E-posta veya şifre hatalı.",
+        err_email_not_confirmed: "E-postanızı doğrulayın. Doğrulama bağlantısını gelen kutunuzda bulabilirsiniz.",
+        err_too_many_requests: "Çok fazla deneme. Lütfen bir süre sonra tekrar deneyin.",
+        err_generic: "Bir sorun oluştu. Lütfen tekrar deneyin.",
         new_analysis: "Yeni Analiz", dash_total: "Toplam Analiz", dash_avg: "Ortalama Skor", dash_violations: "Toplam İhlal", dash_month: "Bu Ay", dash_history: "Analiz Geçmişi",
         demo_title: "Güvenlik Analizi", demo_subtitle: "Video yükleyin ve yapay zeka destekli analizi deneyimleyin", upload_text: "Video yükleyin veya sürükleyin", upload_hint: "MP4, MOV, AVI (Maks. 100MB)", processing: "İşleniyor...", results_title: "Sonuçlar", new_btn: "Yeni",
         label_safety: "Güvenlik", label_frames: "Kare", label_violations: "İhlal", label_compliant: "Uyumlu", detections: "Tespitler",
@@ -87,7 +109,7 @@ var translations = {
         form_name: "Ad Soyad", form_company: "Şirket Adı", form_email: "E-Posta", form_phone: "Telefon", form_message: "Mesajınız", form_message_placeholder: "Projeniz hakkında kısaca bilgi verin...", form_submit: "Gönder", form_success: "Talebiniz alındı! En kısa sürede sizinle iletişime geçeceğiz.", form_required: "Bu alan zorunludur",
         // Chat
         chat_name: "MIA Asistan", chat_status: "Çevrimiçi", chat_welcome: "Merhaba! Size nasıl yardımcı olabilirim?", chat_placeholder: "Mesajınızı yazın...", chat_q1: "Çözümleriniz neler?", chat_q2: "Demo talep et", chat_q3: "Fiyatlandırma", chat_q4: "İletişim",
-        chat_a1: "MIA, yapay zeka ile inşaat şantiyelerinde baret, yelek ve kemer gibi PPE kullanımını gerçek zamanlı tespit eder. 7/24 kamera analizi, anlık SMS/e-posta uyarıları ve detaylı PDF raporlar sunar.", chat_a2: "Harika! Demo talep formuna yönlendiriyorum.", chat_a3: "3 paketimiz var: Başlangıç (₺5,000/ay, 5 kamera), Profesyonel (₺15,000/ay, 25 kamera, 7/24 destek) ve Kurumsal (özel teklif, sınırsız kamera). Detaylar için Çözümler sayfamızı ziyaret edin.", chat_a4: "Bize dennizoge@gmail.com adresinden veya İletişim sayfamızdan ulaşabilirsiniz.", chat_greet: "Merhaba! MIA'ya hoş geldiniz. Size çözümlerimiz, fiyatlandırma veya demo hakkında yardımcı olabilirim. Ne öğrenmek istersiniz?", chat_thanks: "Rica ederim! Başka bir sorunuz varsa çekinmeyin. Yardımcı olmaktan mutluluk duyarız!", chat_about: "MIA, Deniz Öge, Ege Türker ve Gökberk Şahin tarafından kurulan bir yapay zeka güvenlik platformudur. İnşaat şantiyelerinde iş kazalarını önlemeyi hedefliyoruz.", chat_safety: "MIA, baret, yelek ve emniyet kemeri gibi KKD kullanımını AI ile tespit ederek iş kazalarını önler. İhlaller anında SMS ve e-posta ile bildirilir, böylece kazalar oluşmadan müdahale edilir.", chat_integration: "MIA, mevcut CCTV kamera sistemlerinize entegre olur. Ek donanım gerektirmez. Kurulum 3 adımda tamamlanır: kameralarınızı bağlayın, AI analiz etsin, uyarı alın.", chat_default: "Bu konuda yardımcı olamıyorum, ancak MIA çözümleri, fiyatlandırma veya demo hakkında sorularınızı yanıtlayabilirim!",
+        chat_a1: "MIA, yapay zeka ile inşaat şantiyelerinde baret, yelek ve kemer gibi PPE kullanımını gerçek zamanlı tespit eder. 7/24 kamera analizi, anlık SMS/e-posta uyarıları ve detaylı PDF raporlar sunar.", chat_a2: "Harika! Demo talep formuna yönlendiriyorum.", chat_a3: "3 paketimiz var: Başlangıç (₺5,000/ay, 5 kamera), Profesyonel (₺15,000/ay, 25 kamera, 7/24 destek) ve Kurumsal (özel teklif, sınırsız kamera). Detaylar için Çözümler sayfamızı ziyaret edin.", chat_a4: "Bize info@mia.com.tr adresinden veya İletişim sayfamızdan ulaşabilirsiniz.", chat_greet: "Merhaba! MIA'ya hoş geldiniz. Size çözümlerimiz, fiyatlandırma veya demo hakkında yardımcı olabilirim. Ne öğrenmek istersiniz?", chat_thanks: "Rica ederim! Başka bir sorunuz varsa çekinmeyin. Yardımcı olmaktan mutluluk duyarız!", chat_about: "MIA, Deniz Öge, Ege Türker ve Gökberk Şahin tarafından kurulan bir yapay zeka güvenlik platformudur. İnşaat şantiyelerinde iş kazalarını önlemeyi hedefliyoruz.", chat_safety: "MIA, baret, yelek ve emniyet kemeri gibi KKD kullanımını AI ile tespit ederek iş kazalarını önler. İhlaller anında SMS ve e-posta ile bildirilir, böylece kazalar oluşmadan müdahale edilir.", chat_integration: "MIA, mevcut CCTV kamera sistemlerinize entegre olur. Ek donanım gerektirmez. Kurulum 3 adımda tamamlanır: kameralarınızı bağlayın, AI analiz etsin, uyarı alın.", chat_default: "Bu konuda yardımcı olamıyorum, ancak MIA çözümleri, fiyatlandırma veya demo hakkında sorularınızı yanıtlayabilirim!",
         footer: "© 2026 MIA - Tüm hakları saklıdır.",
         no_analyses: "Henüz analiz yok", no_analyses_desc: "Yeni Analiz butonuna tıklayın", no_violations: "İhlal Yok", passwords_not_match: "Şifreler eşleşmiyor", reading_video: "Video okunuyor...", sending_gpu: "GPU'ya gönderiliyor...", error: "Hata"
     },
@@ -150,35 +172,46 @@ var translations = {
         det_sum_total: "Total Hazards", det_sum_high: "High Risk", det_sum_avg: "Avg. Confidence", det_sum_time: "Video Duration",
         det_events_title: "Detected Events",
         stat_accuracy: "Detection Accuracy", stat_monitoring: "24/7 Monitoring", stat_sec: "s", stat_alert: "Instant Alert",
-        login_title: "Login", login_subtitle: "Sign in to your account", login_btn: "Login", login_footer: "Don't have an account?", login_link: "Sign up",
-        signup_title: "Sign Up", signup_subtitle: "Create a free account", signup_btn: "Sign Up", signup_footer: "Already have an account?", signup_link: "Login",
-        label_email: "Email", label_password: "Password", label_password_confirm: "Confirm Password", placeholder_email: "example@email.com", placeholder_password: "At least 6 characters",
+        login_title: "Sign In", login_subtitle: "Sign in to your MIA account", login_btn: "Sign In", login_footer: "Don't have an account?", login_link: "Sign up",
+        signup_title: "Create Account", signup_subtitle: "Set up your MIA account", signup_btn: "Create Account", signup_footer: "Already have an account?", signup_link: "Sign in",
+        label_name: "Full Name", label_email: "Email", label_password: "Password", label_password_confirm: "Confirm Password",
+        placeholder_name: "Your full name", placeholder_email: "example@email.com", placeholder_password: "At least 8 characters",
+        remember_me: "Remember me", forgot_password: "Forgot password",
+        pw_strength_label: "Password strength:", pw_strength_weak: "Weak", pw_strength_fair: "Fair", pw_strength_good: "Good", pw_strength_strong: "Strong",
+        pw_hint: "At least 8 characters with one uppercase letter and one number.",
+        terms_agree: "By creating an account you agree to our", terms_link: "Terms of Service", terms_and: "and", privacy_link: "Privacy Policy", terms_accept: ".",
+        signup_processing: "Creating your account...", login_processing: "Signing you in...", reset_processing: "Sending link...",
+        signup_success_title: "Account created!", signup_success_msg: "Check your inbox and click the confirmation link to activate your account.",
+        verify_open_inbox: "Open your inbox", verify_resend: "Resend", verify_resent: "Verification email resent.", verify_back_login: "Back to sign in",
+        verify_title: "Verifying your account...", verify_success_title: "Account activated!", verify_success_msg: "You can now sign in to your MIA dashboard.", verify_fail_title: "Verification failed", verify_fail_msg: "The link may be invalid or expired.",
+        reset_title: "Reset Password", reset_subtitle: "Enter the email tied to your account and we'll send a reset link.", reset_send: "Send Reset Link", reset_sent_title: "Link sent", reset_sent_msg: "Use the link in your inbox to set a new password.",
+        new_password_title: "Set New Password", new_password_subtitle: "Choose a new password for your account.", new_password_btn: "Update Password", password_updated: "Password updated. You can now sign in.",
+        err_invalid_email: "Please enter a valid email address.",
+        err_weak_password: "Password must be at least 8 characters with an uppercase letter and a number.",
+        err_password_mismatch: "Passwords do not match.",
+        err_name_required: "Please enter your full name.",
+        err_email_taken: "This email is already registered. Try signing in instead.",
+        err_invalid_credentials: "Email or password is incorrect.",
+        err_email_not_confirmed: "Please confirm your email. The verification link is in your inbox.",
+        err_too_many_requests: "Too many attempts. Please try again later.",
+        err_generic: "Something went wrong. Please try again.",
         new_analysis: "New Analysis", dash_total: "Total Analyses", dash_avg: "Average Score", dash_violations: "Total Violations", dash_month: "This Month", dash_history: "Analysis History",
         demo_title: "Safety Analysis", demo_subtitle: "Upload a video and experience AI-powered safety analysis", upload_text: "Upload or drag video", upload_hint: "MP4, MOV, AVI (Max 100MB)", processing: "Processing...", results_title: "Results", new_btn: "New",
         label_safety: "Safety", label_frames: "Frames", label_violations: "Violations", label_compliant: "Compliant", detections: "Detections",
         company_title: "Our Company", company_subtitle: "Transforming workplace safety with AI", about_title: "What is MIA?", about_p1: "MIA is an AI platform developed to prevent workplace accidents in the construction industry.", about_p2: "Using YOLOv8 technology, it detects helmets, vests, and other PPE usage.",
         why_mia: "Why MIA?", value1_title: "Real-Time", value1_desc: "24/7 continuous monitoring", value2_title: "High Accuracy", value2_desc: "99%+ detection accuracy", value3_title: "PDF Reports", value3_desc: "Automatic reporting",
-        // Problem
         problem_label: "Problem", problem_title: "Thousands of preventable workplace<br>accidents occur every year in construction.", problem_stat1_val: "1,800+", problem_stat1_label: "Annual fatal accidents", problem_stat1_sub: "Turkey, 2023", problem_stat2_val: "₺50M+", problem_stat2_label: "Annual penalty costs", problem_stat2_sub: "Industry-wide", problem_stat3_val: "85%", problem_stat3_label: "Preventable accident rate", problem_stat3_sub: "Research data", problem_desc: "Traditional inspection methods are inadequate: continuous observation is impossible, large areas can't be monitored, reporting is manual and time-consuming.",
-        // Solution
         solution_label: "Solution", solution_title: "AI-powered safety platform.", sol1_title: "Real-Time Monitoring", sol1_desc: "24/7 camera analysis", sol2_title: "AI Detection", sol2_desc: "Helmet, vest, harness violations", sol3_title: "Instant Alerts", sol3_desc: "SMS and email notifications", sol4_title: "Detailed Reports", sol4_desc: "Daily safety analytics", solution_cta: "Manage all your construction sites in one platform.", solution_cta_sub: "Integrates with your existing camera systems, no additional hardware required.",
-        // How it works
         how_label: "How It Works", how_title: "Safety transformation in three steps.", how1_title: "Connect", how1_desc: "Integrate your existing CCTV system", how2_title: "Analyze", how2_desc: "AI processes footage in real-time", how3_title: "Take Action", how3_desc: "Get alerts and generate reports", how_tech: "Technology: YOLOv8 • NVIDIA GPU • React • FastAPI • PostgreSQL",
-        // Pricing
         nav_pricing: "Solutions", pricing_title: "Solutions", pricing_subtitle: "SaaS subscription model", plan1_name: "Starter", plan1_price: "₺5,000", plan1_period: "/mo", plan1_f1: "5 cameras", plan1_f2: "Basic reporting", plan1_f3: "Email notifications", plan1_cta: "Get Started", plan2_name: "Professional", plan2_price: "₺15,000", plan2_period: "/mo", plan2_f1: "25 cameras", plan2_f2: "Advanced analytics", plan2_f3: "24/7 support", plan2_f4: "SMS + Email alerts", plan2_cta: "Get Started", plan2_badge: "Popular", plan3_name: "Enterprise", plan3_price: "Custom", plan3_period: "", plan3_f1: "Unlimited cameras", plan3_f2: "Custom integration", plan3_f3: "Dedicated support team", plan3_f4: "SLA guarantee", plan3_cta: "Contact Us",
-        // Market
         market_label: "Market Opportunity", market_title: "First-mover advantage in a growing market.", market1_val: "₺2.5T", market1_label: "Turkey Construction Sector", market1_sub: "Annual Market Size", market2_val: "$12B", market2_label: "Global AI Safety Market", market2_sub: "2028 Forecast (CAGR 18%)", market_target: "Target: Large construction firms, infrastructure projects, industrial facilities, energy sector",
-        // Traction
         traction_label: "Current Status", traction_title: "Strong foundations, clear goals.", trac1: "Working MVP product", trac2: "GPU-accelerated infrastructure", trac3: "AI trained on 2,100+ images", trac4: "Live web platform", roadmap_title: "2026 Roadmap", road_q1: "Pilot customers", road_q2: "Mobile app", road_q3: "10 active customers", road_q4: "International expansion", invest_title: "Investment Target: ₺2,000,000 Seed Round", invest_desc: "Product development 40% • Sales & marketing 35% • Operations 25%",
-        // Founder details
         deniz_desc: "Boston University, Computer Engineering<br>HP & Trio Mobil AI Intern", ege_desc: "Business Development<br>Strategic Partnerships", gokberk_desc: "AS Teknolojik<br>Technical Operations",
         contact_title: "Contact", contact_subtitle: "Get in touch with us", founders_title: "Our Founders", general_contact: "General Contact", contact_cta: "Reach out for questions",
-        // Demo request
         nav_demo_request: "Request Demo", demo_req_title: "Schedule a Meeting with Our Experts", demo_req_subtitle: "Our experts will answer your questions and provide a live demo walkthrough of the platform. Fill out the form and we'll get back to you right away.", demo_req_badge: "Free Demo",
         form_name: "Full Name", form_company: "Company Name", form_email: "Email", form_phone: "Phone", form_message: "Your Message", form_message_placeholder: "Tell us briefly about your project...", form_submit: "Submit", form_success: "Your request has been received! We will contact you shortly.", form_required: "This field is required",
-        // Chat
         chat_name: "MIA Assistant", chat_status: "Online", chat_welcome: "Hello! How can I help you?", chat_placeholder: "Type your message...", chat_q1: "What are your solutions?", chat_q2: "Request a demo", chat_q3: "Pricing", chat_q4: "Contact",
-        chat_a1: "MIA uses AI to detect PPE usage like helmets, vests, and harnesses at construction sites in real-time. We offer 24/7 camera analysis, instant SMS/email alerts, and detailed PDF reports.", chat_a2: "Great! Redirecting you to the demo request form.", chat_a3: "We have 3 plans: Starter (₺5,000/mo, 5 cameras), Professional (₺15,000/mo, 25 cameras, 24/7 support) and Enterprise (custom pricing, unlimited cameras). Visit our Solutions page for details.", chat_a4: "You can reach us at dennizoge@gmail.com or through our Contact page.", chat_greet: "Hello! Welcome to MIA. I can help you with our solutions, pricing, or scheduling a demo. What would you like to know?", chat_thanks: "You're welcome! Don't hesitate to ask if you have more questions. Happy to help!", chat_about: "MIA is an AI safety platform founded by Deniz Öge, Ege Türker, and Gökberk Şahin. Our mission is to prevent workplace accidents at construction sites.", chat_safety: "MIA detects PPE usage like helmets, vests, and safety harnesses using AI, preventing workplace accidents. Violations are instantly reported via SMS and email, enabling intervention before accidents happen.", chat_integration: "MIA integrates with your existing CCTV camera systems. No additional hardware required. Setup is completed in 3 steps: connect your cameras, let AI analyze, and receive alerts.", chat_default: "I can only help with MIA-related topics like our solutions, pricing, or scheduling a demo. Feel free to ask about those!",
+        chat_a1: "MIA uses AI to detect PPE usage like helmets, vests, and harnesses at construction sites in real-time. We offer 24/7 camera analysis, instant SMS/email alerts, and detailed PDF reports.", chat_a2: "Great! Redirecting you to the demo request form.", chat_a3: "We have 3 plans: Starter (₺5,000/mo, 5 cameras), Professional (₺15,000/mo, 25 cameras, 24/7 support) and Enterprise (custom pricing, unlimited cameras). Visit our Solutions page for details.", chat_a4: "You can reach us at info@mia.com.tr or through our Contact page.", chat_greet: "Hello! Welcome to MIA. I can help you with our solutions, pricing, or scheduling a demo. What would you like to know?", chat_thanks: "You're welcome! Don't hesitate to ask if you have more questions. Happy to help!", chat_about: "MIA is an AI safety platform founded by Deniz Öge, Ege Türker, and Gökberk Şahin. Our mission is to prevent workplace accidents at construction sites.", chat_safety: "MIA detects PPE usage like helmets, vests, and safety harnesses using AI, preventing workplace accidents. Violations are instantly reported via SMS and email, enabling intervention before accidents happen.", chat_integration: "MIA integrates with your existing CCTV camera systems. No additional hardware required. Setup is completed in 3 steps: connect your cameras, let AI analyze, and receive alerts.", chat_default: "I can only help with MIA-related topics like our solutions, pricing, or scheduling a demo. Feel free to ask about those!",
         footer: "© 2026 MIA - All rights reserved.",
         no_analyses: "No analyses yet", no_analyses_desc: "Click New Analysis to start", no_violations: "No Violations", passwords_not_match: "Passwords do not match", reading_video: "Reading video...", sending_gpu: "Sending to GPU...", error: "Error"
     }
@@ -187,11 +220,17 @@ var translations = {
 // === LANGUAGE ===
 var currentLang = localStorage.getItem('mia_lang') || 'tr';
 
+function t(key) {
+    return (translations[currentLang] && translations[currentLang][key]) || (translations.tr && translations.tr[key]) || key;
+}
+
 function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('mia_lang', lang);
-    document.getElementById('langTR').className = lang === 'tr' ? 'lang-btn active' : 'lang-btn';
-    document.getElementById('langEN').className = lang === 'en' ? 'lang-btn active' : 'lang-btn';
+    var trBtn = document.getElementById('langTR');
+    var enBtn = document.getElementById('langEN');
+    if (trBtn) trBtn.className = lang === 'tr' ? 'lang-btn active' : 'lang-btn';
+    if (enBtn) enBtn.className = lang === 'en' ? 'lang-btn active' : 'lang-btn';
     document.documentElement.lang = lang;
 
     var elements = document.querySelectorAll('[data-i18n]');
@@ -213,8 +252,10 @@ function setLanguage(lang) {
     if (typeof window.updateChatLang === 'function') window.updateChatLang();
 }
 
-document.getElementById('langTR').onclick = function() { setLanguage('tr'); };
-document.getElementById('langEN').onclick = function() { setLanguage('en'); };
+var trBtnInit = document.getElementById('langTR');
+var enBtnInit = document.getElementById('langEN');
+if (trBtnInit) trBtnInit.onclick = function() { setLanguage('tr'); };
+if (enBtnInit) enBtnInit.onclick = function() { setLanguage('en'); };
 
 // === THEME ===
 var sunIcon = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
@@ -230,26 +271,45 @@ function setTheme(theme) {
 var savedTheme = localStorage.getItem('mia_theme') || 'dark';
 setTheme(savedTheme);
 
-document.getElementById('themeToggle').onclick = function() {
-    var current = document.documentElement.getAttribute('data-theme') || 'dark';
-    setTheme(current === 'dark' ? 'light' : 'dark');
-};
+var themeToggleBtn = document.getElementById('themeToggle');
+if (themeToggleBtn) {
+    themeToggleBtn.onclick = function() {
+        var current = document.documentElement.getAttribute('data-theme') || 'dark';
+        setTheme(current === 'dark' ? 'light' : 'dark');
+    };
+}
 
-// === SUPABASE ===
-var SUPABASE_URL = 'https://djjyyaumwhrwzjohymad.supabase.co';
-var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqanl5YXVtd2hyd3pqb2h5bWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODkzMTksImV4cCI6MjA4NTk2NTMxOX0.-_czi4fQUalt-HGIqWnNmmCnkwv_pKmLOTMvk_UnB0k';
-var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// === SUPABASE CONFIG ===
+// Hosted Supabase project — anon key is safe to expose client-side.
+// Override at runtime by defining window.MIA_SUPABASE_URL and window.MIA_SUPABASE_KEY before this script.
+var SUPABASE_URL = window.MIA_SUPABASE_URL || 'https://qojtokomfcporcglrsdy.supabase.co';
+var SUPABASE_KEY = window.MIA_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvanRva29tZmNwb3JjZ2xyc2R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5ODM2MDQsImV4cCI6MjA5NTU1OTYwNH0.nQarNqVxI5JPInisVPvNZXOQmAWr5Nt0tRMHqKRXiwM';
+
+// Supabase JS v2 stores session in localStorage by default — gives persistent login + cross-tab sync.
+var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: 'mia.auth'
+    }
+});
 var currentUser = null;
 
-// === AUTH ===
+// === AUTH UI ===
 function updateAuthUI() {
     var loggedOut = document.getElementById('loggedOutNav');
     var loggedIn = document.getElementById('loggedInNav');
     var emailEl = document.getElementById('userEmail');
+    if (!loggedOut || !loggedIn) return;
     if (currentUser) {
         loggedOut.style.display = 'none';
         loggedIn.style.display = 'flex';
-        emailEl.textContent = currentUser.email;
+        if (emailEl) {
+            var meta = currentUser.user_metadata || {};
+            emailEl.textContent = meta.full_name || currentUser.email;
+            emailEl.title = currentUser.email;
+        }
     } else {
         loggedOut.style.display = 'flex';
         loggedIn.style.display = 'none';
@@ -260,49 +320,286 @@ supabase.auth.getSession().then(function(r) {
     if (r.data.session) { currentUser = r.data.session.user; updateAuthUI(); }
 });
 supabase.auth.onAuthStateChange(function(e, s) {
-    currentUser = s ? s.user : null; updateAuthUI();
+    currentUser = s ? s.user : null;
+    updateAuthUI();
 });
 
-document.getElementById('navLogout').onclick = function() {
-    supabase.auth.signOut().then(function() { currentUser = null; updateAuthUI(); window.location.href = 'index.html'; });
-};
-
-// === LOGIN PAGE ===
-var loginForm = document.getElementById('loginForm');
-if (loginForm) {
-    loginForm.onsubmit = function(e) {
-        e.preventDefault();
-        var email = document.getElementById('loginEmail').value;
-        var pw = document.getElementById('loginPassword').value;
-        var err = document.getElementById('loginError');
-        var btn = document.getElementById('loginBtn');
-        btn.disabled = true; btn.textContent = '...'; err.className = 'auth-error';
-        supabase.auth.signInWithPassword({ email: email, password: pw }).then(function(r) {
-            btn.disabled = false; btn.textContent = translations[currentLang].login_btn;
-            if (r.error) { err.textContent = r.error.message; err.className = 'auth-error show'; }
-            else { window.location.href = 'dashboard.html'; }
+var navLogoutBtn = document.getElementById('navLogout');
+if (navLogoutBtn) {
+    navLogoutBtn.onclick = function() {
+        supabase.auth.signOut().then(function() {
+            currentUser = null; updateAuthUI();
+            window.location.href = 'index.html';
         });
     };
 }
 
-// === SIGNUP PAGE ===
+// === AUTH HELPERS ===
+var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isValidEmail(email) { return EMAIL_RE.test(String(email || '').trim()); }
+
+// Returns {score: 0-4, label: localized label, ok: boolean}
+function scorePassword(pw) {
+    pw = pw || '';
+    var score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[a-z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    if (pw.length >= 12) score++;
+    var capped = Math.min(score, 4);
+    var labels = ['pw_strength_weak', 'pw_strength_weak', 'pw_strength_fair', 'pw_strength_good', 'pw_strength_strong'];
+    var ok = pw.length >= 8 && /[A-Z]/.test(pw) && /[0-9]/.test(pw);
+    return { score: capped, label: t(labels[capped]), ok: ok };
+}
+
+// Translate Supabase auth error messages into friendly localized text.
+function friendlyAuthError(err) {
+    if (!err) return t('err_generic');
+    var msg = (err.message || '').toLowerCase();
+    if (msg.indexOf('already registered') !== -1 || msg.indexOf('user already') !== -1 || msg.indexOf('already exists') !== -1) return t('err_email_taken');
+    if (msg.indexOf('invalid login') !== -1 || msg.indexOf('invalid credentials') !== -1 || msg.indexOf('invalid email or password') !== -1) return t('err_invalid_credentials');
+    if (msg.indexOf('email not confirmed') !== -1 || msg.indexOf('not confirmed') !== -1) return t('err_email_not_confirmed');
+    if (msg.indexOf('rate limit') !== -1 || msg.indexOf('too many') !== -1) return t('err_too_many_requests');
+    if (msg.indexOf('password') !== -1 && msg.indexOf('weak') !== -1) return t('err_weak_password');
+    return err.message || t('err_generic');
+}
+
+function showError(el, message) {
+    if (!el) return;
+    el.textContent = message;
+    el.className = 'auth-error show';
+}
+function clearError(el) {
+    if (!el) return;
+    el.textContent = '';
+    el.className = 'auth-error';
+}
+
+// Build the absolute URL Supabase should send users back to after they click the email link.
+// Lives on the deployed origin so it works in production AND localhost.
+function emailRedirectURL(path) {
+    var origin = window.location.origin;
+    if (!origin || origin === 'null') origin = '';
+    return origin + '/' + (path || 'dogrulama.html');
+}
+
+// === SIGNUP PAGE (/kaydol) ===
 var signupForm = document.getElementById('signupForm');
 if (signupForm) {
+    // Live password strength
+    var pwInput = document.getElementById('signupPassword');
+    var pwBar = document.getElementById('pwStrengthBar');
+    var pwLabel = document.getElementById('pwStrengthLabel');
+    if (pwInput && pwBar && pwLabel) {
+        pwInput.addEventListener('input', function() {
+            var s = scorePassword(pwInput.value);
+            pwBar.className = 'pw-strength-bar score-' + s.score;
+            pwLabel.textContent = t('pw_strength_label') + ' ' + s.label;
+        });
+    }
+
     signupForm.onsubmit = function(e) {
         e.preventDefault();
-        var email = document.getElementById('signupEmail').value;
-        var pw = document.getElementById('signupPassword').value;
-        var pw2 = document.getElementById('signupPasswordConfirm').value;
+        var name = (document.getElementById('signupName') || {}).value || '';
+        var email = (document.getElementById('signupEmail') || {}).value || '';
+        var pw = (document.getElementById('signupPassword') || {}).value || '';
+        var pw2 = (document.getElementById('signupPasswordConfirm') || {}).value || '';
         var err = document.getElementById('signupError');
         var btn = document.getElementById('signupBtn');
-        if (pw !== pw2) { err.textContent = translations[currentLang].passwords_not_match; err.className = 'auth-error show'; return; }
-        btn.disabled = true; btn.textContent = '...'; err.className = 'auth-error';
-        supabase.auth.signUp({ email: email, password: pw }).then(function(r) {
-            btn.disabled = false; btn.textContent = translations[currentLang].signup_btn;
-            if (r.error) { err.textContent = r.error.message; err.className = 'auth-error show'; }
-            else { window.location.href = 'dashboard.html'; }
+        var successPanel = document.getElementById('signupSuccess');
+        clearError(err);
+
+        name = name.trim();
+        email = email.trim();
+
+        if (!name || name.split(/\s+/).length < 1) { showError(err, t('err_name_required')); return; }
+        if (!isValidEmail(email)) { showError(err, t('err_invalid_email')); return; }
+        var pwScore = scorePassword(pw);
+        if (!pwScore.ok) { showError(err, t('err_weak_password')); return; }
+        if (pw !== pw2) { showError(err, t('err_password_mismatch')); return; }
+
+        btn.disabled = true;
+        var originalLabel = btn.textContent;
+        btn.textContent = t('signup_processing');
+
+        supabase.auth.signUp({
+            email: email,
+            password: pw,
+            options: {
+                data: { full_name: name },
+                emailRedirectTo: emailRedirectURL('dogrulama.html')
+            }
+        }).then(function(r) {
+            btn.disabled = false;
+            btn.textContent = originalLabel;
+            if (r.error) { showError(err, friendlyAuthError(r.error)); return; }
+
+            // Remember pending email so /dogrulama can resend the link if needed.
+            try { localStorage.setItem('mia.pendingEmail', email); } catch (ex) {}
+
+            // If email confirmation is required (default on Supabase), session is null.
+            // Show success panel instead of redirecting.
+            if (!r.data || !r.data.session) {
+                signupForm.style.display = 'none';
+                if (successPanel) {
+                    var nameEl = document.getElementById('signupSuccessName');
+                    var emailEl = document.getElementById('signupSuccessEmail');
+                    if (nameEl) nameEl.textContent = name;
+                    if (emailEl) emailEl.textContent = email;
+                    successPanel.style.display = 'block';
+                }
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+        }).catch(function(ex) {
+            btn.disabled = false; btn.textContent = originalLabel;
+            showError(err, friendlyAuthError(ex));
         });
     };
+
+    // Resend confirmation
+    var resendBtn = document.getElementById('signupResendBtn');
+    if (resendBtn) {
+        resendBtn.onclick = function() {
+            var email = '';
+            try { email = localStorage.getItem('mia.pendingEmail') || ''; } catch (ex) {}
+            if (!email) return;
+            resendBtn.disabled = true;
+            supabase.auth.resend({ type: 'signup', email: email, options: { emailRedirectTo: emailRedirectURL('dogrulama.html') } }).then(function(r) {
+                resendBtn.disabled = false;
+                var note = document.getElementById('signupResendNote');
+                if (note) { note.textContent = r.error ? friendlyAuthError(r.error) : t('verify_resent'); note.style.display = 'block'; }
+            });
+        };
+    }
+}
+
+// === LOGIN PAGE (/giris-yap) ===
+var loginForm = document.getElementById('loginForm');
+if (loginForm) {
+    loginForm.onsubmit = function(e) {
+        e.preventDefault();
+        var email = (document.getElementById('loginEmail') || {}).value || '';
+        var pw = (document.getElementById('loginPassword') || {}).value || '';
+        var err = document.getElementById('loginError');
+        var btn = document.getElementById('loginBtn');
+        clearError(err);
+
+        email = email.trim();
+        if (!isValidEmail(email)) { showError(err, t('err_invalid_email')); return; }
+        if (!pw) { showError(err, t('err_invalid_credentials')); return; }
+
+        btn.disabled = true;
+        var originalLabel = btn.textContent;
+        btn.textContent = t('login_processing');
+
+        supabase.auth.signInWithPassword({ email: email, password: pw }).then(function(r) {
+            btn.disabled = false; btn.textContent = originalLabel;
+            if (r.error) { showError(err, friendlyAuthError(r.error)); return; }
+            // Honor an optional ?next= redirect for protected pages
+            var url = new URL(window.location.href);
+            var next = url.searchParams.get('next');
+            window.location.href = next && /^[a-zA-Z0-9._\-\/]+$/.test(next) ? next : 'dashboard.html';
+        }).catch(function(ex) {
+            btn.disabled = false; btn.textContent = originalLabel;
+            showError(err, friendlyAuthError(ex));
+        });
+    };
+}
+
+// === PASSWORD RESET REQUEST (/sifre-sifirla) ===
+var resetForm = document.getElementById('resetForm');
+if (resetForm) {
+    resetForm.onsubmit = function(e) {
+        e.preventDefault();
+        var email = (document.getElementById('resetEmail') || {}).value || '';
+        var err = document.getElementById('resetError');
+        var btn = document.getElementById('resetBtn');
+        var success = document.getElementById('resetSuccess');
+        clearError(err);
+
+        email = email.trim();
+        if (!isValidEmail(email)) { showError(err, t('err_invalid_email')); return; }
+
+        btn.disabled = true;
+        var originalLabel = btn.textContent;
+        btn.textContent = t('reset_processing');
+
+        supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: emailRedirectURL('sifre-sifirla.html?mode=update')
+        }).then(function(r) {
+            btn.disabled = false; btn.textContent = originalLabel;
+            if (r.error) { showError(err, friendlyAuthError(r.error)); return; }
+            resetForm.style.display = 'none';
+            if (success) success.style.display = 'block';
+        });
+    };
+}
+
+// === UPDATE PASSWORD (after reset link) ===
+var newPasswordForm = document.getElementById('newPasswordForm');
+if (newPasswordForm) {
+    newPasswordForm.onsubmit = function(e) {
+        e.preventDefault();
+        var pw = (document.getElementById('newPassword') || {}).value || '';
+        var pw2 = (document.getElementById('newPasswordConfirm') || {}).value || '';
+        var err = document.getElementById('newPasswordError');
+        var btn = document.getElementById('newPasswordBtn');
+        var success = document.getElementById('newPasswordSuccess');
+        clearError(err);
+
+        var pwScore = scorePassword(pw);
+        if (!pwScore.ok) { showError(err, t('err_weak_password')); return; }
+        if (pw !== pw2) { showError(err, t('err_password_mismatch')); return; }
+
+        btn.disabled = true;
+        var originalLabel = btn.textContent;
+        btn.textContent = t('reset_processing');
+
+        supabase.auth.updateUser({ password: pw }).then(function(r) {
+            btn.disabled = false; btn.textContent = originalLabel;
+            if (r.error) { showError(err, friendlyAuthError(r.error)); return; }
+            newPasswordForm.style.display = 'none';
+            if (success) success.style.display = 'block';
+            setTimeout(function() { window.location.href = 'giris-yap.html'; }, 2200);
+        });
+    };
+}
+
+// === EMAIL CONFIRMATION LANDING (/dogrulama) ===
+// Supabase v2 with detectSessionInUrl auto-exchanges the email link's hash for a session.
+// We just need to inspect the resulting state and show the right UI.
+var verifyPanel = document.getElementById('verifyPanel');
+if (verifyPanel) {
+    var pending = document.getElementById('verifyPending');
+    var success = document.getElementById('verifySuccess');
+    var fail = document.getElementById('verifyFail');
+
+    function showVerify(state) {
+        if (pending) pending.style.display = state === 'pending' ? 'block' : 'none';
+        if (success) success.style.display = state === 'success' ? 'block' : 'none';
+        if (fail) fail.style.display = state === 'fail' ? 'block' : 'none';
+    }
+    showVerify('pending');
+
+    // Give Supabase a moment to process the URL hash.
+    setTimeout(function() {
+        supabase.auth.getSession().then(function(r) {
+            if (r.data && r.data.session) {
+                try { localStorage.removeItem('mia.pendingEmail'); } catch (ex) {}
+                showVerify('success');
+                setTimeout(function() { window.location.href = 'dashboard.html'; }, 1800);
+            } else {
+                // Could be already confirmed in another tab — check error or fall through.
+                var hash = window.location.hash || '';
+                if (hash.indexOf('error') !== -1) showVerify('fail');
+                else showVerify('fail');
+            }
+        });
+    }, 700);
 }
 
 // === DASHBOARD PAGE ===
@@ -310,23 +607,28 @@ function loadDashboard() {
     if (!currentUser) return;
     supabase.from('analyses').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).then(function(r) {
         var a = r.data || [];
-        document.getElementById('totalAnalyses').textContent = a.length;
+        var totalEl = document.getElementById('totalAnalyses');
+        if (totalEl) totalEl.textContent = a.length;
         var tv = 0, ts = 0, tm = 0, now = new Date();
         for (var i = 0; i < a.length; i++) { tv += a[i].violations_count || 0; ts += a[i].safety_score || 0; var d = new Date(a[i].created_at); if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) tm++; }
-        document.getElementById('totalViolations').textContent = tv;
-        document.getElementById('thisMonth').textContent = tm;
-        document.getElementById('avgScore').textContent = a.length > 0 ? Math.round(ts / a.length) + '%' : '-';
+        var vEl = document.getElementById('totalViolations');
+        var mEl = document.getElementById('thisMonth');
+        var sEl = document.getElementById('avgScore');
+        if (vEl) vEl.textContent = tv;
+        if (mEl) mEl.textContent = tm;
+        if (sEl) sEl.textContent = a.length > 0 ? Math.round(ts / a.length) + '%' : '-';
         var html = '';
-        if (a.length === 0) { html = '<div class="no-analyses"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><h3>' + translations[currentLang].no_analyses + '</h3><p>' + translations[currentLang].no_analyses_desc + '</p></div>'; }
-        else { for (var j = 0; j < a.length; j++) { var x = a[j]; var dt = new Date(x.created_at).toLocaleDateString(currentLang === 'tr' ? 'tr-TR' : 'en-US'); html += '<div class="analysis-card"><div class="analysis-info"><h3>' + (x.video_name || 'Video') + '</h3><p>' + dt + '</p></div><div class="analysis-stats"><div class="analysis-stat"><div class="analysis-stat-value score">' + Math.round(x.safety_score || 0) + '%</div><div class="analysis-stat-label">' + translations[currentLang].label_safety + '</div></div><div class="analysis-stat"><div class="analysis-stat-value violations">' + (x.violations_count || 0) + '</div><div class="analysis-stat-label">' + translations[currentLang].label_violations + '</div></div></div><div class="analysis-actions">' + (x.pdf_base64 ? '<button class="btn btn-success btn-sm" onclick="dlPdf(\'' + x.id + '\')">PDF</button>' : '') + '<button class="btn btn-danger btn-sm" onclick="delA(\'' + x.id + '\')">×</button></div></div>'; } }
-        document.getElementById('analysesList').innerHTML = html;
+        if (a.length === 0) { html = '<div class="no-analyses"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><h3>' + t('no_analyses') + '</h3><p>' + t('no_analyses_desc') + '</p></div>'; }
+        else { for (var j = 0; j < a.length; j++) { var x = a[j]; var dt = new Date(x.created_at).toLocaleDateString(currentLang === 'tr' ? 'tr-TR' : 'en-US'); html += '<div class="analysis-card"><div class="analysis-info"><h3>' + (x.video_name || 'Video') + '</h3><p>' + dt + '</p></div><div class="analysis-stats"><div class="analysis-stat"><div class="analysis-stat-value score">' + Math.round(x.safety_score || 0) + '%</div><div class="analysis-stat-label">' + t('label_safety') + '</div></div><div class="analysis-stat"><div class="analysis-stat-value violations">' + (x.violations_count || 0) + '</div><div class="analysis-stat-label">' + t('label_violations') + '</div></div></div><div class="analysis-actions">' + (x.pdf_base64 ? '<button class="btn btn-success btn-sm" onclick="dlPdf(\'' + x.id + '\')">PDF</button>' : '') + '<button class="btn btn-danger btn-sm" onclick="delA(\'' + x.id + '\')">×</button></div></div>'; } }
+        var listEl = document.getElementById('analysesList');
+        if (listEl) listEl.innerHTML = html;
     });
 }
 
 if (document.getElementById('totalAnalyses')) {
     supabase.auth.getSession().then(function(r) {
         if (r.data.session) { currentUser = r.data.session.user; loadDashboard(); }
-        else { window.location.href = 'login.html'; }
+        else { window.location.href = 'giris-yap.html?next=dashboard.html'; }
     });
 }
 
@@ -357,19 +659,19 @@ if (uploadArea) {
         progressContainer.style.display = 'block';
         resultsSection.style.display = 'none';
         progressFill.style.width = '10%';
-        progressText.textContent = translations[currentLang].reading_video;
+        progressText.textContent = t('reading_video');
         var reader = new FileReader();
         reader.onload = function() {
             var base64 = reader.result.split(',')[1];
-            progressFill.style.width = '30%'; progressText.textContent = translations[currentLang].sending_gpu;
+            progressFill.style.width = '30%'; progressText.textContent = t('sending_gpu');
             fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ video: base64, confidence: 0.25, generate_report: true }) })
             .then(function(res) { return res.json(); })
             .then(function(result) {
                 progressFill.style.width = '100%';
-                if (result.error) { alert(translations[currentLang].error + ': ' + result.error); resetDemo(); return; }
+                if (result.error) { alert(t('error') + ': ' + result.error); resetDemo(); return; }
                 showResults(result);
                 if (currentUser) saveAnalysis(result);
-            }).catch(function(err) { alert(translations[currentLang].error + ': ' + err.message); resetDemo(); });
+            }).catch(function(err) { alert(t('error') + ': ' + err.message); resetDemo(); });
         };
         reader.readAsDataURL(file);
     }
@@ -394,7 +696,7 @@ if (uploadArea) {
         document.getElementById('safeCount').textContent = s.total_safe_detections || 0;
         document.getElementById('processingTime').textContent = (s.processing_time_seconds || 0).toFixed(1) + 's';
         var v = result.violations || [], h = '';
-        if (v.length === 0) h = '<div class="no-detections"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p>' + translations[currentLang].no_violations + '</p></div>';
+        if (v.length === 0) h = '<div class="no-detections"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p>' + t('no_violations') + '</p></div>';
         else { for (var j = 0; j < Math.min(v.length, 50); j++) h += '<div class="detection-item"><div class="detection-class">⚠️ ' + v[j].class_name + '</div><div class="detection-meta">' + (v[j].timestamp_formatted || '') + '</div></div>'; }
         document.getElementById('detectionsList').innerHTML = h;
     }
@@ -430,8 +732,8 @@ if (demoRequestForm) {
         };
         btn.disabled = true; btn.textContent = '...';
         supabase.from('demo_requests').insert(data).then(function(r) {
-            btn.disabled = false; btn.textContent = translations[currentLang].form_submit;
-            if (r.error) { alert(translations[currentLang].error + ': ' + r.error.message); return; }
+            btn.disabled = false; btn.textContent = t('form_submit');
+            if (r.error) { alert(t('error') + ': ' + r.error.message); return; }
             demoRequestForm.style.display = 'none';
             document.getElementById('formSuccess').className = 'demo-form-success show';
         });
@@ -460,8 +762,6 @@ if (demoRequestForm) {
     var inputEl = document.getElementById('chatInput');
     var sendBtn = document.getElementById('chatSend');
     var chatOpened = false;
-
-    function t(key) { return translations[currentLang][key] || key; }
 
     function addMsg(text, type) {
         var div = document.createElement('div');
@@ -559,7 +859,6 @@ if (demoRequestForm) {
         inputEl.value = '';
         quickEl.innerHTML = '';
 
-        // Save to Supabase
         supabase.from('chat_messages').insert({ message: msg, lang: currentLang, page: window.location.pathname, created_at: new Date().toISOString() });
 
         var topic = matchTopic(msg);

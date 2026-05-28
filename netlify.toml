@@ -1,0 +1,65 @@
+# Netlify deploy config — alternative to vercel.json if hosting on Netlify.
+# Cowork mode: this file is harmless on other hosts (they'll ignore it).
+
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/login"
+  to = "/giris-yap.html"
+  status = 301
+
+[[redirects]]
+  from = "/login.html"
+  to = "/giris-yap.html"
+  status = 301
+
+[[redirects]]
+  from = "/signup"
+  to = "/kaydol.html"
+  status = 301
+
+[[redirects]]
+  from = "/register"
+  to = "/kaydol.html"
+  status = 301
+
+[[redirects]]
+  from = "/verify"
+  to = "/dogrulama.html"
+  status = 302
+
+[[redirects]]
+  from = "/reset-password"
+  to = "/sifre-sifirla.html"
+  status = 301
+
+# Clean-URL aliases — Netlify auto-resolves /giris-yap → /giris-yap.html
+[[redirects]]
+  from = "/giris-yap"
+  to = "/giris-yap.html"
+  status = 200
+
+[[redirects]]
+  from = "/kaydol"
+  to = "/kaydol.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogrulama"
+  to = "/dogrulama.html"
+  status = 200
+
+[[redirects]]
+  from = "/sifre-sifirla"
+  to = "/sifre-sifirla.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"

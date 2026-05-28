@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIA - Demo Talep Et</title>
+    <title>MIA - Hesap Doğrulama</title>
     <link rel="icon" type="image/png" href="images/mia-shield.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
@@ -38,42 +38,31 @@
         </nav>
     </header>
 
-    <main class="demo-request-page">
-        <div class="demo-request-container">
-            <div class="demo-request-info">
-                <div class="demo-request-badge" data-i18n="demo_req_badge">Ücretsiz Demo</div>
-                <h1 data-i18n="demo_req_title">Uzmanlarımızla Görüşme Planlayın</h1>
-                <p data-i18n="demo_req_subtitle">Uzmanlarımız sorularınızı yanıtlayacak ve canlı bir demo anlatımı ile platform hakkında daha fazla bilgi verecekler. Formu doldurun, size hemen ulaşalım.</p>
+    <main class="page-auth">
+        <div class="auth-container" id="verifyPanel">
+            <div class="auth-logo"><img src="images/mia-logo.png" alt="MIA"></div>
+
+            <div id="verifyPending" class="auth-status">
+                <div class="auth-spinner"></div>
+                <h2 data-i18n="verify_title">Hesabınız doğrulanıyor...</h2>
             </div>
-            <div class="demo-request-form">
-                <div class="demo-form-success" id="formSuccess" data-i18n="form_success">Talebiniz alındı! En kısa sürede sizinle iletişime geçeceğiz.</div>
-                <form id="demoRequestForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label data-i18n="form_name">Ad Soyad <span>*</span></label>
-                            <input type="text" id="reqName" required>
-                        </div>
-                        <div class="form-group">
-                            <label data-i18n="form_company">Şirket Adı <span>*</span></label>
-                            <input type="text" id="reqCompany" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label data-i18n="form_email">E-Posta <span>*</span></label>
-                            <input type="email" id="reqEmail" required>
-                        </div>
-                        <div class="form-group">
-                            <label data-i18n="form_phone">Telefon <span>*</span></label>
-                            <input type="tel" id="reqPhone" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="form_message">Mesajınız</label>
-                        <textarea id="reqMessage" data-i18n-placeholder="form_message_placeholder" placeholder="Projeniz hakkında kısaca bilgi verin..."></textarea>
-                    </div>
-                    <button type="submit" class="demo-form-submit" id="demoSubmitBtn" data-i18n="form_submit">Gönder</button>
-                </form>
+
+            <div id="verifySuccess" class="auth-success" style="display:none;">
+                <div class="auth-success-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <h2 data-i18n="verify_success_title">Hesabınız aktif!</h2>
+                <p data-i18n="verify_success_msg">MIA panelinize giriş yapabilirsiniz.</p>
+                <div class="auth-success-actions">
+                    <a href="dashboard.html" class="btn btn-primary btn-sm">Dashboard</a>
+                </div>
+            </div>
+
+            <div id="verifyFail" class="auth-status" style="display:none;">
+                <h2 data-i18n="verify_fail_title">Doğrulama başarısız</h2>
+                <p style="color: var(--text-muted); margin: 0.75rem 0 1.5rem;" data-i18n="verify_fail_msg">Bağlantı geçersiz veya süresi dolmuş olabilir.</p>
+                <div class="auth-success-actions">
+                    <a href="kaydol.html" class="btn btn-secondary btn-sm" data-i18n="nav_signup">Kaydol</a>
+                    <a href="giris-yap.html" class="btn btn-primary btn-sm" data-i18n="verify_back_login">Giriş Yap sayfasına dön</a>
+                </div>
             </div>
         </div>
     </main>
