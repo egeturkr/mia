@@ -607,11 +607,13 @@ footer p { color: var(--text-muted); font-size: 0.9rem; }
     0%, 100% { opacity: 0.85; transform: scale(1); }
     50% { opacity: 1; transform: scale(1.08); }
 }
-.hp-hero-shield-svg {
+.hp-hero-shield-svg,
+.hp-hero-shield-img {
     position: relative; z-index: 1;
     width: 78%; max-width: 420px; height: auto;
     filter: drop-shadow(0 0 35px rgba(245,163,0,0.65)) drop-shadow(0 0 15px rgba(255,194,71,0.4));
 }
+.hp-hero-shield-img { display: block; }
 .hp-hero-worker {
     position: absolute;
     right: -5%; bottom: 0;
@@ -923,7 +925,10 @@ footer p { color: var(--text-muted); font-size: 0.9rem; }
     margin-bottom: 1rem;
     max-width: 140px;
     object-fit: contain; object-position: left;
+    opacity: 0.78;
+    transition: opacity 0.2s ease;
 }
+.hp-footer-logo:hover { opacity: 1; }
 .hp-footer-tag {
     font-size: 0.92rem;
     color: var(--hp-text-2);
