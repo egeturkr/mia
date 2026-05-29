@@ -6,26 +6,48 @@
     // Publishable key — safe for client-side. Domain restrict on Roboflow Settings → API Keys.
     var ROBOFLOW = {
         apiKey: "rf_CKNU6nQdF4d2SiFJRb27yfK5P9I2",
-        model: "hard-hat-workers/13",            // v13 = Accurate, augmented3x-HeadHelmet (mAP 96.9%)
-        endpoint: "https://serverless.roboflow.com",
-        confidence: 40,                          // min confidence threshold (Roboflow %)
-        overlap: 30,                             // NMS overlap %
-        maxFrames: 12,                           // cost guard — max frame/analiz
-        frameStrideSec: 2                        // her N saniyede 1 frame ornekle
+        // 10-class construction PPE model: Hardhat, NO-Hardhat, Safety Vest, NO-Safety Vest,
+        // Mask, NO-Mask, Person, machinery, vehicle, Safety Cone. mAP ~70%, 2800+ images.
+        model: "construction-site-safety/27",
+        endpoint: "https://detect.roboflow.com",  // classic REST endpoint (most reliable)
+        confidence: 35,                            // %35+ confidence
+        overlap: 30,                               // NMS overlap
+        maxFrames: 10,                             // cost guard — 15 credit free tier'da güvenli
+        frameStrideSec: 2                          // her N saniyede 1 frame
     };
 
-    // Roboflow class → MIA event type mapping
-    // Public model classes: head (helmet'siz), helmet, person
+    // Roboflow class → MIA event mapping. NO-* sınıflar ihlal demek (Yüksek risk).
     var ROBOFLOW_CLASS_MAP = {
-        "head":   { event: "no_helmet", risk: "Yüksek", ppe: "Baret",
-                    tr: { title: "Baretsiz çalışan tespit edildi", desc: "Belirlenen bölgede koruyucu baret takmayan personel görüldü." },
-                    en: { title: "Worker without helmet detected", desc: "A person was observed without a protective helmet in the marked zone." } },
-        "helmet": { event: "helmet_ok", risk: "Düşük", ppe: "Baret",
-                    tr: { title: "Baret tespit edildi (güvenli)", desc: "Personel uygun koruyucu baret kullanıyor." },
-                    en: { title: "Helmet detected (compliant)", desc: "Worker is wearing the required protective helmet." } },
-        "person": { event: "person", risk: "Düşük", ppe: "Person",
-                    tr: { title: "Personel tespit edildi", desc: "Sahada personel hareketi gözlemlendi." },
-                    en: { title: "Person detected", desc: "Personnel movement observed on site." } }
+        "Hardhat":         { event: "hardhat_ok", risk: "Düşük", ppe: "Baret",
+                             tr: { title: "Baret kullanılıyor (güvenli)", desc: "Personel uygun koruyucu baret kullanıyor." },
+                             en: { title: "Hardhat detected (compliant)", desc: "Worker is wearing the required protective hardhat." } },
+        "NO-Hardhat":      { event: "no_hardhat", risk: "Yüksek", ppe: "Baret",
+                             tr: { title: "Baretsiz çalışan tespit edildi", desc: "Koruyucu baret takmayan personel tespit edildi." },
+                             en: { title: "Worker without hardhat", desc: "Personnel detected without the required protective hardhat." } },
+        "Safety Vest":     { event: "vest_ok", risk: "Düşük", ppe: "Yelek",
+                             tr: { title: "Güvenlik yeleği kullanılıyor", desc: "Personel yüksek görünürlüklü güvenlik yeleği giyiyor." },
+                             en: { title: "Safety vest detected (compliant)", desc: "Worker is wearing a high-visibility safety vest." } },
+        "NO-Safety Vest":  { event: "no_vest", risk: "Yüksek", ppe: "Yelek",
+                             tr: { title: "Yelek eksikliği tespit edildi", desc: "Yüksek görünürlüklü güvenlik yeleği takmayan personel görüldü." },
+                             en: { title: "Missing safety vest", desc: "Worker detected without the required high-visibility vest." } },
+        "Mask":            { event: "mask_ok", risk: "Düşük", ppe: "Maske",
+                             tr: { title: "Maske kullanılıyor", desc: "Personel uygun maske kullanıyor." },
+                             en: { title: "Mask detected (compliant)", desc: "Worker is wearing a protective mask." } },
+        "NO-Mask":         { event: "no_mask", risk: "Orta", ppe: "Maske",
+                             tr: { title: "Maske eksikliği", desc: "Solunum koruyucu maske kullanmayan personel görüldü." },
+                             en: { title: "Missing mask", desc: "Worker detected without a respiratory protective mask." } },
+        "Person":          { event: "person", risk: "Düşük", ppe: "Person",
+                             tr: { title: "Personel tespit edildi", desc: "Sahada personel hareketi gözlemlendi." },
+                             en: { title: "Person detected", desc: "Personnel movement observed on site." } },
+        "machinery":       { event: "machinery", risk: "Orta", ppe: "Makine",
+                             tr: { title: "İş makinesi tespit edildi", desc: "Operasyon bölgesinde aktif iş makinesi var, dikkat." },
+                             en: { title: "Machinery detected", desc: "Active construction machinery in operation zone — caution." } },
+        "vehicle":         { event: "vehicle", risk: "Orta", ppe: "Araç",
+                             tr: { title: "Araç tespit edildi", desc: "Şantiye araç hareketi gözlemlendi." },
+                             en: { title: "Vehicle detected", desc: "Construction vehicle movement observed." } },
+        "Safety Cone":     { event: "cone", risk: "Düşük", ppe: "Trafik Kon",
+                             tr: { title: "Güvenlik konisi tespit edildi", desc: "Trafik/yön düzenleme konisi." },
+                             en: { title: "Safety cone detected", desc: "Traffic / area marker cone." } }
     };
 
     var EVENT_TYPES = [
@@ -314,14 +336,20 @@
                   "?api_key=" + ROBOFLOW.apiKey +
                   "&confidence=" + ROBOFLOW.confidence +
                   "&overlap=" + ROBOFLOW.overlap;
+        console.log("[MIA] Roboflow POST →", url.replace(ROBOFLOW.apiKey, "***"), "frame size:", frame.base64.length, "bytes");
         return fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: frame.base64
         }).then(function(r) {
-            if (!r.ok) throw new Error("Roboflow " + r.status);
+            if (!r.ok) {
+                return r.text().then(function(txt) {
+                    throw new Error("Roboflow HTTP " + r.status + ": " + txt.slice(0, 200));
+                });
+            }
             return r.json();
         }).then(function(json) {
+            console.log("[MIA] Roboflow response @ t=" + frame.t.toFixed(1) + "s:", json.predictions ? json.predictions.length + " detections" : json);
             // Convert Roboflow predictions → MIA event format
             var preds = json.predictions || [];
             // Normalize bboxes to 0..1 of source frame, then events
@@ -535,19 +563,50 @@
 
             runLiveAnalysis()
                 .then(function(events) {
-                    state.events = events;
+                    console.log("[MIA] Live analysis complete — total events:", events.length);
+                    if (!events.length) {
+                        // No detections at all — likely the video has nothing the model recognizes
+                        if (!confirm(lang === "tr"
+                            ? "Modelin bu videoda hiç tespit etmediği bir şey yok (PPE, kişi, araç). Demo veriyle göster?"
+                            : "The model didn't detect anything in this video (PPE, person, vehicle). Show demo data instead?")) {
+                            state.events = [];
+                            els.progressStep.textContent = lang === "tr" ? "Tespit bulunamadı" : "No detections";
+                            finishAnalysis();
+                            return;
+                        }
+                        state.events = generateEvents();
+                    } else {
+                        state.events = events;
+                    }
                     els.progressStep.textContent = lang === "tr" ? "Analiz tamamlandı" : "Analysis complete";
                     els.progressPct.textContent = "100%";
                     els.progressFill.style.width = "100%";
                     finishAnalysis();
                 })
                 .catch(function(err) {
-                    console.error("Live analysis failed:", err);
-                    alert(lang === "tr"
-                        ? "Canlı AI hatası: " + err.message + "\nDemo moduna geri dönülüyor."
-                        : "Live AI failed: " + err.message + "\nFalling back to demo mode.");
-                    setInferenceMode("demo");
-                    runDemoAnalysis();
+                    console.error("[MIA] Live analysis failed:", err);
+                    // Inline error in progress bar (not just alert)
+                    els.progressStep.textContent = (lang === "tr" ? "❌ Canlı AI hatası: " : "❌ Live AI error: ") + (err.message || err);
+                    els.progressStep.style.color = "#ef4444";
+                    els.progressFill.style.background = "#ef4444";
+                    setTimeout(function() {
+                        if (confirm(lang === "tr"
+                            ? "Canlı AI başarısız oldu:\n\n" + (err.message || err) + "\n\nDemo moduna geçip simüle edelim mi?"
+                            : "Live AI failed:\n\n" + (err.message || err) + "\n\nFall back to demo mode?")) {
+                            els.progressStep.style.color = "";
+                            els.progressFill.style.background = "";
+                            setInferenceMode("demo");
+                            runDemoAnalysis();
+                        } else {
+                            // Reset UI so user can retry
+                            els.startBtn.disabled = false;
+                            els.startBtn.classList.remove("is-loading");
+                            els.controlStatus.classList.remove("is-running");
+                            els.progressBar.style.display = "none";
+                            els.progressStep.style.color = "";
+                            els.progressFill.style.background = "";
+                        }
+                    }, 300);
                 });
             return;
         }
