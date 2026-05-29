@@ -571,35 +571,70 @@ if (newPasswordForm) {
 
 // === EMAIL CONFIRMATION LANDING (/dogrulama) ===
 // Supabase v2 with detectSessionInUrl auto-exchanges the email link's hash for a session.
-// We just need to inspect the resulting state and show the right UI.
+// detectSessionInUrl is async — we listen to onAuthStateChange for SIGNED_IN
+// instead of guessing how long it'll take.
 var verifyPanel = document.getElementById('verifyPanel');
 if (verifyPanel) {
-    var pending = document.getElementById('verifyPending');
-    var success = document.getElementById('verifySuccess');
-    var fail = document.getElementById('verifyFail');
+    var pendingEl = document.getElementById('verifyPending');
+    var successEl = document.getElementById('verifySuccess');
+    var failEl = document.getElementById('verifyFail');
 
     function showVerify(state) {
-        if (pending) pending.style.display = state === 'pending' ? 'block' : 'none';
-        if (success) success.style.display = state === 'success' ? 'block' : 'none';
-        if (fail) fail.style.display = state === 'fail' ? 'block' : 'none';
+        if (pendingEl) pendingEl.style.display = state === 'pending' ? 'block' : 'none';
+        if (successEl) successEl.style.display = state === 'success' ? 'block' : 'none';
+        if (failEl) failEl.style.display = state === 'fail' ? 'block' : 'none';
     }
     showVerify('pending');
 
-    // Give Supabase a moment to process the URL hash.
-    setTimeout(function() {
-        supabase.auth.getSession().then(function(r) {
-            if (r.data && r.data.session) {
-                try { localStorage.removeItem('mia.pendingEmail'); } catch (ex) {}
-                showVerify('success');
-                setTimeout(function() { window.location.href = 'dashboard.html'; }, 1800);
-            } else {
-                // Could be already confirmed in another tab — check error or fall through.
-                var hash = window.location.hash || '';
-                if (hash.indexOf('error') !== -1) showVerify('fail');
-                else showVerify('fail');
+    var hash = window.location.hash || '';
+    var qs = window.location.search || '';
+
+    // Supabase sometimes returns errors in the hash (error_code, error_description)
+    // when the link is expired or already used.
+    if (hash.indexOf('error') !== -1 || qs.indexOf('error') !== -1) {
+        showVerify('fail');
+    } else {
+        var settled = false;
+        function resolveSuccess() {
+            if (settled) return;
+            settled = true;
+            try { localStorage.removeItem('mia.pendingEmail'); } catch (ex) {}
+            showVerify('success');
+            setTimeout(function() { window.location.href = 'dashboard.html'; }, 1500);
+        }
+        function resolveFail() {
+            if (settled) return;
+            settled = true;
+            showVerify('fail');
+        }
+
+        // 1. Listen for the SIGNED_IN event triggered by detectSessionInUrl.
+        var verifySub = supabase.auth.onAuthStateChange(function(event, session) {
+            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session) {
+                resolveSuccess();
             }
         });
-    }, 700);
+
+        // 2. Also poll getSession a few times — covers the case where the
+        //    SIGNED_IN event fired before we attached the listener.
+        function pollSession(attempt) {
+            if (settled) return;
+            supabase.auth.getSession().then(function(r) {
+                if (r && r.data && r.data.session) {
+                    resolveSuccess();
+                } else if (attempt < 10) {
+                    setTimeout(function() { pollSession(attempt + 1); }, 400);
+                } else {
+                    resolveFail();
+                }
+            }).catch(function() {
+                if (attempt < 10) setTimeout(function() { pollSession(attempt + 1); }, 400);
+                else resolveFail();
+            });
+        }
+        // Give the SDK a brief moment to parse the hash before polling.
+        setTimeout(function() { pollSession(0); }, 200);
+    }
 }
 
 // === DASHBOARD PAGE ===
