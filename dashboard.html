@@ -12,7 +12,7 @@
 <body>
     <header>
         <a class="logo" href="index.html">
-            <img src="images/mia-logo.png" alt="MIA" class="logo-img">
+            <img src="images/mia-logo.webp" alt="MIA" class="logo-img">
         </a>
         <nav>
             <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
@@ -40,20 +40,83 @@
 
     <main class="page-inner page-dashboard">
         <div class="dashboard-container">
-            <div class="dashboard-header"><h1>Dashboard</h1><a href="demo.html" class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span data-i18n="new_analysis">Yeni Analiz</span></a></div>
-            <div class="dashboard-stats">
-                <div class="dash-stat-card"><div class="dash-stat-label" data-i18n="dash_total">Toplam Analiz</div><div class="dash-stat-value" id="totalAnalyses">0</div></div>
-                <div class="dash-stat-card"><div class="dash-stat-label" data-i18n="dash_avg">Ortalama Skor</div><div class="dash-stat-value good" id="avgScore">-</div></div>
-                <div class="dash-stat-card"><div class="dash-stat-label" data-i18n="dash_violations">Toplam İhlal</div><div class="dash-stat-value bad" id="totalViolations">0</div></div>
-                <div class="dash-stat-card"><div class="dash-stat-label" data-i18n="dash_month">Bu Ay</div><div class="dash-stat-value" id="thisMonth">0</div></div>
+            <div class="dashboard-header">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p class="dash-sub" data-i18n="dash_sub">Şantiye güvenlik analizlerinin özeti</p>
+                </div>
+                <div class="dash-header-actions">
+                    <div class="dash-filter-pills" id="dashFilterPills">
+                        <button type="button" class="dash-pill" data-period="week" data-i18n="dash_week">Bu Hafta</button>
+                        <button type="button" class="dash-pill active" data-period="month" data-i18n="dash_month_filter">Bu Ay</button>
+                        <button type="button" class="dash-pill" data-period="all" data-i18n="dash_all">Tüm Zamanlar</button>
+                    </div>
+                    <a href="demo.html" class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span data-i18n="new_analysis">Yeni Analiz</span>
+                    </a>
+                </div>
             </div>
-            <div class="analyses-section"><h2 data-i18n="dash_history">Analiz Geçmişi</h2><div class="analyses-list" id="analysesList"></div></div>
+
+            <div class="dashboard-stats">
+                <div class="dash-stat-card">
+                    <div class="dash-stat-label" data-i18n="dash_total">Toplam Analiz</div>
+                    <div class="dash-stat-value" id="totalAnalyses">0</div>
+                    <div class="dash-stat-foot" id="totalAnalysesFoot"></div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-label" data-i18n="dash_avg">Ortalama Skor</div>
+                    <div class="dash-stat-value good" id="avgScore">-</div>
+                    <div class="dash-stat-foot" id="avgScoreFoot"></div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-label" data-i18n="dash_violations">Toplam İhlal</div>
+                    <div class="dash-stat-value bad" id="totalViolations">0</div>
+                    <div class="dash-stat-foot" id="violationsFoot"></div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-label" data-i18n="dash_month">Bu Ay</div>
+                    <div class="dash-stat-value" id="thisMonth">0</div>
+                    <div class="dash-stat-foot" data-i18n="dash_month_foot">Bu ay yapılan analiz</div>
+                </div>
+            </div>
+
+            <!-- CHARTS — gizli, veri varsa açılır -->
+            <div class="dash-charts-grid" id="dashChartsGrid" style="display:none;">
+                <div class="dash-chart-card">
+                    <div class="dash-chart-head">
+                        <h3 data-i18n="chart_risk">Risk Dağılımı</h3>
+                        <span class="dash-chart-sub" data-i18n="chart_risk_sub">Analiz güvenlik skoru bazında</span>
+                    </div>
+                    <div class="dash-chart-body"><canvas id="chartRisk"></canvas></div>
+                </div>
+                <div class="dash-chart-card dash-chart-wide">
+                    <div class="dash-chart-head">
+                        <h3 data-i18n="chart_trend">İhlal Trendi</h3>
+                        <span class="dash-chart-sub" data-i18n="chart_trend_sub">Son 30 gün</span>
+                    </div>
+                    <div class="dash-chart-body"><canvas id="chartTrend"></canvas></div>
+                </div>
+                <div class="dash-chart-card dash-chart-full">
+                    <div class="dash-chart-head">
+                        <h3 data-i18n="chart_top">En Çok İhlal — Top 5 Video</h3>
+                        <span class="dash-chart-sub" data-i18n="chart_top_sub">Toplam tespit sayısına göre</span>
+                    </div>
+                    <div class="dash-chart-body"><canvas id="chartTop"></canvas></div>
+                </div>
+            </div>
+
+            <div class="analyses-section">
+                <h2 data-i18n="dash_history">Analiz Geçmişi</h2>
+                <div class="analyses-list" id="analysesList"></div>
+            </div>
         </div>
     </main>
 
     <footer><p data-i18n="footer">© 2026 MIA - Tüm hakları saklıdır.</p></footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

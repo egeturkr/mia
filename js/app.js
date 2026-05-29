@@ -638,25 +638,196 @@ if (verifyPanel) {
 }
 
 // === DASHBOARD PAGE ===
+var dashAllAnalyses = [];
+var dashCurrentPeriod = 'month';
+var dashChartInstances = { risk: null, trend: null, top: null };
+
+function dashFilterByPeriod(analyses, period) {
+    if (period === 'all') return analyses;
+    var now = new Date();
+    var cutoff;
+    if (period === 'week') {
+        cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else {
+        cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    return analyses.filter(function(a) { return new Date(a.created_at) >= cutoff; });
+}
+
+function dashRiskCategory(s) { if (s >= 80) return 'low'; if (s >= 60) return 'medium'; return 'high'; }
+
+function dashRenderStats(analyses) {
+    var tv = 0, ts = 0;
+    var nowMonth = new Date().getMonth(), nowYear = new Date().getFullYear(), monthCount = 0;
+    analyses.forEach(function(a) {
+        tv += a.violations_count || 0;
+        ts += a.safety_score || 0;
+        var d = new Date(a.created_at);
+        if (d.getMonth() === nowMonth && d.getFullYear() === nowYear) monthCount++;
+    });
+    var av = analyses.length ? Math.round(ts / analyses.length) : 0;
+    var setText = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+    setText('totalAnalyses', analyses.length);
+    setText('totalViolations', tv);
+    setText('thisMonth', monthCount);
+    setText('avgScore', analyses.length ? av + '%' : '-');
+
+    var tr = currentLang === 'tr';
+    var tFoot = document.getElementById('totalAnalysesFoot');
+    if (tFoot) tFoot.textContent = analyses.length ? (tr ? 'Bu dönemde' : 'In this period') : '';
+    var avFoot = document.getElementById('avgScoreFoot');
+    if (avFoot) {
+        avFoot.textContent = !analyses.length ? '' : av >= 80 ? (tr ? 'İyi durumda' : 'In good shape') : av >= 60 ? (tr ? 'İyileştirme alanı var' : 'Room to improve') : (tr ? 'Acil müdahale gerek' : 'Needs urgent action');
+        avFoot.className = 'dash-stat-foot ' + (av >= 80 ? 'up' : av >= 60 ? '' : 'down');
+    }
+    var vFoot = document.getElementById('violationsFoot');
+    if (vFoot) vFoot.textContent = analyses.length ? (tr ? Math.round(tv / analyses.length) + ' / analiz' : Math.round(tv / analyses.length) + ' / analysis') : '';
+}
+
+function dashRenderCharts(analyses) {
+    var grid = document.getElementById('dashChartsGrid');
+    if (!grid) return;
+    if (!analyses.length || typeof Chart === 'undefined') { grid.style.display = 'none'; return; }
+    grid.style.display = 'grid';
+
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    var textColor = isLight ? '#475569' : '#a1a1aa';
+    var gridColor = isLight ? '#e2e8f0' : '#27272a';
+    var tr = currentLang === 'tr';
+
+    Object.keys(dashChartInstances).forEach(function(k) { if (dashChartInstances[k]) { dashChartInstances[k].destroy(); dashChartInstances[k] = null; } });
+
+    // 1. Risk donut
+    var counts = { low: 0, medium: 0, high: 0 };
+    analyses.forEach(function(a) { counts[dashRiskCategory(a.safety_score || 100)]++; });
+    var riskCtx = document.getElementById('chartRisk');
+    if (riskCtx) {
+        dashChartInstances.risk = new Chart(riskCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [tr ? 'Düşük (Güvenli)' : 'Low (Safe)', tr ? 'Orta' : 'Medium', tr ? 'Yüksek' : 'High'],
+                datasets: [{ data: [counts.low, counts.medium, counts.high], backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'], borderColor: isLight ? '#fff' : '#0a0a0a', borderWidth: 2 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '65%',
+                plugins: { legend: { position: 'bottom', labels: { color: textColor, padding: 14, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, font: { size: 12 } } } }
+            }
+        });
+    }
+
+    // 2. Trend line — last 30 days
+    var trendCtx = document.getElementById('chartTrend');
+    if (trendCtx) {
+        var byDay = {};
+        analyses.forEach(function(a) {
+            var d = new Date(a.created_at);
+            var key = d.toISOString().slice(0, 10);
+            byDay[key] = (byDay[key] || 0) + (a.violations_count || 0);
+        });
+        var labels = [], values = [];
+        for (var i = 29; i >= 0; i--) {
+            var d2 = new Date(); d2.setDate(d2.getDate() - i);
+            var key2 = d2.toISOString().slice(0, 10);
+            labels.push(d2.toLocaleDateString(tr ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'short' }));
+            values.push(byDay[key2] || 0);
+        }
+        dashChartInstances.trend = new Chart(trendCtx, {
+            type: 'line',
+            data: { labels: labels, datasets: [{ label: tr ? 'İhlal' : 'Violations', data: values, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.12)', borderWidth: 2, fill: true, tension: 0.35, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#f59e0b' }] },
+            options: {
+                responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: { grid: { color: gridColor, display: false }, ticks: { color: textColor, maxTicksLimit: 8, font: { size: 11 } } },
+                    y: { grid: { color: gridColor }, ticks: { color: textColor, precision: 0, font: { size: 11 } }, beginAtZero: true }
+                },
+                plugins: { legend: { display: false }, tooltip: { backgroundColor: isLight ? '#fff' : '#1a1a1a', titleColor: isLight ? '#0f172a' : '#fff', bodyColor: textColor, borderColor: gridColor, borderWidth: 1 } }
+            }
+        });
+    }
+
+    // 3. Top 5 videos by violations (horizontal bar)
+    var topCtx = document.getElementById('chartTop');
+    if (topCtx) {
+        var sorted = analyses.slice().sort(function(a, b) { return (b.violations_count || 0) - (a.violations_count || 0); }).slice(0, 5);
+        var topLabels = sorted.map(function(a) { var n = a.video_name || 'Video'; return n.length > 28 ? n.slice(0, 26) + '…' : n; });
+        var topValues = sorted.map(function(a) { return a.violations_count || 0; });
+        dashChartInstances.top = new Chart(topCtx, {
+            type: 'bar',
+            data: { labels: topLabels, datasets: [{ data: topValues, backgroundColor: 'rgba(245,158,11,0.85)', borderColor: '#f59e0b', borderWidth: 0, borderRadius: 6, barThickness: 22 }] },
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { color: gridColor }, ticks: { color: textColor, precision: 0, font: { size: 11 } }, beginAtZero: true },
+                    y: { grid: { display: false }, ticks: { color: textColor, font: { size: 11 } } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+}
+
+function dashRenderEmpty(listEl) {
+    var tr = currentLang === 'tr';
+    listEl.innerHTML = '<div class="dash-empty">' +
+        '<div class="dash-empty-illo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg></div>' +
+        '<h3>' + (tr ? 'Burada henüz bir şey yok' : 'Nothing here yet') + '</h3>' +
+        '<p>' + (tr ? 'İlk videonu yükleyip analiz ettir; PPE ihlalleri, risk skorları ve trend grafikleri burada görünecek.' : 'Upload your first video; PPE violations, risk scores, and trend charts will appear here.') + '</p>' +
+        '<div class="dash-empty-actions">' +
+            '<a href="demo.html" class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>' + (tr ? 'İlk Analizi Başlat' : 'Start First Analysis') + '</span></a>' +
+            '<button type="button" class="dash-empty-link" id="dashDemoBtn">' + (tr ? 'Önce demo veriyi göster' : 'Show demo data first') + '</button>' +
+        '</div>' +
+    '</div>';
+    var demoBtn = document.getElementById('dashDemoBtn');
+    if (demoBtn) demoBtn.addEventListener('click', function() {
+        var sample = dashGenerateSampleData();
+        dashRenderStats(sample);
+        dashRenderCharts(sample);
+        dashRenderList(sample, true);
+    });
+}
+
+function dashGenerateSampleData() {
+    var seed = 42;
+    function rng() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    var names = ['Şantiye A — Vardiya 1', 'Şantiye A — Vardiya 2', 'Kule B — Kat 12', 'Şantiye C — Giriş', 'Şantiye B — Çatı', 'Şantiye A — Vardiya 3', 'Kule B — Kat 8', 'Şantiye C — Vinç Bölgesi', 'Şantiye A — Akşam', 'Şantiye B — Lojistik', 'Kule B — Kat 15', 'Şantiye C — İşçi Giriş'];
+    var out = [];
+    for (var i = 0; i < 12; i++) {
+        var daysAgo = Math.floor(rng() * 28);
+        var d = new Date(); d.setDate(d.getDate() - daysAgo);
+        var safety = 50 + Math.floor(rng() * 48);
+        out.push({ id: 'sample-' + i, video_name: names[i], safety_score: safety, violations_count: Math.floor((100 - safety) / 8) + Math.floor(rng() * 3), created_at: d.toISOString(), isSample: true });
+    }
+    return out;
+}
+
+function dashRenderList(analyses, isSample) {
+    var listEl = document.getElementById('analysesList');
+    if (!listEl) return;
+    if (!analyses.length) { dashRenderEmpty(listEl); return; }
+    var tr = currentLang === 'tr';
+    var banner = isSample ? '<div class="dash-sample-banner"><span>✦ ' + (tr ? 'Demo veri görüntüleniyor — kendi analizinle değiştir' : 'Showing demo data — replace with your own') + '</span><button type="button" onclick="loadDashboard()" class="dash-empty-link" style="padding:0.2rem 0.6rem;">' + (tr ? 'Temizle' : 'Clear') + '</button></div>' : '';
+    var html = banner;
+    for (var j = 0; j < analyses.length; j++) {
+        var x = analyses[j];
+        var dt = new Date(x.created_at).toLocaleDateString(tr ? 'tr-TR' : 'en-US');
+        html += '<div class="analysis-card"><div class="analysis-info"><h3>' + (x.video_name || 'Video') + '</h3><p>' + dt + '</p></div><div class="analysis-stats"><div class="analysis-stat"><div class="analysis-stat-value score">' + Math.round(x.safety_score || 0) + '%</div><div class="analysis-stat-label">' + t('label_safety') + '</div></div><div class="analysis-stat"><div class="analysis-stat-value violations">' + (x.violations_count || 0) + '</div><div class="analysis-stat-label">' + t('label_violations') + '</div></div></div><div class="analysis-actions">' + (!isSample && x.pdf_base64 ? '<button class="btn btn-success btn-sm" onclick="dlPdf(\'' + x.id + '\')">PDF</button>' : '') + (!isSample ? '<button class="btn btn-danger btn-sm" onclick="delA(\'' + x.id + '\')">×</button>' : '') + '</div></div>';
+    }
+    listEl.innerHTML = html;
+}
+
+function dashApplyFilter(period) {
+    dashCurrentPeriod = period;
+    var filtered = dashFilterByPeriod(dashAllAnalyses, period);
+    dashRenderStats(filtered);
+    dashRenderCharts(filtered);
+    dashRenderList(filtered, false);
+}
+
 function loadDashboard() {
     if (!currentUser) return;
     supabase.from('analyses').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).then(function(r) {
-        var a = r.data || [];
-        var totalEl = document.getElementById('totalAnalyses');
-        if (totalEl) totalEl.textContent = a.length;
-        var tv = 0, ts = 0, tm = 0, now = new Date();
-        for (var i = 0; i < a.length; i++) { tv += a[i].violations_count || 0; ts += a[i].safety_score || 0; var d = new Date(a[i].created_at); if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) tm++; }
-        var vEl = document.getElementById('totalViolations');
-        var mEl = document.getElementById('thisMonth');
-        var sEl = document.getElementById('avgScore');
-        if (vEl) vEl.textContent = tv;
-        if (mEl) mEl.textContent = tm;
-        if (sEl) sEl.textContent = a.length > 0 ? Math.round(ts / a.length) + '%' : '-';
-        var html = '';
-        if (a.length === 0) { html = '<div class="no-analyses"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><h3>' + t('no_analyses') + '</h3><p>' + t('no_analyses_desc') + '</p></div>'; }
-        else { for (var j = 0; j < a.length; j++) { var x = a[j]; var dt = new Date(x.created_at).toLocaleDateString(currentLang === 'tr' ? 'tr-TR' : 'en-US'); html += '<div class="analysis-card"><div class="analysis-info"><h3>' + (x.video_name || 'Video') + '</h3><p>' + dt + '</p></div><div class="analysis-stats"><div class="analysis-stat"><div class="analysis-stat-value score">' + Math.round(x.safety_score || 0) + '%</div><div class="analysis-stat-label">' + t('label_safety') + '</div></div><div class="analysis-stat"><div class="analysis-stat-value violations">' + (x.violations_count || 0) + '</div><div class="analysis-stat-label">' + t('label_violations') + '</div></div></div><div class="analysis-actions">' + (x.pdf_base64 ? '<button class="btn btn-success btn-sm" onclick="dlPdf(\'' + x.id + '\')">PDF</button>' : '') + '<button class="btn btn-danger btn-sm" onclick="delA(\'' + x.id + '\')">×</button></div></div>'; } }
-        var listEl = document.getElementById('analysesList');
-        if (listEl) listEl.innerHTML = html;
+        dashAllAnalyses = r.data || [];
+        dashApplyFilter(dashCurrentPeriod);
     });
 }
 
@@ -664,6 +835,14 @@ if (document.getElementById('totalAnalyses')) {
     supabase.auth.getSession().then(function(r) {
         if (r.data.session) { currentUser = r.data.session.user; loadDashboard(); }
         else { window.location.href = 'giris-yap.html?next=dashboard.html'; }
+    });
+    var pills = document.querySelectorAll('#dashFilterPills .dash-pill');
+    Array.prototype.forEach.call(pills, function(p) {
+        p.addEventListener('click', function() {
+            Array.prototype.forEach.call(pills, function(x) { x.classList.remove('active'); });
+            p.classList.add('active');
+            dashApplyFilter(p.getAttribute('data-period'));
+        });
     });
 }
 
