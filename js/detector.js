@@ -81,6 +81,13 @@
         progressFill:   $("progressFill"),
         progressEta:    $("progressEta"),
         controlStatus:  $("controlStatus"),
+        // Overlay + timeline
+        overlay:        $("detOverlay"),
+        timeline:       $("detTimeline"),
+        tlTrack:        document.querySelector("#detTimeline .det-timeline-track"),
+        tlMarkers:      $("detTimelineMarkers"),
+        tlCursor:       $("detTimelineCursor"),
+        tlProgress:     $("detTimelineProgress"),
         // Results
         totalHazards:   $("totalHazards"),
         highRisk:       $("highRisk"),
@@ -137,7 +144,29 @@
         els.previewPanel.style.display = "none";
         els.resultsPanel.style.display = "none";
         els.fileInput.value = "";
+        // Cleanup overlay + timeline
+        stopOverlayLoop();
+        if (els.timeline) els.timeline.style.display = "none";
+        if (els.tlMarkers) els.tlMarkers.innerHTML = "";
+        if (els.overlay) { var ctx = els.overlay.getContext("2d"); ctx && ctx.clearRect(0, 0, els.overlay.width, els.overlay.height); }
+        if (els.controlStatus) els.controlStatus.classList.remove("is-done");
     }
+
+    // Timeline click → seek (excluding marker clicks which are handled separately)
+    if (els.tlTrack) {
+        els.tlTrack.addEventListener("click", function(e) {
+            var rect = els.tlTrack.getBoundingClientRect();
+            var pct = (e.clientX - rect.left) / rect.width;
+            seekTo(pct * (state.videoDurationSec || 0));
+        });
+    }
+
+    // Resize canvas on metadata load + window resize
+    if (els.videoPreview) {
+        els.videoPreview.addEventListener("loadedmetadata", resizeCanvas);
+        els.videoPreview.addEventListener("loadeddata", resizeCanvas);
+    }
+    window.addEventListener("resize", resizeCanvas);
 
     // === UPLOAD HANDLERS ===
     els.browseBtn.addEventListener("click", function() { els.fileInput.click(); });
@@ -179,11 +208,17 @@
         for (var i = 0; i < count; i++) {
             var type = EVENT_TYPES[Math.floor(rng() * EVENT_TYPES.length)];
             var confidence = 70 + Math.floor(rng() * 28); // 70-97
-            var ts = Math.floor(rng() * dur);
+            var ts = Math.floor(rng() * Math.max(1, dur - 3));
             // Override risk for variety: high-confidence + critical PPE => Yüksek, mid => Orta, low conf => Düşük
             var risk = type.risk;
             if (confidence < 78 && risk === "Yüksek") risk = "Orta";
             if (confidence >= 90 && risk === "Düşük") risk = "Orta";
+            // Normalized bounding box (0..1 of video frame). Width ~ person-shape.
+            var bw = 0.10 + rng() * 0.12;     // 10-22% width
+            var bh = 0.22 + rng() * 0.20;     // 22-42% height
+            var bx = 0.05 + rng() * (0.95 - bw - 0.05);
+            var by = 0.10 + rng() * (0.90 - bh - 0.10);
+            var dwell = 1.2 + rng() * 1.8;    // 1.2-3.0s on screen
             events.push({
                 id: "EVT-" + (1000 + i),
                 type: type.key,
@@ -194,6 +229,8 @@
                 desc_en: type.en.desc,
                 timestamp_sec: ts,
                 timestamp: fmtTime(ts),
+                duration_sec: +dwell.toFixed(2),
+                bbox: { x: +bx.toFixed(3), y: +by.toFixed(3), w: +bw.toFixed(3), h: +bh.toFixed(3) },
                 risk_level: risk,
                 confidence: confidence,
                 status: confidence >= 85 ? "Onaylandı" : (confidence >= 75 ? "İnceleme" : "Belirsiz")
@@ -201,6 +238,128 @@
         }
         events.sort(function(a, b) { return a.timestamp_sec - b.timestamp_sec; });
         return events;
+    }
+
+    // === OVERLAY (canvas bounding boxes) ===
+    var rafId = null;
+    function riskColor(risk) {
+        if (risk === "Yüksek") return { stroke: "#ef4444", fill: "rgba(239,68,68,0.12)" };
+        if (risk === "Orta")   return { stroke: "#f59e0b", fill: "rgba(245,158,11,0.12)" };
+        return { stroke: "#22c55e", fill: "rgba(34,197,94,0.12)" };
+    }
+
+    function resizeCanvas() {
+        if (!els.overlay || !els.videoPreview) return;
+        var w = els.videoPreview.clientWidth;
+        var h = els.videoPreview.clientHeight;
+        if (!w || !h) return;
+        var dpr = window.devicePixelRatio || 1;
+        els.overlay.width = Math.floor(w * dpr);
+        els.overlay.height = Math.floor(h * dpr);
+        els.overlay.style.width = w + "px";
+        els.overlay.style.height = h + "px";
+        var ctx = els.overlay.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function drawOverlay() {
+        if (!els.overlay) return;
+        var ctx = els.overlay.getContext("2d");
+        var W = els.videoPreview.clientWidth;
+        var H = els.videoPreview.clientHeight;
+        ctx.clearRect(0, 0, W, H);
+        if (!state.events || !state.events.length) return;
+        var t = els.videoPreview.currentTime || 0;
+        var lang = getLang();
+        var active = state.events.filter(function(e) {
+            return t >= e.timestamp_sec && t < e.timestamp_sec + (e.duration_sec || 2);
+        });
+        active.forEach(function(e) {
+            var c = riskColor(e.risk_level);
+            var x = e.bbox.x * W, y = e.bbox.y * H, w = e.bbox.w * W, h = e.bbox.h * H;
+            // Box
+            ctx.fillStyle = c.fill;
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = c.stroke;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, w, h);
+            // Corner ticks
+            var t1 = Math.min(14, w * 0.25);
+            ctx.beginPath();
+            ctx.moveTo(x, y + t1); ctx.lineTo(x, y); ctx.lineTo(x + t1, y);
+            ctx.moveTo(x + w - t1, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + t1);
+            ctx.moveTo(x + w, y + h - t1); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w - t1, y + h);
+            ctx.moveTo(x + t1, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x, y + h - t1);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = c.stroke;
+            ctx.stroke();
+            // Label
+            var label = (lang === "tr" ? e.title_tr : e.title_en) + "  " + e.confidence + "%";
+            ctx.font = "600 12px Inter, -apple-system, sans-serif";
+            var pad = 6;
+            var metrics = ctx.measureText(label);
+            var lw = metrics.width + pad * 2;
+            var lh = 22;
+            var lx = x;
+            var ly = Math.max(0, y - lh - 4);
+            ctx.fillStyle = c.stroke;
+            ctx.fillRect(lx, ly, lw, lh);
+            ctx.fillStyle = "#fff";
+            ctx.textBaseline = "middle";
+            ctx.fillText(label, lx + pad, ly + lh / 2);
+        });
+    }
+
+    function tickOverlay() {
+        drawOverlay();
+        updateTimelineCursor();
+        rafId = requestAnimationFrame(tickOverlay);
+    }
+    function startOverlayLoop() { if (rafId == null) tickOverlay(); }
+    function stopOverlayLoop() { if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; } }
+
+    // === TIMELINE ===
+    function renderTimelineMarkers() {
+        if (!els.tlMarkers) return;
+        els.tlMarkers.innerHTML = "";
+        var dur = state.videoDurationSec || 1;
+        var lang = getLang();
+        state.events.forEach(function(e) {
+            var pct = (e.timestamp_sec / dur) * 100;
+            var m = document.createElement("div");
+            m.className = "det-timeline-marker " + (e.risk_level === "Yüksek" ? "high" : e.risk_level === "Orta" ? "med" : "low");
+            m.style.left = pct + "%";
+            m.title = e.timestamp + " • " + (lang === "tr" ? e.title_tr : e.title_en);
+            m.addEventListener("click", function(ev) {
+                ev.stopPropagation();
+                seekTo(e.timestamp_sec);
+                highlightCard(e.id);
+            });
+            els.tlMarkers.appendChild(m);
+        });
+    }
+
+    function updateTimelineCursor() {
+        if (!els.tlCursor || !state.events.length) return;
+        var dur = state.videoDurationSec || 1;
+        var pct = ((els.videoPreview.currentTime || 0) / dur) * 100;
+        els.tlCursor.style.left = pct + "%";
+        if (els.tlProgress) els.tlProgress.style.width = pct + "%";
+    }
+
+    function seekTo(sec) {
+        if (!els.videoPreview) return;
+        els.videoPreview.currentTime = Math.max(0, sec);
+        try { els.videoPreview.play(); } catch (e) {}
+    }
+
+    function highlightCard(id) {
+        var cards = els.eventsGrid.querySelectorAll(".det-card");
+        Array.prototype.forEach.call(cards, function(c) {
+            c.classList.toggle("is-active", c.getAttribute("data-event-id") === id);
+        });
+        var active = els.eventsGrid.querySelector('.det-card.is-active');
+        if (active) active.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
     function setStatus(text) {
@@ -250,6 +409,11 @@
         els.controlStatus.classList.remove("is-running");
         els.controlStatus.classList.add("is-done");
         setStatus(getLang() === "tr" ? "Analiz tamamlandı" : "Analysis complete");
+        // Timeline & overlay
+        if (els.timeline) els.timeline.style.display = "block";
+        resizeCanvas();
+        renderTimelineMarkers();
+        startOverlayLoop();
         setTimeout(function(){
             els.resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 200);
@@ -309,7 +473,7 @@
                 var title = lang === "tr" ? e.title_tr : e.title_en;
                 var desc  = lang === "tr" ? e.desc_tr  : e.desc_en;
                 html += [
-                    '<div class="det-card ' + riskClass(e.risk_level) + '">',
+                    '<div class="det-card ' + riskClass(e.risk_level) + '" data-event-id="' + e.id + '" data-ts="' + e.timestamp_sec + '">',
                         '<div class="det-card-top">',
                             '<div class="det-card-icon">', eventIcon(e.type), '</div>',
                             '<div class="det-card-meta">',
@@ -331,6 +495,16 @@
             });
         }
         els.eventsGrid.innerHTML = html;
+        // Bind click → seek video + scroll
+        var cards = els.eventsGrid.querySelectorAll(".det-card");
+        Array.prototype.forEach.call(cards, function(c) {
+            c.addEventListener("click", function() {
+                var ts = parseFloat(c.getAttribute("data-ts")) || 0;
+                seekTo(ts);
+                highlightCard(c.getAttribute("data-event-id"));
+                if (els.videoPreview) els.videoPreview.scrollIntoView({ behavior: "smooth", block: "center" });
+            });
+        });
     }
 
     // Filter pills
@@ -364,6 +538,8 @@
                     ppe: e.ppe,
                     timestamp_sec: e.timestamp_sec,
                     timestamp: e.timestamp,
+                    duration_sec: e.duration_sec,
+                    bbox_normalized: e.bbox,
                     risk_level: e.risk_level,
                     confidence: e.confidence,
                     status: e.status,
