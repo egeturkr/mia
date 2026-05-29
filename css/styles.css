@@ -1268,6 +1268,31 @@ footer p { color: var(--text-muted); font-size: 0.9rem; }
 /* Card clickability hint */
 .det-card { cursor: pointer; }
 .det-card.is-active { border-color: var(--hp-gold, #F5A300); box-shadow: 0 0 0 1px rgba(245,163,0,0.3), 0 8px 24px -8px rgba(245,163,0,0.25); }
+
+/* Demo / Live AI mode toggle */
+.det-mode-toggle {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    margin-bottom: 1.1rem;
+}
+.det-mode-label-wrap { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.det-mode-heading { font-size: 0.72rem; letter-spacing: 0.18em; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 600; }
+.det-mode-sub { font-size: 0.95rem; color: #fff; font-weight: 600; }
+.det-mode-pills { display: inline-flex; background: rgba(0,0,0,0.35); border-radius: 999px; padding: 3px; gap: 2px; }
+.det-mode-pill {
+    background: transparent; border: none; cursor: pointer;
+    padding: 0.45rem 0.95rem; border-radius: 999px;
+    color: rgba(255,255,255,0.6); font-size: 0.8rem; font-weight: 600;
+    font-family: inherit; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.det-mode-pill:hover { color: #fff; }
+.det-mode-pill.active { background: linear-gradient(135deg, #FFC247 0%, #F5A300 100%); color: #0a0a0a; box-shadow: 0 4px 10px -3px rgba(245,163,0,0.45); }
+.det-mode-live-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+.det-mode-pill.active .det-mode-live-dot { background: #0a0a0a; box-shadow: none; }
 .det-control-card { background: var(--hp-card); border: 1px solid var(--hp-border); border-radius: 18px; padding: 1.5rem 1.5rem 1.75rem; display: flex; flex-direction: column; }
 .det-control-status { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.05em; color: var(--hp-text-2); margin-bottom: 1.25rem; padding: 0.35rem 0.75rem; background: rgba(255,255,255,0.03); border: 1px solid var(--hp-border); border-radius: 50px; align-self: flex-start; }
 .det-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--hp-gold); box-shadow: 0 0 8px var(--hp-gold); }

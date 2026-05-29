@@ -1,8 +1,33 @@
 // === MIA Video Safety Hazard Detector ===
-// Client-side demo. Simulates AI inference and produces synthetic detection events.
-// This page is intentionally self-contained and does not call any backend.
+// Hybrid: real Roboflow inference (Live mode) + simulation fallback (Demo mode).
 
 (function() {
+    // ===== Roboflow config =====
+    // Publishable key — safe for client-side. Domain restrict on Roboflow Settings → API Keys.
+    var ROBOFLOW = {
+        apiKey: "rf_CKNU6nQdF4d2SiFJRb27yfK5P9I2",
+        model: "hard-hat-workers/13",            // v13 = Accurate, augmented3x-HeadHelmet (mAP 96.9%)
+        endpoint: "https://serverless.roboflow.com",
+        confidence: 40,                          // min confidence threshold (Roboflow %)
+        overlap: 30,                             // NMS overlap %
+        maxFrames: 12,                           // cost guard — max frame/analiz
+        frameStrideSec: 2                        // her N saniyede 1 frame ornekle
+    };
+
+    // Roboflow class → MIA event type mapping
+    // Public model classes: head (helmet'siz), helmet, person
+    var ROBOFLOW_CLASS_MAP = {
+        "head":   { event: "no_helmet", risk: "Yüksek", ppe: "Baret",
+                    tr: { title: "Baretsiz çalışan tespit edildi", desc: "Belirlenen bölgede koruyucu baret takmayan personel görüldü." },
+                    en: { title: "Worker without helmet detected", desc: "A person was observed without a protective helmet in the marked zone." } },
+        "helmet": { event: "helmet_ok", risk: "Düşük", ppe: "Baret",
+                    tr: { title: "Baret tespit edildi (güvenli)", desc: "Personel uygun koruyucu baret kullanıyor." },
+                    en: { title: "Helmet detected (compliant)", desc: "Worker is wearing the required protective helmet." } },
+        "person": { event: "person", risk: "Düşük", ppe: "Person",
+                    tr: { title: "Personel tespit edildi", desc: "Sahada personel hareketi gözlemlendi." },
+                    en: { title: "Person detected", desc: "Personnel movement observed on site." } }
+    };
+
     var EVENT_TYPES = [
         {
             key: "no_helmet",
@@ -240,6 +265,127 @@
         return events;
     }
 
+    // === ROBOFLOW LIVE INFERENCE ===
+    // Mod state: "demo" (default) | "live"
+    var inferenceMode = "demo";
+    try {
+        var saved = localStorage.getItem("mia_det_mode");
+        if (saved === "live" || saved === "demo") inferenceMode = saved;
+    } catch (e) {}
+
+    function setInferenceMode(mode) {
+        inferenceMode = mode;
+        try { localStorage.setItem("mia_det_mode", mode); } catch (e) {}
+        var modeLabel = document.getElementById("detModeLabel");
+        if (modeLabel) modeLabel.textContent = mode === "live" ? "Canlı AI" : "Demo";
+    }
+
+    // Capture a frame from the video at given timestamp → JPEG base64
+    function captureFrame(timestampSec) {
+        return new Promise(function(resolve, reject) {
+            var video = els.videoPreview;
+            if (!video) return reject(new Error("no video"));
+            var seekHandler = function() {
+                video.removeEventListener("seeked", seekHandler);
+                try {
+                    var canvas = document.createElement("canvas");
+                    var w = video.videoWidth || 1280;
+                    var h = video.videoHeight || 720;
+                    // Downscale if huge — Roboflow accepts up to ~1920px, but smaller = faster
+                    var maxDim = 800;
+                    var scale = Math.min(1, maxDim / Math.max(w, h));
+                    canvas.width = Math.floor(w * scale);
+                    canvas.height = Math.floor(h * scale);
+                    canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+                    // dataURL (base64 JPEG) — strip prefix for Roboflow
+                    var dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+                    var base64 = dataUrl.split(",")[1];
+                    resolve({ base64: base64, w: canvas.width, h: canvas.height, t: timestampSec });
+                } catch (e) { reject(e); }
+            };
+            video.addEventListener("seeked", seekHandler);
+            video.currentTime = Math.min(timestampSec, video.duration || timestampSec);
+        });
+    }
+
+    // POST a frame to Roboflow Hosted API → predictions[]
+    function callRoboflow(frame) {
+        var url = ROBOFLOW.endpoint + "/" + ROBOFLOW.model +
+                  "?api_key=" + ROBOFLOW.apiKey +
+                  "&confidence=" + ROBOFLOW.confidence +
+                  "&overlap=" + ROBOFLOW.overlap;
+        return fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: frame.base64
+        }).then(function(r) {
+            if (!r.ok) throw new Error("Roboflow " + r.status);
+            return r.json();
+        }).then(function(json) {
+            // Convert Roboflow predictions → MIA event format
+            var preds = json.predictions || [];
+            // Normalize bboxes to 0..1 of source frame, then events
+            return preds.map(function(p, i) {
+                var map = ROBOFLOW_CLASS_MAP[p.class] || { event: p.class, risk: "Orta", ppe: p.class, tr: { title: p.class, desc: "" }, en: { title: p.class, desc: "" } };
+                var conf = Math.round((p.confidence || 0) * 100);
+                // Roboflow returns x,y as center; w,h
+                var W = frame.w, H = frame.h;
+                var bx = (p.x - p.width / 2) / W;
+                var by = (p.y - p.height / 2) / H;
+                var bw = p.width / W;
+                var bh = p.height / H;
+                return {
+                    id: "RF-" + Math.floor(frame.t) + "-" + i,
+                    type: map.event,
+                    ppe: map.ppe,
+                    title_tr: map.tr.title,
+                    title_en: map.en.title,
+                    desc_tr: map.tr.desc,
+                    desc_en: map.en.desc,
+                    timestamp_sec: Math.floor(frame.t),
+                    timestamp: fmtTime(frame.t),
+                    duration_sec: 1.8,
+                    bbox: { x: +bx.toFixed(3), y: +by.toFixed(3), w: +bw.toFixed(3), h: +bh.toFixed(3) },
+                    risk_level: map.risk,
+                    confidence: conf,
+                    status: conf >= 85 ? "Onaylandı" : (conf >= 70 ? "İnceleme" : "Belirsiz"),
+                    _source: "roboflow",
+                    _class: p.class
+                };
+            });
+        });
+    }
+
+    // Run live inference across the video — returns event[] (deduplicated)
+    function runLiveAnalysis() {
+        var dur = state.videoDurationSec || 0;
+        if (!dur) return Promise.reject(new Error("video duration unknown"));
+        var stride = ROBOFLOW.frameStrideSec;
+        var sampleCount = Math.min(ROBOFLOW.maxFrames, Math.max(3, Math.floor(dur / stride)));
+        var times = [];
+        for (var i = 0; i < sampleCount; i++) {
+            times.push((i + 0.5) * (dur / sampleCount));
+        }
+        var allEvents = [];
+        var done = 0;
+        // Sequential to respect rate limits + simpler progress
+        function next() {
+            if (done >= times.length) return Promise.resolve(allEvents);
+            var t = times[done++];
+            var lang = getLang();
+            els.progressStep.textContent = (lang === "tr" ? "Frame " : "Frame ") + done + "/" + times.length + " — Roboflow AI";
+            var pct = 30 + Math.floor((done / times.length) * 65);
+            els.progressPct.textContent = pct + "%";
+            els.progressFill.style.width = pct + "%";
+            return captureFrame(t)
+                .then(callRoboflow)
+                .then(function(events) { allEvents = allEvents.concat(events); })
+                .catch(function(e) { console.warn("Frame " + done + " inference failed:", e); })
+                .then(next);
+        }
+        return next();
+    }
+
     // === OVERLAY (canvas bounding boxes) ===
     var rafId = null;
     function riskColor(risk) {
@@ -377,8 +523,43 @@
         var lang = getLang();
         setStatus(lang === "tr" ? "Analiz çalışıyor..." : "Analysis running...");
 
+        // === LIVE MODE: gerçek Roboflow inference ===
+        if (inferenceMode === "live") {
+            els.progressStep.textContent = lang === "tr" ? "Video hazırlanıyor..." : "Preparing video...";
+            els.progressPct.textContent = "10%";
+            els.progressFill.style.width = "10%";
+            els.progressEta.textContent = lang === "tr" ? "~" + (ROBOFLOW.maxFrames * 2) + " sn" : "~" + (ROBOFLOW.maxFrames * 2) + "s";
+
+            // Pause video for stable frame capture
+            try { els.videoPreview.pause(); } catch (e) {}
+
+            runLiveAnalysis()
+                .then(function(events) {
+                    state.events = events;
+                    els.progressStep.textContent = lang === "tr" ? "Analiz tamamlandı" : "Analysis complete";
+                    els.progressPct.textContent = "100%";
+                    els.progressFill.style.width = "100%";
+                    finishAnalysis();
+                })
+                .catch(function(err) {
+                    console.error("Live analysis failed:", err);
+                    alert(lang === "tr"
+                        ? "Canlı AI hatası: " + err.message + "\nDemo moduna geri dönülüyor."
+                        : "Live AI failed: " + err.message + "\nFalling back to demo mode.");
+                    setInferenceMode("demo");
+                    runDemoAnalysis();
+                });
+            return;
+        }
+
+        // === DEMO MODE: sentetik ===
+        runDemoAnalysis();
+    }
+
+    function runDemoAnalysis() {
+        var lang = getLang();
         var idx = 0;
-        var totalDuration = 4500 + Math.floor((state.file.size / (1024*1024)) * 80); // scale with size
+        var totalDuration = 4500 + Math.floor((state.file.size / (1024*1024)) * 80);
         var stepGap = Math.max(350, Math.floor(totalDuration / ANALYSIS_STEPS.length));
 
         function tick() {
@@ -566,4 +747,25 @@
         var cur = getLang();
         if (cur !== prevLang) { prevLang = cur; if (state.events.length) renderResults(); }
     }, 600);
+
+    // === Mode toggle init ===
+    function initModeToggle() {
+        var pills = document.querySelectorAll(".det-mode-pill");
+        if (!pills.length) return;
+        // Set initial active
+        Array.prototype.forEach.call(pills, function(p) {
+            p.classList.toggle("active", p.getAttribute("data-mode") === inferenceMode);
+        });
+        var label = document.getElementById("detModeLabel");
+        if (label) label.textContent = inferenceMode === "live" ? "Canlı AI" : "Demo";
+        Array.prototype.forEach.call(pills, function(p) {
+            p.addEventListener("click", function() {
+                var mode = p.getAttribute("data-mode");
+                Array.prototype.forEach.call(pills, function(x) { x.classList.remove("active"); });
+                p.classList.add("active");
+                setInferenceMode(mode);
+            });
+        });
+    }
+    initModeToggle();
 })();

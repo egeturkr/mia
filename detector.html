@@ -108,6 +108,21 @@
                         </div>
                         <h3 data-i18n="det_control_title">Analiz Kontrolleri</h3>
                         <p data-i18n="det_control_desc">Yapay zeka modeli videodaki PPE kullanımını, tehlikeli bölgeleri ve riskleri tespit edecek.</p>
+
+                        <!-- Mode toggle: Demo vs Live AI -->
+                        <div class="det-mode-toggle" id="detModeToggle">
+                            <div class="det-mode-label-wrap">
+                                <span class="det-mode-heading">Analiz Modu</span>
+                                <span class="det-mode-sub" id="detModeLabel">Demo</span>
+                            </div>
+                            <div class="det-mode-pills" role="tablist">
+                                <button type="button" class="det-mode-pill active" data-mode="demo" role="tab">Demo</button>
+                                <button type="button" class="det-mode-pill" data-mode="live" role="tab">
+                                    <span class="det-mode-live-dot"></span>Canlı AI
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="det-control-options">
                             <label class="det-check"><input type="checkbox" checked> <span data-i18n="det_opt1">PPE Tespiti</span></label>
                             <label class="det-check"><input type="checkbox" checked> <span data-i18n="det_opt2">Tehlikeli Bölge Analizi</span></label>
