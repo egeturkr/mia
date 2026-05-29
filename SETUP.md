@@ -1,7 +1,7 @@
 # MIA — Production Setup Guide
 
 This document walks you through configuring the MIA SaaS platform end-to-end:
-Supabase Auth, branded transactional email from `noreply@mia.com.tr`, and
+Supabase Auth, branded transactional email from `noreply@miaissagligi.com`, and
 deployment.
 
 ---
@@ -53,12 +53,12 @@ the following.
 
 ### 3.1 Auth → URL Configuration
 
-- **Site URL**: `https://mia.com.tr` (or your production origin)
+- **Site URL**: `https://miaissagligi.com` (or your production origin)
 - **Redirect URLs** — add all of these (one per line):
-  - `https://mia.com.tr/dogrulama.html`
-  - `https://mia.com.tr/dogrulama`
-  - `https://mia.com.tr/sifre-sifirla.html`
-  - `https://mia.com.tr/sifre-sifirla`
+  - `https://miaissagligi.com/dogrulama.html`
+  - `https://miaissagligi.com/dogrulama`
+  - `https://miaissagligi.com/sifre-sifirla.html`
+  - `https://miaissagligi.com/sifre-sifirla`
   - `http://localhost:5173/dogrulama.html` (or whatever port you use locally)
   - `http://localhost:5173/sifre-sifirla.html`
 
@@ -69,7 +69,7 @@ the following.
 - **Secure email change**: ON
 - **Minimum password length**: 8
 
-### 3.3 Auth → SMTP Settings (so emails come from `noreply@mia.com.tr`)
+### 3.3 Auth → SMTP Settings (so emails come from `noreply@miaissagligi.com`)
 
 Switch from the default Supabase sender to your own SMTP credentials. The form
 expects:
@@ -77,15 +77,15 @@ expects:
 | Field             | Value                                                      |
 | ----------------- | ---------------------------------------------------------- |
 | Enable Custom SMTP| ON                                                         |
-| Sender email      | `noreply@mia.com.tr`                                       |
+| Sender email      | `noreply@miaissagligi.com`                                       |
 | Sender name       | `MIA AI Safety Intelligence`                               |
 | Host              | `smtp.resend.com` (or `smtp.sendgrid.net` / your provider) |
 | Port              | `587`                                                      |
 | Username          | provider-specific (e.g. `resend` for Resend)               |
 | Password          | provider API key                                           |
-| Admin email       | `info@mia.com.tr`                                          |
+| Admin email       | `info@miaissagligi.com`                                          |
 
-Whichever SMTP provider you pick, make sure the sending domain `mia.com.tr` has
+Whichever SMTP provider you pick, make sure the sending domain `miaissagligi.com` has
 its **SPF**, **DKIM**, and (optionally) **DMARC** DNS records configured at
 your domain registrar — both Resend and SendGrid generate the exact records for
 you. Without them, Gmail/Outlook will route MIA emails to spam.
@@ -158,11 +158,11 @@ domain mail host (Google Workspace, Microsoft 365, Zoho, etc.):
 
 | Address                | Purpose                                          |
 | ---------------------- | ------------------------------------------------ |
-| `noreply@mia.com.tr`   | Sender for all automated system emails           |
-| `info@mia.com.tr`      | Main public contact / `mailto:` on the site      |
-| `deniz@mia.com.tr`     | Founder address (Deniz Öge)                      |
-| `ege@mia.com.tr`       | Founder address (Ege Türker)                     |
-| `gokberk@mia.com.tr`   | Founder address (Gökberk Şahin)                  |
+| `noreply@miaissagligi.com`   | Sender for all automated system emails           |
+| `info@miaissagligi.com`      | Main public contact / `mailto:` on the site      |
+| `denizoge@miaissagligi.com`     | Founder address (Deniz Öge)                      |
+| `egeturker@miaissagligi.com`       | Founder address (Ege Türker)                     |
+| `gokberksahin@miaissagligi.com`   | Founder address (Gökberk Şahin)                  |
 
 `noreply@` can be a real inbox that auto-replies, or a routing alias that
 forwards anything that lands there to `info@`. The other four should be normal
@@ -217,7 +217,7 @@ netlify deploy --prod
 `netlify.toml` handles redirects + headers.
 
 ### Custom domain
-Point `mia.com.tr` (and `www.mia.com.tr`) at your host and update **Site URL**
+Point `miaissagligi.com` (and `www.miaissagligi.com`) at your host and update **Site URL**
 in Supabase to match (section 3.1).
 
 ---
@@ -226,7 +226,7 @@ in Supabase to match (section 3.1).
 
 1. Open `/kaydol`, register with a real address, submit.
 2. Confirm you see the success panel ("Hesap oluşturuldu!").
-3. Check that inbox — the email should be from `noreply@mia.com.tr`, branded
+3. Check that inbox — the email should be from `noreply@miaissagligi.com`, branded
    dark-and-gold, and contain a working "Hesabımı Doğrula" button.
 4. Click the button → land on `/dogrulama` → auto-redirect to `/dashboard`.
 5. Logout from the navbar, hit `/giris-yap`, sign in, land on `/dashboard`.
