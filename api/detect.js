@@ -26,7 +26,7 @@ export default async function handler(req, res) {
         return;
     }
 
-    const url = "https://detect.roboflow.com/" + model +
+    const url = "https://serverless.roboflow.com/" + model +
         "?api_key=" + encodeURIComponent(apiKey) +
         "&confidence=" + encodeURIComponent(confidence) +
         "&overlap=" + encodeURIComponent(overlap);
