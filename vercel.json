@@ -8,7 +8,9 @@
     { "source": "/signup", "destination": "/kaydol", "permanent": true },
     { "source": "/register", "destination": "/kaydol", "permanent": true },
     { "source": "/verify", "destination": "/dogrulama", "permanent": false },
-    { "source": "/reset-password", "destination": "/sifre-sifirla", "permanent": true }
+    { "source": "/reset-password", "destination": "/sifre-sifirla", "permanent": true },
+    { "source": "/demo", "destination": "/detector", "permanent": false },
+    { "source": "/demo.html", "destination": "/detector", "permanent": false }
   ],
   "headers": [
     {
