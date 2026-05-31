@@ -5,11 +5,12 @@
     // ===== Roboflow config =====
     // Publishable key — safe for client-side. Domain restrict on Roboflow Settings → API Keys.
     var ROBOFLOW = {
-        apiKey: "rf_CKNU6nQdF4d2SiFJRb27yfK5P9I2",
+        // Inference goes through our serverless proxy (/api/detect) — avoids browser
+        // CORS and keeps the Roboflow API key server-side (set ROBOFLOW_API_KEY env var).
         // 10-class construction PPE model: Hardhat, NO-Hardhat, Safety Vest, NO-Safety Vest,
         // Mask, NO-Mask, Person, machinery, vehicle, Safety Cone. mAP ~70%, 2800+ images.
         model: "construction-site-safety/27",
-        endpoint: "https://detect.roboflow.com",  // classic REST endpoint (most reliable)
+        endpoint: "/api/detect",                   // serverless proxy → Roboflow
         confidence: 35,                            // %35+ confidence
         overlap: 30,                               // NMS overlap
         maxFrames: 10,                             // cost guard — 15 credit free tier'da güvenli
@@ -332,15 +333,15 @@
 
     // POST a frame to Roboflow Hosted API → predictions[]
     function callRoboflow(frame) {
-        var url = ROBOFLOW.endpoint + "/" + ROBOFLOW.model +
-                  "?api_key=" + ROBOFLOW.apiKey +
+        var url = ROBOFLOW.endpoint +
+                  "?model=" + encodeURIComponent(ROBOFLOW.model) +
                   "&confidence=" + ROBOFLOW.confidence +
                   "&overlap=" + ROBOFLOW.overlap;
-        console.log("[MIA] Roboflow POST →", url.replace(ROBOFLOW.apiKey, "***"), "frame size:", frame.base64.length, "bytes");
+        console.log("[MIA] Inference POST →", url, "frame size:", frame.base64.length, "bytes");
         return fetch(url, {
             method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: frame.base64
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: frame.base64 })
         }).then(function(r) {
             if (!r.ok) {
                 return r.text().then(function(txt) {
