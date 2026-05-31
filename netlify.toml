@@ -3,6 +3,23 @@
 
 [build]
   publish = "."
+  functions = "netlify/functions"
+
+# Serverless proxy for Roboflow inference — must come before the SPA-style rules.
+[[redirects]]
+  from = "/api/detect"
+  to = "/.netlify/functions/detect"
+  status = 200
+
+[[redirects]]
+  from = "/demo"
+  to = "/detector.html"
+  status = 302
+
+[[redirects]]
+  from = "/demo.html"
+  to = "/detector.html"
+  status = 302
 
 [[redirects]]
   from = "/login"
