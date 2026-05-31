@@ -564,21 +564,17 @@
             runLiveAnalysis()
                 .then(function(events) {
                     console.log("[MIA] Live analysis complete — total events:", events.length);
+                    state.events = events;
+                    // 0 detection — kullaniciya net mesaj, fallback yok
                     if (!events.length) {
-                        // No detections at all — likely the video has nothing the model recognizes
-                        if (!confirm(lang === "tr"
-                            ? "Modelin bu videoda hiç tespit etmediği bir şey yok (PPE, kişi, araç). Demo veriyle göster?"
-                            : "The model didn't detect anything in this video (PPE, person, vehicle). Show demo data instead?")) {
-                            state.events = [];
-                            els.progressStep.textContent = lang === "tr" ? "Tespit bulunamadı" : "No detections";
-                            finishAnalysis();
-                            return;
-                        }
-                        state.events = generateEvents();
+                        els.progressStep.textContent = lang === "tr"
+                            ? "0 tespit — videoda PPE/işçi/ekipman görünmüyor"
+                            : "0 detections — no PPE/worker/equipment visible in video";
+                        els.progressStep.style.color = "#f59e0b";
                     } else {
-                        state.events = events;
+                        els.progressStep.textContent = lang === "tr" ? "Analiz tamamlandı" : "Analysis complete";
+                        els.progressStep.style.color = "";
                     }
-                    els.progressStep.textContent = lang === "tr" ? "Analiz tamamlandı" : "Analysis complete";
                     els.progressPct.textContent = "100%";
                     els.progressFill.style.width = "100%";
                     finishAnalysis();
@@ -623,6 +619,7 @@
 
         function tick() {
             if (idx >= ANALYSIS_STEPS.length) {
+                state.events = generateEvents();
                 finishAnalysis();
                 return;
             }
@@ -640,7 +637,8 @@
 
     function finishAnalysis() {
         state.finishedAt = Date.now();
-        state.events = generateEvents();
+        // state.events already populated — live: Roboflow results, demo: generateEvents().
+        // Do NOT regenerate here or real detections get overwritten.
         renderResults();
         els.previewPanel.style.display = "block";
         els.resultsPanel.style.display = "block";
