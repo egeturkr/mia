@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - Güvenlik Raporu</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <meta name="robots" content="noindex">
+    <meta name="description" content="MIA AI güvenlik analiz raporu.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .report-wrap { max-width: 920px; margin: 0 auto; padding: 7rem 1.25rem 4rem; }
+        .report-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
+        .report-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; }
+        .report-head h1 { font-size: 1.5rem; margin-bottom: 0.3rem; }
+        .report-head .report-date { color: var(--text-muted); font-size: 0.9rem; }
+        .report-score { text-align: center; min-width: 120px; }
+        .report-score .rs-val { font-size: 2.6rem; font-weight: 800; line-height: 1; }
+        .report-score .rs-label { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.35rem; }
+        .report-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.85rem; margin-bottom: 1.75rem; }
+        .report-stat { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
+        .report-stat .v { font-size: 1.6rem; font-weight: 700; }
+        .report-stat .l { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem; }
+        .report-section-title { font-size: 1.1rem; font-weight: 700; margin: 1.5rem 0 0.85rem; }
+        .report-risk { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+        .risk-pill { padding: 0.4rem 0.9rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600; border: 1px solid var(--border); }
+        .risk-pill.high { color: #ef4444; border-color: rgba(239,68,68,0.4); }
+        .risk-pill.med { color: #D4AF37; border-color: rgba(212,175,55,0.4); }
+        .risk-pill.low { color: #22c55e; border-color: rgba(34,197,94,0.4); }
+        .report-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .report-table th { text-align: left; background: var(--bg-secondary); color: var(--text-secondary); padding: 0.6rem 0.8rem; font-weight: 600; }
+        .report-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); }
+        .report-table .rl-high { color: #ef4444; font-weight: 600; }
+        .report-table .rl-med { color: #D4AF37; font-weight: 600; }
+        .report-table .rl-low { color: #22c55e; font-weight: 600; }
+        .report-actions { margin-top: 1.75rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .report-foot { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 2rem; }
+        .report-foot a { color: #D4AF37; text-decoration: none; }
+        .report-msg { text-align: center; padding: 4rem 1rem; color: var(--text-secondary); }
+        .report-no-detail { color: var(--text-muted); font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html">
+            <img src="images/logo-horizontal-trim.png" alt="MIA" class="logo-img">
+        </a>
+        <nav>
+            <div class="lang-switcher" style="display:none;"><button type="button" class="lang-btn active" id="langTR">TR</button><button type="button" class="lang-btn" id="langEN">EN</button></div>
+            <div class="lang-dropdown">
+                <button type="button" class="lang-dropdown-toggle" id="langDropdownToggle" aria-haspopup="true" aria-expanded="false" title="Language">
+                    <span class="lang-current-flag" id="langCurrentFlag">🇹🇷</span>
+                    <svg class="lang-caret" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="lang-dropdown-menu" id="langDropdownMenu" role="menu">
+                    <button type="button" class="lang-option active" data-lang="tr" role="menuitem"><span class="lang-option-flag">🇹🇷</span> Türkçe<svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+                    <button type="button" class="lang-option" data-lang="en" role="menuitem"><span class="lang-option-flag">🇺🇸</span> English<svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+                    <button type="button" class="lang-option" data-lang="es" role="menuitem"><span class="lang-option-flag">🇪🇸</span> Español<svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+                </div>
+            </div>
+            <button type="button" class="theme-toggle" id="themeToggle" title="Toggle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+        </nav>
+    </header>
+
+    <main class="report-wrap">
+        <div id="reportRoot">
+            <div class="report-msg" id="reportLoading">Rapor yükleniyor…</div>
+        </div>
+    </main>
+
+    <footer><p>© 2026 MIA - Tüm hakları saklıdır.</p></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+    (function() {
+        var sharedRow = null;
+        function L() { return (typeof currentLang !== 'undefined' ? currentLang : 'tr') === 'tr'; }
+        function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+        function getToken() {
+            try { return new URL(window.location.href).searchParams.get('t') || ''; } catch (e) { return ''; }
+        }
+
+        function msg(text) {
+            document.getElementById('reportRoot').innerHTML = '<div class="report-msg">' + esc(text) + '</div>';
+        }
+
+        function render(row) {
+            var tr = L();
+            var evts = [];
+            if (row.detections_json) { try { evts = JSON.parse(row.detections_json) || []; } catch (e) { evts = []; } }
+            var score = Math.round(row.safety_score || 0);
+            var scoreColor = score >= 80 ? '#22c55e' : (score >= 60 ? '#D4AF37' : '#ef4444');
+            var high = evts.filter(function(e){ return e.risk_level === 'Yüksek'; }).length;
+            var med = evts.filter(function(e){ return e.risk_level === 'Orta'; }).length;
+            var low = evts.filter(function(e){ return e.risk_level === 'Düşük'; }).length;
+            var avgConf = evts.length ? Math.round(evts.reduce(function(s,e){ return s + (e.confidence||0); }, 0)/evts.length) : 0;
+            var total = evts.length || ((row.violations_count||0) + (row.safe_count||0));
+            var dateStr = new Date(row.created_at || Date.now()).toLocaleString(tr ? 'tr-TR' : 'en-US');
+
+            var h = '<div class="report-card">';
+            h += '<div class="report-head"><div><h1>' + esc(row.video_name || 'Video') + '</h1>'
+               + '<div class="report-date">' + esc(tr ? 'AI Güvenlik Analiz Raporu' : 'AI Safety Analysis Report') + ' · ' + esc(dateStr) + '</div></div>'
+               + '<div class="report-score"><div class="rs-val" style="color:' + scoreColor + '">' + score + '%</div>'
+               + '<div class="rs-label">' + esc(tr ? 'Güvenlik Skoru' : 'Safety Score') + '</div></div></div>';
+
+            h += '<div class="report-stats">'
+               + '<div class="report-stat"><div class="v">' + total + '</div><div class="l">' + esc(tr ? 'Toplam Tespit' : 'Total Detections') + '</div></div>'
+               + '<div class="report-stat"><div class="v" style="color:#ef4444">' + (row.violations_count||0) + '</div><div class="l">' + esc(tr ? 'İhlal' : 'Violations') + '</div></div>'
+               + '<div class="report-stat"><div class="v" style="color:#22c55e">' + (row.safe_count||0) + '</div><div class="l">' + esc(tr ? 'Uyumlu' : 'Compliant') + '</div></div>'
+               + '<div class="report-stat"><div class="v">' + avgConf + '%</div><div class="l">' + esc(tr ? 'Ort. Güven' : 'Avg. Confidence') + '</div></div>'
+               + '</div>';
+
+            if (evts.length) {
+                h += '<div class="report-section-title">' + esc(tr ? 'Risk Dağılımı' : 'Risk Breakdown') + '</div>';
+                h += '<div class="report-risk">'
+                   + '<span class="risk-pill high">' + esc(tr ? 'Yüksek' : 'High') + ': ' + high + '</span>'
+                   + '<span class="risk-pill med">' + esc(tr ? 'Orta' : 'Medium') + ': ' + med + '</span>'
+                   + '<span class="risk-pill low">' + esc(tr ? 'Düşük' : 'Low') + ': ' + low + '</span></div>';
+
+                h += '<div class="report-section-title">' + esc(tr ? 'Tespit Edilen Olaylar' : 'Detected Events') + '</div>';
+                h += '<div style="overflow-x:auto"><table class="report-table"><thead><tr>'
+                   + '<th>' + esc(tr ? 'Zaman' : 'Time') + '</th><th>' + esc(tr ? 'Olay' : 'Event') + '</th>'
+                   + '<th>' + esc(tr ? 'Risk' : 'Risk') + '</th><th>' + esc(tr ? 'Güven' : 'Conf.') + '</th></tr></thead><tbody>';
+                evts.forEach(function(e) {
+                    var rlClass = e.risk_level === 'Yüksek' ? 'rl-high' : (e.risk_level === 'Orta' ? 'rl-med' : 'rl-low');
+                    var title = tr ? (e.title_tr || e.type || '-') : (e.title_en || e.type || '-');
+                    h += '<tr><td>' + esc(e.timestamp || '-') + '</td><td>' + esc(title) + '</td>'
+                       + '<td class="' + rlClass + '">' + esc(e.risk_level || '-') + '</td>'
+                       + '<td>' + (e.confidence != null ? esc(e.confidence) + '%' : '-') + '</td></tr>';
+                });
+                h += '</tbody></table></div>';
+            } else {
+                h += '<p class="report-no-detail">' + esc(tr ? 'Bu analiz için detaylı tespit verisi kaydedilmemiş (özet rapor).' : 'No detailed detection data stored for this analysis (summary only).') + '</p>';
+            }
+
+            h += '<div class="report-actions">'
+               + '<button type="button" class="btn btn-primary" id="reportPdfBtn">' + esc(tr ? 'PDF İndir' : 'Download PDF') + '</button>'
+               + '<a class="btn btn-secondary" href="index.html">' + esc(tr ? 'MIA Hakkında' : 'About MIA') + '</a></div>';
+            h += '</div>';
+
+            h += '<div class="report-foot">' + esc(tr ? 'Bu rapor MIA yapay zeka analizi ile oluşturulmuştur.' : 'This report was generated by MIA AI analysis.') + ' · <a href="index.html">miaissagligi.com</a></div>';
+
+            document.getElementById('reportRoot').innerHTML = h;
+            var pdfBtn = document.getElementById('reportPdfBtn');
+            if (pdfBtn) pdfBtn.addEventListener('click', function() {
+                if (typeof miaBuildAnalysisPdf === 'function') miaBuildAnalysisPdf(row);
+            });
+        }
+
+        function load() {
+            var token = getToken();
+            if (!token) { msg(L() ? 'Geçersiz rapor linki.' : 'Invalid report link.'); return; }
+            if (typeof supabase === 'undefined' || !supabase.rpc) { setTimeout(load, 150); return; }
+            supabase.rpc('get_shared_analysis', { token: token }).then(function(r) {
+                var row = r && r.data && r.data.length ? r.data[0] : (r && r.data && !r.data.length && r.data.id ? r.data : null);
+                if (r.error || !row) { msg(L() ? 'Rapor bulunamadı veya artık paylaşılmıyor.' : 'Report not found or no longer shared.'); return; }
+                sharedRow = row;
+                render(row);
+            }, function() { msg(L() ? 'Rapor yüklenemedi.' : 'Could not load report.'); });
+        }
+
+        // Re-render dynamic content when language changes.
+        document.addEventListener('click', function(e) {
+            var opt = e.target.closest ? e.target.closest('.lang-option') : null;
+            if (opt && sharedRow) { setTimeout(function(){ render(sharedRow); }, 0); }
+        });
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
+        else load();
+    })();
+    </script>
+</body>
+</html>

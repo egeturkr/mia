@@ -962,7 +962,7 @@ function dashRenderList(analyses, isSample) {
     for (var j = 0; j < analyses.length; j++) {
         var x = analyses[j];
         var dt = new Date(x.created_at).toLocaleDateString(tr ? 'tr-TR' : 'en-US');
-        html += '<div class="analysis-card"><div class="analysis-info"><h3>' + (x.video_name || 'Video') + '</h3><p>' + dt + '</p></div><div class="analysis-stats"><div class="analysis-stat"><div class="analysis-stat-value score">' + Math.round(x.safety_score || 0) + '%</div><div class="analysis-stat-label">' + t('label_safety') + '</div></div><div class="analysis-stat"><div class="analysis-stat-value violations">' + (x.violations_count || 0) + '</div><div class="analysis-stat-label">' + t('label_violations') + '</div></div></div><div class="analysis-actions">' + (!isSample ? '<button class="btn btn-success btn-sm" onclick="dlPdf(\'' + x.id + '\')">PDF</button>' : '') + (!isSample ? '<button class="btn btn-danger btn-sm" onclick="delA(\'' + x.id + '\')">×</button>' : '') + '</div></div>';
+        html += '<div class="analysis-card"><div class="analysis-info"><h3>' + (x.video_name || 'Video') + '</h3><p>' + dt + '</p></div><div class="analysis-stats"><div class="analysis-stat"><div class="analysis-stat-value score">' + Math.round(x.safety_score || 0) + '%</div><div class="analysis-stat-label">' + t('label_safety') + '</div></div><div class="analysis-stat"><div class="analysis-stat-value violations">' + (x.violations_count || 0) + '</div><div class="analysis-stat-label">' + t('label_violations') + '</div></div></div><div class="analysis-actions">' + (!isSample ? '<button class="btn btn-secondary btn-sm" onclick="shareA(\'' + x.id + '\')">' + (tr ? 'Paylaş' : 'Share') + '</button>' : '') + (!isSample ? '<button class="btn btn-success btn-sm" onclick="dlPdf(\'' + x.id + '\')">PDF</button>' : '') + (!isSample ? '<button class="btn btn-danger btn-sm" onclick="delA(\'' + x.id + '\')">×</button>' : '') + '</div></div>';
     }
     listEl.innerHTML = html;
 }
@@ -1095,6 +1095,36 @@ window.dlPdf = function(id) {
     supabase.from('analyses').select('*').eq('id', id).single().then(function(r) {
         if (r.error || !r.data) { alert(t('error')); return; }
         miaBuildAnalysisPdf(r.data);
+    });
+};
+
+// Generate (or reuse) a public share token for an analysis and copy the link.
+window.shareA = function(id) {
+    var tr = currentLang === 'tr';
+    supabase.from('analyses').select('id,share_token').eq('id', id).single().then(function(r) {
+        if (r.error || !r.data) { alert(t('error')); return; }
+        function finish(token) {
+            var base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
+            var url = base + 'rapor.html?t=' + token;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(
+                    function() { alert((tr ? 'Paylaşım linki kopyalandı:\n\n' : 'Share link copied:\n\n') + url); },
+                    function() { window.prompt(tr ? 'Paylaşım linki:' : 'Share link:', url); }
+                );
+            } else { window.prompt(tr ? 'Paylaşım linki:' : 'Share link:', url); }
+        }
+        if (r.data.share_token) { finish(r.data.share_token); return; }
+        var newTok = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2, 12));
+        supabase.from('analyses').update({ share_token: newTok }).eq('id', id).then(function(u) {
+            if (u.error) {
+                var m = (u.error.message || '').toLowerCase();
+                if (m.indexOf('share_token') !== -1 || m.indexOf('column') !== -1) {
+                    alert(tr ? 'Paylaşım için Supabase\'de share_token kolonu eksik. Kurulum SQL\'ini çalıştırın.' : 'Sharing needs the share_token column in Supabase. Run the setup SQL.');
+                } else { alert(t('error') + ': ' + u.error.message); }
+                return;
+            }
+            finish(newTok);
+        });
     });
 };
 
