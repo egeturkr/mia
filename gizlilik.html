@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gizlilik Politikası — MIA</title>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="images/favicon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="images/favicon-512.png">
+    <meta name="description" content="MIA İş Sağlığı gizlilik politikası — kişisel verilerin işlenmesi, saklanması ve korunmasına ilişkin esaslar.">
+    <meta name="theme-color" content="#0A0A0A">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .legal-wrap{max-width:860px;margin:0 auto;padding:48px 24px 80px;}
+        .legal-head{margin-bottom:40px;border-bottom:1px solid rgba(212,175,55,.25);padding-bottom:24px;}
+        .legal-head h1{font-size:2rem;margin:0 0 8px;color:var(--text);}
+        .legal-head .legal-updated{color:var(--text-muted);font-size:.9rem;}
+        .legal-body{color:var(--text);line-height:1.75;font-size:1rem;}
+        .legal-body h2{font-size:1.25rem;margin:36px 0 12px;color:#D4AF37;}
+        .legal-body h3{font-size:1.05rem;margin:24px 0 8px;color:var(--text);}
+        .legal-body p{margin:0 0 14px;color:var(--text-muted);}
+        .legal-body ul{margin:0 0 16px;padding-left:22px;color:var(--text-muted);}
+        .legal-body li{margin:6px 0;}
+        .legal-body a{color:#D4AF37;}
+        .legal-note{background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);border-radius:10px;padding:14px 18px;font-size:.9rem;color:var(--text-muted);margin-bottom:32px;}
+    </style>
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html">
+            <img src="images/logo-horizontal-trim.png" alt="MIA" class="logo-img">
+        </a>
+        <nav>
+            <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
+            <a href="sirket.html" data-i18n="nav_company">Şirket</a>
+            <a href="cozumler.html" data-i18n="nav_pricing">Çözümler</a>
+            <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
+            <div class="nav-divider"></div>
+            <div id="loggedOutNav">
+                <a href="giris-yap.html" class="btn btn-secondary btn-sm" data-i18n="nav_login">Giriş Yap</a>
+                <a href="kaydol.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Kaydol</a>
+            </div>
+            <div id="loggedInNav" style="display:none;">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="detector.html" data-i18n="nav_analysis">Analiz</a>
+                <span class="user-email" id="userEmail"></span>
+                <button type="button" id="navLogout" class="btn btn-secondary btn-sm" data-i18n="nav_logout">Çıkış</button>
+            </div>
+            <div class="lang-dropdown">
+                <button type="button" class="lang-dropdown-toggle" id="langDropdownToggle" aria-haspopup="true" aria-expanded="false" aria-label="Dil seçimi / Select language" title="Language">
+                    <span class="lang-current-flag" id="langCurrentFlag">🇹🇷</span>
+                    <svg class="lang-caret" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="lang-dropdown-menu" id="langDropdownMenu" role="menu">
+                    <button type="button" class="lang-option active" data-lang="tr" role="menuitem"><span class="lang-option-flag">🇹🇷</span> Türkçe<svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+                    <button type="button" class="lang-option" data-lang="en" role="menuitem"><span class="lang-option-flag">🇺🇸</span> English<svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+                    <button type="button" class="lang-option" data-lang="es" role="menuitem"><span class="lang-option-flag">🇪🇸</span> Español<svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+                </div>
+            </div>
+            <button type="button" class="theme-toggle" id="themeToggle" aria-label="Tema değiştir / Toggle theme" title="Toggle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+        </nav>
+    </header>
+
+    <main>
+        <div class="legal-wrap">
+            <div class="legal-head">
+                <h1>Gizlilik Politikası</h1>
+                <div class="legal-updated">Son güncelleme: 1 Haziran 2026</div>
+            </div>
+            <div class="legal-body">
+                <div class="legal-note">Bu metin genel bilgilendirme amaçlıdır ve hukuki danışmanlık yerine geçmez. Yayına almadan önce bir hukuk danışmanı tarafından gözden geçirilmesi önerilir.</div>
+
+                <p>MIA İş Sağlığı ("MIA", "biz") olarak kişisel verilerinizin gizliliğine önem veriyoruz. Bu Gizlilik Politikası, <a href="https://miaissagligi.com">miaissagligi.com</a> üzerinden sunduğumuz yapay zeka destekli iş güvenliği hizmetlerini kullanırken hangi verileri topladığımızı, bunları nasıl kullandığımızı ve koruduğumuzu açıklar.</p>
+
+                <h2>1. Topladığımız Veriler</h2>
+                <h3>Hesap bilgileri</h3>
+                <p>Kayıt ve giriş sırasında e-posta adresiniz, adınız ve şirket bilgileriniz gibi verileri topluyoruz.</p>
+                <h3>Analiz verileri</h3>
+                <p>Yüklediğiniz görüntü ve videolar yapay zeka modelimiz tarafından kişisel koruyucu donanım (PPE) tespiti için işlenir. Analiz sonuçları (güvenlik skoru, ihlal sayısı, tespit kayıtları) hesabınıza bağlı olarak saklanır.</p>
+                <h3>Teknik veriler</h3>
+                <p>Hizmetin çalışması için tarayıcı türü, IP adresi ve oturum bilgileri gibi teknik veriler işlenebilir.</p>
+
+                <h2>2. Verileri Kullanma Amaçlarımız</h2>
+                <ul>
+                    <li>Hizmeti sunmak, analizleri çalıştırmak ve sonuçları panelinizde göstermek</li>
+                    <li>Yüksek riskli analizlerde size e-posta bildirimi göndermek</li>
+                    <li>Hesap güvenliğini sağlamak ve kötüye kullanımı önlemek</li>
+                    <li>Hizmeti iyileştirmek ve teknik sorunları gidermek</li>
+                </ul>
+
+                <h2>3. Veri Saklama ve Güvenlik</h2>
+                <p>Verileriniz güvenli altyapı sağlayıcıları (kimlik doğrulama ve veritabanı için Supabase, e-posta için Resend, görüntü analizi için model sağlayıcımız) üzerinde işlenir. Erişim yetkilendirme ile sınırlandırılır ve veriler şifreli bağlantılar üzerinden iletilir.</p>
+
+                <h2>4. Üçüncü Taraflarla Paylaşım</h2>
+                <p>Kişisel verilerinizi pazarlama amacıyla üçüncü taraflara satmıyoruz. Veriler yalnızca hizmetin sunulması için gerekli altyapı sağlayıcılarıyla ve yasal yükümlülükler gerektirdiğinde yetkili kurumlarla paylaşılabilir.</p>
+
+                <h2>5. Haklarınız</h2>
+                <p>Kişisel verilerinize erişme, düzeltme, silme ve işlenmesine itiraz etme haklarına sahipsiniz. KVKK kapsamındaki haklarınız için <a href="kvkk.html">KVKK Aydınlatma Metni</a> sayfamızı inceleyebilirsiniz.</p>
+
+                <h2>6. Çerezler</h2>
+                <p>Site, dil ve tema tercihiniz ile oturum durumunuzu hatırlamak için tarayıcı depolaması (localStorage) kullanır. Reklam veya takip amaçlı üçüncü taraf çerezleri kullanılmaz.</p>
+
+                <h2>7. İletişim</h2>
+                <p>Gizlilikle ilgili sorularınız için <a href="mailto:info@miaissagligi.com">info@miaissagligi.com</a> adresinden bize ulaşabilirsiniz.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="hp-footer">
+        <div class="hp-container">
+            <div class="hp-footer-bottom">
+                <div class="hp-footer-copy">© 2026 MIA. <span data-i18n="footer_rights">Tüm hakları saklıdır.</span></div>
+                <div class="hp-footer-legal">
+                    <a href="kullanim-sartlari.html" data-i18n="footer_terms">Kullanım Şartları</a>
+                    <a href="gizlilik.html" data-i18n="footer_privacy">Gizlilik Politikası</a>
+                    <a href="kvkk.html" data-i18n="footer_kvkk">KVKK</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

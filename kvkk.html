@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KVKK Aydınlatma Metni — MIA</title>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="images/favicon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="images/favicon-512.png">
+    <meta name="description" content="MIA İş Sağlığı KVKK aydınlatma metni — 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında veri işleme esasları.">
+    <meta name="theme-color" content="#0A0A0A">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .legal-wrap{max-width:860px;margin:0 auto;padding:48px 24px 80px;}
+        .legal-head{margin-bottom:40px;border-bottom:1px solid rgba(212,175,55,.25);padding-bottom:24px;}
+        .legal-head h1{font-size:2rem;margin:0 0 8px;color:var(--text);}
+        .legal-head .legal-updated{color:var(--text-muted);font-size:.9rem;}
+        .legal-body{color:var(--text);line-height:1.75;font-size:1rem;}
+        .legal-body h2{font-size:1.25rem;margin:36px 0 12px;color:#D4AF37;}
+        .legal-body h3{font-size:1.05rem;margin:24px 0 8px;color:var(--text);}
+        .legal-body p{margin:0 0 14px;color:var(--text-muted);}
+        .legal-body ul{margin:0 0 16px;padding-left:22px;color:var(--text-muted);}
+        .legal-body li{margin:6px 0;}
+        .legal-body a{color:#D4AF37;}
+        .legal-note{background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);border-radius:10px;padding:14px 18px;font-size:.9rem;color:var(--text-muted);margin-bottom:32px;}
+    </style>
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html">
+            <img src="images/logo-horizontal-trim.png" alt="MIA" class="logo-img">
+        </a>
+        <nav>
+            <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
+            <a href="sirket.html" data-i18n="nav_company">Şirket</a>
+            <a href="cozumler.html" data-i18n="nav_pricing">Çözümler</a>
+            <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
+            <div class="nav-divider"></div>
+            <div id="loggedOutNav">
+                <a href="giris-yap.html" class="btn btn-secondary btn-sm" data-i18n="nav_login">Giriş Yap</a>
+                <a href="kaydol.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Kaydol</a>
+            </div>
+            <div id="loggedInNav" style="display:none;">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="detector.html" data-i18n="nav_analysis">Analiz</a>
+                <span class="user-email" id="userEmail"></span>
+                <button type="button" id="navLogout" class="btn btn-secondary btn-sm" data-i18n="nav_logout">Çıkış</button>
+            </div>
+            <div class="lang-dropdown">
+                <button type="button" class="lang-dropdown-toggle" id="langDropdownToggle" aria-haspopup="true" aria-expanded="false" aria-label="Dil seçimi / Select language" title="Language">
+                    <span class="lang-current-flag" id="langCurrentFlag">🇹🇷</span>
+                    <svg class="lang-caret" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="lang-dropdown-menu" id="langDropdownMenu" role="menu">
+                    <button type="button" class="lang-option active" data-lang="tr" role="menuitem"><span class="lang-option-flag">🇹🇷</span> Türkçe<svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+                    <button type="button" class="lang-option" data-lang="en" role="menuitem"><span class="lang-option-flag">🇺🇸</span> English<svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+                    <button type="button" class="lang-option" data-lang="es" role="menuitem"><span class="lang-option-flag">🇪🇸</span> Español<svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+                </div>
+            </div>
+            <button type="button" class="theme-toggle" id="themeToggle" aria-label="Tema değiştir / Toggle theme" title="Toggle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+        </nav>
+    </header>
+
+    <main>
+        <div class="legal-wrap">
+            <div class="legal-head">
+                <h1>KVKK Aydınlatma Metni</h1>
+                <div class="legal-updated">Son güncelleme: 1 Haziran 2026</div>
+            </div>
+            <div class="legal-body">
+                <div class="legal-note">Bu metin genel bilgilendirme amaçlıdır ve hukuki danışmanlık yerine geçmez. Veri sorumlusu unvanı, adres ve VERBİS kaydı gibi resmi bilgiler bir hukuk danışmanı ile netleştirilip eklenmelidir.</div>
+
+                <p>6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, veri sorumlusu sıfatıyla MIA İş Sağlığı tarafından kişisel verilerinizin işlenmesine ilişkin aşağıdaki hususlarda sizi bilgilendiririz.</p>
+
+                <h2>1. Veri Sorumlusu</h2>
+                <p>Kişisel verileriniz, veri sorumlusu sıfatıyla MIA İş Sağlığı tarafından aşağıda açıklanan kapsamda işlenmektedir. İletişim: <a href="mailto:info@miaissagligi.com">info@miaissagligi.com</a></p>
+
+                <h2>2. İşlenen Kişisel Veriler</h2>
+                <ul>
+                    <li>Kimlik ve iletişim verileri (ad, e-posta, şirket)</li>
+                    <li>Müşteri işlem verileri (analiz kayıtları, güvenlik skorları)</li>
+                    <li>İşlem güvenliği verileri (IP, oturum, log kayıtları)</li>
+                    <li>Yüklenen görsel/video içeriklerinde yer alabilecek veriler</li>
+                </ul>
+
+                <h2>3. Kişisel Verilerin İşlenme Amaçları</h2>
+                <ul>
+                    <li>Hizmetin sunulması ve sözleşmenin ifası</li>
+                    <li>İş sağlığı ve güvenliği analizlerinin yapılması ve raporlanması</li>
+                    <li>Yüksek riskli durumlarda bildirim gönderilmesi</li>
+                    <li>Bilgi güvenliğinin sağlanması ve yasal yükümlülüklerin yerine getirilmesi</li>
+                </ul>
+
+                <h2>4. İşlemenin Hukuki Sebebi</h2>
+                <p>Kişisel verileriniz; sözleşmenin kurulması ve ifası, hukuki yükümlülüklerin yerine getirilmesi ve veri sorumlusunun meşru menfaatleri kapsamında KVKK m.5'te belirtilen şartlara dayanarak işlenir.</p>
+
+                <h2>5. Verilerin Aktarılması</h2>
+                <p>Verileriniz, hizmetin sunulması için kullanılan altyapı sağlayıcılarına (kimlik doğrulama/veritabanı, e-posta, görüntü analizi) ve yasal olarak yetkili kamu kurum ve kuruluşlarına KVKK m.8 ve m.9 kapsamında aktarılabilir.</p>
+
+                <h2>6. İlgili Kişinin Hakları (KVKK m.11)</h2>
+                <p>KVKK uyarınca; kişisel verilerinizin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme, işlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme, eksik/yanlış işlenmişse düzeltilmesini, silinmesini veya yok edilmesini isteme, işlemenin münhasıran otomatik sistemlerle analizi sonucu aleyhinize bir sonuç çıkmasına itiraz etme ve zarara uğramanız hâlinde giderilmesini talep etme haklarına sahipsiniz.</p>
+
+                <h2>7. Başvuru Yöntemi</h2>
+                <p>Yukarıdaki haklarınıza ilişkin taleplerinizi <a href="mailto:info@miaissagligi.com">info@miaissagligi.com</a> adresine iletebilirsiniz. Başvurunuz en geç 30 gün içinde sonuçlandırılır.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="hp-footer">
+        <div class="hp-container">
+            <div class="hp-footer-bottom">
+                <div class="hp-footer-copy">© 2026 MIA. <span data-i18n="footer_rights">Tüm hakları saklıdır.</span></div>
+                <div class="hp-footer-legal">
+                    <a href="kullanim-sartlari.html" data-i18n="footer_terms">Kullanım Şartları</a>
+                    <a href="gizlilik.html" data-i18n="footer_privacy">Gizlilik Politikası</a>
+                    <a href="kvkk.html" data-i18n="footer_kvkk">KVKK</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

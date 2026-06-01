@@ -20,7 +20,7 @@ var translations = {
         footer_quick: "HIZLI ERİŞİM", footer_solutions: "ÇÖZÜMLER", footer_contact: "İLETİŞİM",
         footer_ppe: "PPE Tespiti", footer_alert: "Anlık Uyarı", footer_report: "Raporlama", footer_risk: "Risk Analizi",
         footer_detector: "Hazard Detector",
-        footer_rights: "Tüm hakları saklıdır.", footer_terms: "Kullanım Şartları", footer_privacy: "Gizlilik Politikası",
+        footer_rights: "Tüm hakları saklıdır.", footer_terms: "Kullanım Şartları", footer_privacy: "Gizlilik Politikası", footer_kvkk: "KVKK", nf_title: "Sayfa bulunamadı", nf_text: "Aradığınız sayfa taşınmış veya hiç var olmamış olabilir. Ana sayfaya dönüp tekrar deneyebilirsiniz.", nf_home: "Ana Sayfaya Dön", nf_contact: "İletişime Geç",
         // Sirket page
         sk_label: "HAKKIMIZDA",
         sk_title_1: "İş güvenliğini", sk_title_2: "yapay zeka ile", sk_title_3: "dönüştürüyoruz.",
@@ -133,7 +133,7 @@ var translations = {
         footer_quick: "QUICK LINKS", footer_solutions: "SOLUTIONS", footer_contact: "CONTACT",
         footer_ppe: "PPE Detection", footer_alert: "Instant Alert", footer_report: "Reporting", footer_risk: "Risk Analysis",
         footer_detector: "Hazard Detector",
-        footer_rights: "All rights reserved.", footer_terms: "Terms of Service", footer_privacy: "Privacy Policy",
+        footer_rights: "All rights reserved.", footer_terms: "Terms of Service", footer_privacy: "Privacy Policy", footer_kvkk: "KVKK (Data Protection)", nf_title: "Page not found", nf_text: "The page you are looking for may have moved or never existed. Try heading back to the homepage.", nf_home: "Back to Home", nf_contact: "Contact Us",
         // Sirket page
         sk_label: "ABOUT US",
         sk_title_1: "We are transforming", sk_title_2: "workplace safety", sk_title_3: "with AI.",
@@ -235,7 +235,7 @@ var translations = {
         footer_quick: "ENLACES RÁPIDOS", footer_solutions: "SOLUCIONES", footer_contact: "CONTACTO",
         footer_ppe: "Detección de EPP", footer_alert: "Alerta Instantánea", footer_report: "Informes", footer_risk: "Análisis de Riesgos",
         footer_detector: "Detector de Riesgos",
-        footer_rights: "Todos los derechos reservados.", footer_terms: "Términos de Servicio", footer_privacy: "Política de Privacidad",
+        footer_rights: "Todos los derechos reservados.", footer_terms: "Términos de Servicio", footer_privacy: "Política de Privacidad", footer_kvkk: "Protección de Datos", nf_title: "Página no encontrada", nf_text: "La página que buscas pudo haberse movido o nunca existió. Vuelve al inicio e inténtalo de nuevo.", nf_home: "Volver al Inicio", nf_contact: "Contáctanos",
         sk_label: "SOBRE NOSOTROS",
         sk_title_1: "Estamos transformando", sk_title_2: "la seguridad laboral", sk_title_3: "con IA.",
         sk_intro: "MIA es una plataforma de seguridad basada en IA creada para prevenir accidentes laborales en obras de construcción.",
