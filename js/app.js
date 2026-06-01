@@ -858,7 +858,7 @@ function dashRenderCharts(analyses) {
             type: 'doughnut',
             data: {
                 labels: [tr ? 'Düşük (Güvenli)' : 'Low (Safe)', tr ? 'Orta' : 'Medium', tr ? 'Yüksek' : 'High'],
-                datasets: [{ data: [counts.low, counts.medium, counts.high], backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'], borderColor: isLight ? '#fff' : '#0a0a0a', borderWidth: 2 }]
+                datasets: [{ data: [counts.low, counts.medium, counts.high], backgroundColor: ['#22c55e', '#D4AF37', '#ef4444'], borderColor: isLight ? '#fff' : '#0a0a0a', borderWidth: 2 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false, cutout: '65%',
@@ -885,7 +885,7 @@ function dashRenderCharts(analyses) {
         }
         dashChartInstances.trend = new Chart(trendCtx, {
             type: 'line',
-            data: { labels: labels, datasets: [{ label: tr ? 'İhlal' : 'Violations', data: values, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.12)', borderWidth: 2, fill: true, tension: 0.35, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#f59e0b' }] },
+            data: { labels: labels, datasets: [{ label: tr ? 'İhlal' : 'Violations', data: values, borderColor: '#D4AF37', backgroundColor: 'rgba(212,175,55,0.12)', borderWidth: 2, fill: true, tension: 0.35, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#D4AF37' }] },
             options: {
                 responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
                 scales: {
@@ -905,7 +905,7 @@ function dashRenderCharts(analyses) {
         var topValues = sorted.map(function(a) { return a.violations_count || 0; });
         dashChartInstances.top = new Chart(topCtx, {
             type: 'bar',
-            data: { labels: topLabels, datasets: [{ data: topValues, backgroundColor: 'rgba(245,158,11,0.85)', borderColor: '#f59e0b', borderWidth: 0, borderRadius: 6, barThickness: 22 }] },
+            data: { labels: topLabels, datasets: [{ data: topValues, backgroundColor: 'rgba(212,175,55,0.85)', borderColor: '#D4AF37', borderWidth: 0, borderRadius: 6, barThickness: 22 }] },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
                 scales: {
@@ -1007,7 +1007,7 @@ function miaBuildAnalysisPdf(row) {
     if (row.detections_json) { try { evts = JSON.parse(row.detections_json) || []; } catch (e) { evts = []; } }
     var doc = new window.jspdf.jsPDF({ unit: 'pt', format: 'a4' });
     var pageW = doc.internal.pageSize.getWidth(), pageH = doc.internal.pageSize.getHeight();
-    var margin = 48, gold = [245,163,0], dark = [20,20,20], gray = [110,110,110];
+    var margin = 48, gold = [212,175,55], dark = [20,20,20], gray = [110,110,110];
 
     doc.setFillColor(10,10,10); doc.rect(0,0,pageW,86,'F');
     doc.setTextColor(gold[0],gold[1],gold[2]); doc.setFont('helvetica','bold'); doc.setFontSize(22);
@@ -1038,7 +1038,7 @@ function miaBuildAnalysisPdf(row) {
 
     var score = row.safety_score || 0;
     var cards = [
-        { label:(tr?'Güvenlik Skoru':'Safety Score'), value: score+'%', color: score>=80?[34,197,94]:score>=60?[245,158,11]:[239,68,68] },
+        { label:(tr?'Güvenlik Skoru':'Safety Score'), value: score+'%', color: score>=80?[34,197,94]:score>=60?[212,175,55]:[239,68,68] },
         { label:(tr?'Toplam Tespit':'Total Detections'), value: String(evts.length || ((row.violations_count||0)+(row.safe_count||0))), color: dark },
         { label:(tr?'İhlal':'Violations'), value: String(row.violations_count||0), color:[239,68,68] },
         { label:(tr?'Ort. Güven':'Avg. Conf.'), value: avgConf+'%', color: dark }
@@ -1063,7 +1063,7 @@ function miaBuildAnalysisPdf(row) {
         var cols = [{x:margin,w:60,h:(tr?'Zaman':'Time')},{x:margin+60,w:230,h:(tr?'Olay':'Event')},{x:margin+290,w:90,h:(tr?'Risk':'Risk')},{x:margin+380,w:70,h:(tr?'Güven':'Conf.')}];
         function th(){ doc.setFillColor(20,20,20); doc.rect(margin,y,pageW-margin*2,22,'F'); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9); cols.forEach(function(c){ doc.text(c.h, c.x+6, y+15); }); y += 22; }
         th(); doc.setFont('helvetica','normal'); doc.setFontSize(9);
-        var rcMap = { 'Yüksek':[239,68,68], 'Orta':[245,158,11], 'Düşük':[34,197,94] };
+        var rcMap = { 'Yüksek':[239,68,68], 'Orta':[212,175,55], 'Düşük':[34,197,94] };
         evts.forEach(function(e,idx){
             if (y > pageH-60){ doc.addPage(); y=margin; th(); doc.setFont('helvetica','normal'); doc.setFontSize(9); }
             if (idx%2===0){ doc.setFillColor(248,248,248); doc.rect(margin,y,pageW-margin*2,20,'F'); }
@@ -1174,7 +1174,7 @@ if (uploadArea) {
     document.getElementById('downloadReportBtn').onclick = function() { if (currentPdfBase64) { var b = atob(currentPdfBase64), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); var bl = new Blob([u], { type: 'application/pdf' }), a = document.createElement('a'); a.href = URL.createObjectURL(bl); a.download = currentVideoName.replace(/\.[^.]+$/, '') + '_report.pdf'; a.click(); } };
     document.getElementById('newAnalysisBtn').onclick = function() { resetDemo(); };
 
-    uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--accent)'; uploadArea.style.background = 'rgba(245,158,11,0.05)'; });
+    uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--accent)'; uploadArea.style.background = 'rgba(212,175,55,0.05)'; });
     uploadArea.addEventListener('dragleave', function(e) { e.preventDefault(); uploadArea.style.borderColor = ''; uploadArea.style.background = ''; });
     uploadArea.addEventListener('drop', function(e) { e.preventDefault(); uploadArea.style.borderColor = ''; uploadArea.style.background = ''; if (e.dataTransfer.files[0] && e.dataTransfer.files[0].type.startsWith('video/')) { processVideo(e.dataTransfer.files[0]); } });
 }

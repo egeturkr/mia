@@ -424,7 +424,7 @@
     var rafId = null;
     function riskColor(risk) {
         if (risk === "Yüksek") return { stroke: "#ef4444", fill: "rgba(239,68,68,0.12)" };
-        if (risk === "Orta")   return { stroke: "#f59e0b", fill: "rgba(245,158,11,0.12)" };
+        if (risk === "Orta")   return { stroke: "#D4AF37", fill: "rgba(212,175,55,0.12)" };
         return { stroke: "#22c55e", fill: "rgba(34,197,94,0.12)" };
     }
 
@@ -576,7 +576,7 @@
                         els.progressStep.textContent = lang === "tr"
                             ? "0 tespit — videoda PPE/işçi/ekipman görünmüyor"
                             : "0 detections — no PPE/worker/equipment visible in video";
-                        els.progressStep.style.color = "#f59e0b";
+                        els.progressStep.style.color = "#D4AF37";
                     } else {
                         els.progressStep.textContent = lang === "tr" ? "Analiz tamamlandı" : "Analysis complete";
                         els.progressStep.style.color = "";
@@ -872,7 +872,7 @@
         var pageW = doc.internal.pageSize.getWidth();
         var pageH = doc.internal.pageSize.getHeight();
         var margin = 48;
-        var gold = [245, 163, 0];
+        var gold = [212,175,55];
         var dark = [20, 20, 20];
         var gray = [110, 110, 110];
 
@@ -932,7 +932,7 @@
 
         // Stat cards row
         var cards = [
-            { label: (tr ? "Güvenlik Skoru" : "Safety Score"), value: summary.safety_score + "%", color: summary.safety_score >= 80 ? [34,197,94] : summary.safety_score >= 60 ? [245,158,11] : [239,68,68] },
+            { label: (tr ? "Güvenlik Skoru" : "Safety Score"), value: summary.safety_score + "%", color: summary.safety_score >= 80 ? [34,197,94] : summary.safety_score >= 60 ? [212,175,55] : [239,68,68] },
             { label: (tr ? "Toplam Tespit" : "Total Detections"), value: String(evts.length), color: dark },
             { label: (tr ? "İhlal" : "Violations"), value: String(summary.violations_count), color: [239,68,68] },
             { label: (tr ? "Ort. Güven" : "Avg. Conf."), value: avgConf + "%", color: dark }
@@ -992,7 +992,7 @@
 
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
-        var riskColor = { "Yüksek": [239,68,68], "Orta": [245,158,11], "Düşük": [34,197,94] };
+        var riskColor = { "Yüksek": [239,68,68], "Orta": [212,175,55], "Düşük": [34,197,94] };
         evts.forEach(function(e, idx){
             if (y > pageH - 60) { doc.addPage(); y = margin; tableHeader(); doc.setFont("helvetica","normal"); doc.setFontSize(9); }
             if (idx % 2 === 0) { doc.setFillColor(248, 248, 248); doc.rect(margin, y, pageW - margin * 2, 20, "F"); }
