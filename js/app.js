@@ -45,7 +45,7 @@ var translations = {
         // Detector page
         det_label: "AI GÜVENLİK PANELİ",
         det_title: "Video Safety Hazard Detector",
-        det_subtitle: "Şantiye videolarını yükleyin, yapay zeka destekli güvenlik analizini simüle edin.",
+        det_subtitle: "Şantiye videolarını yükleyin, yapay zeka destekli güvenlik analizi saniyeler içinde hazır.",
         det_upload_text: "Video dosyası yükleyin",
         det_upload_hint: "MP4, MOV veya AVI dosyasını buraya sürükleyin ya da seçin (maks. 100 MB)",
         det_browse: "Dosya Seç",
@@ -158,7 +158,7 @@ var translations = {
         // Detector page
         det_label: "AI SAFETY DASHBOARD",
         det_title: "Video Safety Hazard Detector",
-        det_subtitle: "Upload construction site footage and run a simulated AI-driven safety analysis.",
+        det_subtitle: "Upload construction site footage — AI-powered safety analysis ready in seconds.",
         det_upload_text: "Upload a video file",
         det_upload_hint: "Drop your MP4, MOV or AVI file here or select one (max 100 MB)",
         det_browse: "Choose File",
@@ -214,6 +214,106 @@ var translations = {
         chat_a1: "MIA uses AI to detect PPE usage like helmets, vests, and harnesses at construction sites in real-time. We offer 24/7 camera analysis, instant SMS/email alerts, and detailed PDF reports.", chat_a2: "Great! Redirecting you to the demo request form.", chat_a3: "We have 3 plans: Starter (₺5,000/mo, 5 cameras), Professional (₺15,000/mo, 25 cameras, 24/7 support) and Enterprise (custom pricing, unlimited cameras). Visit our Solutions page for details.", chat_a4: "You can reach us at info@miaissagligi.com or through our Contact page.", chat_greet: "Hello! Welcome to MIA. I can help you with our solutions, pricing, or scheduling a demo. What would you like to know?", chat_thanks: "You're welcome! Don't hesitate to ask if you have more questions. Happy to help!", chat_about: "MIA is an AI safety platform founded by Deniz Öge, Ege Türker, and Gökberk Şahin. Our mission is to prevent workplace accidents at construction sites.", chat_safety: "MIA detects PPE usage like helmets, vests, and safety harnesses using AI, preventing workplace accidents. Violations are instantly reported via SMS and email, enabling intervention before accidents happen.", chat_integration: "MIA integrates with your existing CCTV camera systems. No additional hardware required. Setup is completed in 3 steps: connect your cameras, let AI analyze, and receive alerts.", chat_default: "I can only help with MIA-related topics like our solutions, pricing, or scheduling a demo. Feel free to ask about those!",
         footer: "© 2026 MIA - All rights reserved.",
         no_analyses: "No analyses yet", no_analyses_desc: "Click New Analysis to start", no_violations: "No Violations", passwords_not_match: "Passwords do not match", reading_video: "Reading video...", sending_gpu: "Sending to GPU...", error: "Error"
+    },
+    es: {
+        nav_home: "Inicio", nav_company: "Empresa", nav_contact: "Contacto", nav_login: "Iniciar sesión", nav_signup: "Registrarse", nav_analysis: "Análisis", nav_logout: "Cerrar sesión",
+        home_badge: "SEGURIDAD CON IA", home_title: "El Futuro de la<br>Seguridad en Construcción", home_title_1: "El Futuro de la", home_title_2: "Seguridad en Construcción", home_subtitle: "MIA usa IA para detectar el uso de EPP en tiempo real en obras de construcción, previniendo accidentes laborales.", home_cta: "Comenzar", home_learn: "Saber más",
+        hero_b1: "Configuración Fácil", hero_b2: "Integración Rápida", hero_b3: "Soporte 24/7",
+        stat1_val: "1,800+", stat1_label: "Accidentes mortales anuales", stat1_sub: "Turquía, 2023",
+        stat2_val: "₺50M+", stat2_label: "Costo anual en sanciones", stat2_sub: "En todo el sector",
+        stat3_val: "85%", stat3_label: "Tasa de accidentes evitables", stat3_sub: "Datos de investigación",
+        features_tag: "¿POR QUÉ MIA?", features_title: "Soluciones inteligentes para la seguridad",
+        feat1_title: "Detección en Tiempo Real", feat1_desc: "Detección instantánea de EPP y sistema de alertas mediante cámaras.",
+        feat2_title: "Alertas y Notificaciones Instantáneas", feat2_desc: "Alertas y notificaciones inmediatas ante infracciones.",
+        feat3_title: "Informes Detallados", feat3_desc: "Informes de seguridad diarios, semanales y mensuales.",
+        feat4_title: "Análisis Basado en Datos", feat4_desc: "Análisis de riesgos y seguridad predictiva con IA.",
+        how_tag: "¿CÓMO FUNCIONA?",
+        companies_tag: "CONFÍAN EN NOSOTROS",
+        cta_line1: "Por obras más seguras", cta_line2: "actúa hoy.",
+        cta_btn1: "Solicitar Demo", cta_btn2: "Contáctanos",
+        footer_tag: "Construyendo mañanas más seguros con inteligencia artificial.",
+        footer_quick: "ENLACES RÁPIDOS", footer_solutions: "SOLUCIONES", footer_contact: "CONTACTO",
+        footer_ppe: "Detección de EPP", footer_alert: "Alerta Instantánea", footer_report: "Informes", footer_risk: "Análisis de Riesgos",
+        footer_detector: "Detector de Riesgos",
+        footer_rights: "Todos los derechos reservados.", footer_terms: "Términos de Servicio", footer_privacy: "Política de Privacidad",
+        sk_label: "SOBRE NOSOTROS",
+        sk_title_1: "Estamos transformando", sk_title_2: "la seguridad laboral", sk_title_3: "con IA.",
+        sk_intro: "MIA es una plataforma de seguridad basada en IA creada para prevenir accidentes laborales en obras de construcción.",
+        sk_b1: "Basado en Datos", sk_b2: "Tiempo Real", sk_b3: "Alta Precisión",
+        sk_st1: "Fundación", sk_st2: "Equipo Experto", sk_st3: "Modelos de IA Entrenados", sk_st4: "Proyectos Activos",
+        sk_mv_tag: "MISIÓN Y VISIÓN",
+        sk_mission_title: "Nuestra Misión", sk_mission_text: "Crear un entorno de trabajo donde cada empleado pueda volver a casa de forma segura, reduciendo los riesgos en obra con tecnología de IA.",
+        sk_vision_title: "Nuestra Visión", sk_vision_text: "Convertirnos en la plataforma líder de seguridad con IA y construir las zonas de trabajo más seguras del mundo.",
+        sk_journey_tag: "NUESTRO RECORRIDO", sk_journey_title: "Nuestro recorrido de transformación inteligente en seguridad",
+        sk_tl1_title: "MIA fundada", sk_tl1_desc: "Entramos al sector de SST con nuestra visión de seguridad impulsada por IA.",
+        sk_tl2_title: "Primer MVP", sk_tl2_desc: "Desarrollamos nuestro primer modelo de detección de EPP basado en CCTV.",
+        sk_tl3_title: "Proyectos Piloto", sk_tl3_desc: "Validamos nuestra solución con pilotos en campo y comenzamos a escalar.",
+        sk_tl4_title: "Crecimiento y Escala", sk_tl4_desc: "Expandiéndonos a mercados globales para liderar en seguridad con IA.",
+        sk_invest_tag: "OBJETIVO DE INVERSIÓN", sk_invest_round: "Ronda Seed",
+        sk_invest_text: "Buscamos capital para desarrollo de producto, ventas y marketing, y crecimiento operativo.",
+        sk_invest_cta: "Contacto para Inversores",
+        sk_inv1: "Desarrollo de modelos de IA e I+D",
+        sk_inv2: "Escalar operaciones de ventas y marketing",
+        sk_inv3: "Expansión nacional e internacional",
+        sk_inv4: "Alianzas estratégicas",
+        det_label: "PANEL DE SEGURIDAD IA",
+        det_title: "Detector de Riesgos en Video",
+        det_subtitle: "Sube imágenes de obra — el análisis de seguridad con IA está listo en segundos.",
+        det_upload_text: "Sube un archivo de video",
+        det_upload_hint: "Arrastra tu archivo MP4, MOV o AVI aquí o selecciona uno (máx. 100 MB)",
+        det_browse: "Elegir Archivo",
+        det_ready: "Listo para Analizar",
+        det_control_title: "Controles de Análisis",
+        det_control_desc: "El modelo de IA detectará el uso de EPP, zonas peligrosas y riesgos de comportamiento en el video.",
+        det_opt1: "Detección de EPP", det_opt2: "Análisis de Zonas Peligrosas", det_opt3: "Riesgo de Comportamiento", det_opt4: "Anomalía Térmica (Beta)",
+        det_start: "Iniciar Análisis",
+        det_results_label: "RESULTADOS DEL ANÁLISIS", det_results_title: "Resumen de Detecciones",
+        det_download_json: "Informe JSON", det_download_pdf: "Informe PDF", det_new: "Nuevo Análisis",
+        det_sum_total: "Riesgos Totales", det_sum_high: "Riesgo Alto", det_sum_avg: "Confianza Prom.", det_sum_time: "Duración del Video",
+        det_events_title: "Eventos Detectados",
+        stat_accuracy: "Precisión de Detección", stat_monitoring: "Monitoreo 24/7", stat_sec: "s", stat_alert: "Alerta Instantánea",
+        login_title: "Iniciar Sesión", login_subtitle: "Inicia sesión en tu cuenta MIA", login_btn: "Iniciar Sesión", login_footer: "¿No tienes cuenta?", login_link: "Regístrate",
+        signup_title: "Crear Cuenta", signup_subtitle: "Configura tu cuenta MIA", signup_btn: "Crear Cuenta", signup_footer: "¿Ya tienes cuenta?", signup_link: "Inicia sesión",
+        label_name: "Nombre Completo", label_email: "Correo electrónico", label_password: "Contraseña", label_password_confirm: "Confirmar Contraseña",
+        placeholder_name: "Tu nombre completo", placeholder_email: "ejemplo@email.com", placeholder_password: "Al menos 8 caracteres",
+        remember_me: "Recuérdame", forgot_password: "Olvidé mi contraseña",
+        pw_strength_label: "Fortaleza de contraseña:", pw_strength_weak: "Débil", pw_strength_fair: "Regular", pw_strength_good: "Buena", pw_strength_strong: "Fuerte",
+        pw_hint: "Al menos 8 caracteres con una mayúscula y un número.",
+        terms_agree: "Al crear una cuenta aceptas nuestros", terms_link: "Términos de Servicio", terms_and: "y", privacy_link: "Política de Privacidad", terms_accept: ".",
+        signup_processing: "Creando tu cuenta...", login_processing: "Iniciando sesión...", reset_processing: "Enviando enlace...",
+        signup_success_title: "¡Cuenta creada!", signup_success_msg: "Revisa tu correo y haz clic en el enlace de confirmación para activar tu cuenta.",
+        verify_open_inbox: "Abre tu correo", verify_resend: "Reenviar", verify_resent: "Correo de verificación reenviado.", verify_back_login: "Volver a iniciar sesión",
+        verify_title: "Verificando tu cuenta...", verify_success_title: "¡Cuenta activada!", verify_success_msg: "Ya puedes iniciar sesión en tu panel MIA.", verify_fail_title: "Verificación fallida", verify_fail_msg: "El enlace puede ser inválido o haber expirado.",
+        reset_title: "Restablecer Contraseña", reset_subtitle: "Ingresa el correo asociado a tu cuenta y te enviaremos un enlace de restablecimiento.", reset_send: "Enviar Enlace", reset_sent_title: "Enlace enviado", reset_sent_msg: "Usa el enlace de tu correo para establecer una nueva contraseña.",
+        new_password_title: "Nueva Contraseña", new_password_subtitle: "Elige una nueva contraseña para tu cuenta.", new_password_btn: "Actualizar Contraseña", password_updated: "Contraseña actualizada. Ya puedes iniciar sesión.",
+        err_invalid_email: "Ingresa un correo electrónico válido.",
+        err_weak_password: "La contraseña debe tener al menos 8 caracteres con una mayúscula y un número.",
+        err_password_mismatch: "Las contraseñas no coinciden.",
+        err_name_required: "Por favor ingresa tu nombre completo.",
+        err_email_taken: "Este correo ya está registrado. Intenta iniciar sesión.",
+        err_invalid_credentials: "Correo o contraseña incorrectos.",
+        err_email_not_confirmed: "Confirma tu correo. El enlace de verificación está en tu bandeja de entrada.",
+        err_too_many_requests: "Demasiados intentos. Inténtalo de nuevo más tarde.",
+        err_generic: "Algo salió mal. Inténtalo de nuevo.",
+        new_analysis: "Nuevo Análisis", dash_total: "Análisis Totales", dash_avg: "Puntuación Media", dash_violations: "Infracciones Totales", dash_month: "Este Mes", dash_history: "Historial de Análisis",
+        demo_title: "Análisis de Seguridad", demo_subtitle: "Sube un video y experimenta el análisis de seguridad con IA", upload_text: "Sube o arrastra un video", upload_hint: "MP4, MOV, AVI (Máx. 100MB)", processing: "Procesando...", results_title: "Resultados", new_btn: "Nuevo",
+        label_safety: "Seguridad", label_frames: "Fotogramas", label_violations: "Infracciones", label_compliant: "Conforme", detections: "Detecciones",
+        company_title: "Nuestra Empresa", company_subtitle: "Transformando la seguridad laboral con IA", about_title: "¿Qué es MIA?", about_p1: "MIA es una plataforma de IA desarrollada para prevenir accidentes laborales en el sector de la construcción.", about_p2: "Usando tecnología YOLOv8, detecta cascos, chalecos y otros EPP.",
+        why_mia: "¿Por qué MIA?", value1_title: "Tiempo Real", value1_desc: "Monitoreo continuo 24/7", value2_title: "Alta Precisión", value2_desc: "99%+ de precisión de detección", value3_title: "Informes PDF", value3_desc: "Informes automáticos",
+        problem_label: "Problema", problem_title: "Cada año ocurren miles de accidentes<br>laborales evitables en la construcción.", problem_stat1_val: "1,800+", problem_stat1_label: "Accidentes mortales anuales", problem_stat1_sub: "Turquía, 2023", problem_stat2_val: "₺50M+", problem_stat2_label: "Costo anual en sanciones", problem_stat2_sub: "En todo el sector", problem_stat3_val: "85%", problem_stat3_label: "Tasa de accidentes evitables", problem_stat3_sub: "Datos de investigación", problem_desc: "Los métodos de inspección tradicionales son insuficientes: la observación continua es imposible, no se pueden monitorear grandes áreas y los informes son manuales y lentos.",
+        solution_label: "Solución", solution_title: "Plataforma de seguridad con IA.", sol1_title: "Monitoreo en Tiempo Real", sol1_desc: "Análisis de cámaras 24/7", sol2_title: "Detección con IA", sol2_desc: "Infracciones de casco, chaleco, arnés", sol3_title: "Alertas Instantáneas", sol3_desc: "Notificaciones por SMS y correo", sol4_title: "Informes Detallados", sol4_desc: "Analítica de seguridad diaria", solution_cta: "Gestiona todas tus obras en una sola plataforma.", solution_cta_sub: "Se integra con tus sistemas de cámaras existentes, sin hardware adicional.",
+        how_label: "Cómo Funciona", how_title: "Transformación de la seguridad en tres pasos.", how1_title: "Conectar", how1_desc: "Integra tu sistema CCTV existente", how2_title: "Analizar", how2_desc: "La IA procesa las imágenes en tiempo real", how3_title: "Actuar", how3_desc: "Recibe alertas y genera informes", how_tech: "Tecnología: YOLOv8 • NVIDIA GPU • React • FastAPI • PostgreSQL",
+        nav_pricing: "Soluciones", pricing_title: "Soluciones", pricing_subtitle: "Modelo de suscripción SaaS", plan1_name: "Inicial", plan1_price: "₺5,000", plan1_period: "/mes", plan1_f1: "5 cámaras", plan1_f2: "Informes básicos", plan1_f3: "Notificaciones por correo", plan1_cta: "Comenzar", plan2_name: "Profesional", plan2_price: "₺15,000", plan2_period: "/mes", plan2_f1: "25 cámaras", plan2_f2: "Analítica avanzada", plan2_f3: "Soporte 24/7", plan2_f4: "Alertas SMS + correo", plan2_cta: "Comenzar", plan2_badge: "Popular", plan3_name: "Empresarial", plan3_price: "Personalizado", plan3_period: "", plan3_f1: "Cámaras ilimitadas", plan3_f2: "Integración personalizada", plan3_f3: "Equipo de soporte dedicado", plan3_f4: "Garantía SLA", plan3_cta: "Contáctanos",
+        market_label: "Oportunidad de Mercado", market_title: "Ventaja de pionero en un mercado en crecimiento.", market1_val: "₺2.5T", market1_label: "Sector de Construcción de Turquía", market1_sub: "Tamaño Anual del Mercado", market2_val: "$12B", market2_label: "Mercado Global de Seguridad con IA", market2_sub: "Pronóstico 2028 (CAGR 18%)", market_target: "Objetivo: grandes constructoras, proyectos de infraestructura, instalaciones industriales, sector energético",
+        traction_label: "Estado Actual", traction_title: "Bases sólidas, objetivos claros.", trac1: "Producto MVP funcional", trac2: "Infraestructura acelerada por GPU", trac3: "IA entrenada con 2,100+ imágenes", trac4: "Plataforma web en vivo", roadmap_title: "Hoja de Ruta 2026", road_q1: "Clientes piloto", road_q2: "App móvil", road_q3: "10 clientes activos", road_q4: "Expansión internacional", invest_title: "Objetivo de Inversión: ₺2,000,000 Ronda Seed", invest_desc: "Desarrollo de producto 40% • Ventas y marketing 35% • Operaciones 25%",
+        deniz_desc: "Boston University, Ingeniería Informática<br>Becario de IA en HP y Trio Mobil", ege_desc: "Desarrollo de Negocios<br>Alianzas Estratégicas", gokberk_desc: "AS Teknolojik<br>Operaciones Técnicas",
+        contact_title: "Contacto", contact_subtitle: "Ponte en contacto con nosotros", founders_title: "Nuestros Fundadores", general_contact: "Contacto General", contact_cta: "Escríbenos para cualquier consulta",
+        nav_demo_request: "Solicitar Demo", demo_req_title: "Agenda una Reunión con Nuestros Expertos", demo_req_subtitle: "Nuestros expertos responderán tus preguntas y te darán una demostración en vivo de la plataforma. Completa el formulario y te contactaremos enseguida.", demo_req_badge: "Demo Gratis",
+        form_name: "Nombre Completo", form_company: "Nombre de la Empresa", form_email: "Correo electrónico", form_phone: "Teléfono", form_message: "Tu Mensaje", form_message_placeholder: "Cuéntanos brevemente sobre tu proyecto...", form_submit: "Enviar", form_success: "¡Tu solicitud ha sido recibida! Te contactaremos pronto.", form_required: "Este campo es obligatorio",
+        chat_name: "Asistente MIA", chat_status: "En línea", chat_welcome: "¡Hola! ¿Cómo puedo ayudarte?", chat_placeholder: "Escribe tu mensaje...", chat_q1: "¿Cuáles son sus soluciones?", chat_q2: "Solicitar demo", chat_q3: "Precios", chat_q4: "Contacto",
+        chat_a1: "MIA usa IA para detectar el uso de EPP como cascos, chalecos y arneses en obras de construcción en tiempo real. Ofrecemos análisis de cámaras 24/7, alertas instantáneas por SMS/correo e informes PDF detallados.", chat_a2: "¡Genial! Te redirijo al formulario de solicitud de demo.", chat_a3: "Tenemos 3 planes: Inicial (₺5,000/mes, 5 cámaras), Profesional (₺15,000/mes, 25 cámaras, soporte 24/7) y Empresarial (precio personalizado, cámaras ilimitadas). Visita nuestra página de Soluciones para más detalles.", chat_a4: "Puedes contactarnos en info@miaissagligi.com o a través de nuestra página de Contacto.", chat_greet: "¡Hola! Bienvenido a MIA. Puedo ayudarte con nuestras soluciones, precios o agendar una demo. ¿Qué te gustaría saber?", chat_thanks: "¡De nada! No dudes en preguntar si tienes más dudas. ¡Encantados de ayudar!", chat_about: "MIA es una plataforma de seguridad con IA fundada por Deniz Öge, Ege Türker y Gökberk Şahin. Nuestra misión es prevenir accidentes laborales en obras de construcción.", chat_safety: "MIA detecta el uso de EPP como cascos, chalecos y arneses de seguridad mediante IA, previniendo accidentes laborales. Las infracciones se notifican al instante por SMS y correo, permitiendo intervenir antes de que ocurran accidentes.", chat_integration: "MIA se integra con tus sistemas de cámaras CCTV existentes. No requiere hardware adicional. La configuración se completa en 3 pasos: conecta tus cámaras, deja que la IA analice y recibe alertas.", chat_default: "Solo puedo ayudar con temas relacionados con MIA como nuestras soluciones, precios o agendar una demo. ¡No dudes en preguntar sobre eso!",
+        footer: "© 2026 MIA - Todos los derechos reservados.",
+        no_analyses: "Aún no hay análisis", no_analyses_desc: "Haz clic en Nuevo Análisis para empezar", no_violations: "Sin Infracciones", passwords_not_match: "Las contraseñas no coinciden", reading_video: "Leyendo video...", sending_gpu: "Enviando a GPU...", error: "Error"
     }
 };
 
@@ -232,6 +332,17 @@ function setLanguage(lang) {
     if (trBtn) trBtn.className = lang === 'tr' ? 'lang-btn active' : 'lang-btn';
     if (enBtn) enBtn.className = lang === 'en' ? 'lang-btn active' : 'lang-btn';
     document.documentElement.lang = lang;
+
+    // New flag dropdown selector
+    if (typeof window.LANG_FLAGS !== 'undefined') {
+        var curFlag = document.getElementById('langCurrentFlag');
+        if (curFlag) curFlag.textContent = window.LANG_FLAGS[lang] || window.LANG_FLAGS.tr;
+        var opts = document.querySelectorAll('.lang-option');
+        for (var k = 0; k < opts.length; k++) {
+            if (opts[k].getAttribute('data-lang') === lang) opts[k].classList.add('active');
+            else opts[k].classList.remove('active');
+        }
+    }
 
     var elements = document.querySelectorAll('[data-i18n]');
     for (var i = 0; i < elements.length; i++) {
@@ -256,6 +367,47 @@ var trBtnInit = document.getElementById('langTR');
 var enBtnInit = document.getElementById('langEN');
 if (trBtnInit) trBtnInit.onclick = function() { setLanguage('tr'); };
 if (enBtnInit) enBtnInit.onclick = function() { setLanguage('en'); };
+
+// === FLAG DROPDOWN LANGUAGE SELECTOR ===
+window.LANG_FLAGS = { tr: '🇹🇷', en: '🇺🇸', es: '🇪🇸' };
+(function initLangDropdown() {
+    var toggle = document.getElementById('langDropdownToggle');
+    var menu = document.getElementById('langDropdownMenu');
+    if (!toggle || !menu) return;
+
+    function closeMenu() {
+        menu.classList.remove('open');
+        toggle.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    toggle.onclick = function(e) {
+        e.stopPropagation();
+        var isOpen = menu.classList.toggle('open');
+        toggle.classList.toggle('open', isOpen);
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    };
+
+    var opts = menu.querySelectorAll('.lang-option');
+    for (var i = 0; i < opts.length; i++) {
+        opts[i].onclick = function(e) {
+            e.stopPropagation();
+            setLanguage(this.getAttribute('data-lang'));
+            closeMenu();
+        };
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!menu.contains(e.target) && !toggle.contains(e.target)) closeMenu();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeMenu();
+    });
+
+    // sync flag on load
+    var curFlag = document.getElementById('langCurrentFlag');
+    if (curFlag) curFlag.textContent = window.LANG_FLAGS[currentLang] || window.LANG_FLAGS.tr;
+})();
 
 // === THEME ===
 var sunIcon = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';

@@ -55,6 +55,23 @@ nav a.active, nav button.active { color: var(--accent); background: rgba(245,158
 .lang-btn.active { background: var(--accent); color: #000; }
 .lang-btn:hover:not(.active) { color: var(--text-primary); }
 
+/* Flag Dropdown Language Selector */
+.lang-dropdown { position: relative; margin-left: 0.5rem; }
+.lang-dropdown-toggle { display: flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-family: inherit; transition: border-color 0.2s, background 0.2s; }
+.lang-dropdown-toggle:hover { border-color: #D4AF37; }
+.lang-dropdown-toggle.open { border-color: #D4AF37; }
+.lang-current-flag { font-size: 1.1rem; line-height: 1; }
+.lang-caret { width: 12px; height: 12px; stroke: var(--text-muted); transition: transform 0.2s; }
+.lang-dropdown-toggle.open .lang-caret { transform: rotate(180deg); }
+.lang-dropdown-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 160px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.45); padding: 0.35rem; opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity 0.18s, transform 0.18s, visibility 0.18s; z-index: 1000; }
+.lang-dropdown-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+.lang-option { display: flex; align-items: center; gap: 0.6rem; width: 100%; padding: 0.55rem 0.7rem; background: transparent; border: 1px solid transparent; border-radius: 7px; cursor: pointer; font-family: inherit; font-size: 0.88rem; font-weight: 500; color: var(--text-secondary); transition: background 0.15s, color 0.15s; }
+.lang-option .lang-option-flag { font-size: 1.15rem; line-height: 1; }
+.lang-option:hover { background: rgba(212,175,55,0.12); color: var(--text-primary); }
+.lang-option.active { color: #D4AF37; border-color: rgba(212,175,55,0.5); }
+.lang-option .lang-check { margin-left: auto; width: 14px; height: 14px; stroke: #D4AF37; opacity: 0; }
+.lang-option.active .lang-check { opacity: 1; }
+
 /* Buttons */
 .btn { padding: 0.7rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; border: none; font-size: 0.9rem; font-family: inherit; text-decoration: none; }
 .btn svg { width: 18px; height: 18px; }

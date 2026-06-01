@@ -291,10 +291,13 @@
 
     // === ROBOFLOW LIVE INFERENCE ===
     // Mod state: "demo" (default) | "live"
+    // Anonim ziyaretçi → Demo (Roboflow kredisi yakmaz). Giriş yapmış kullanıcı
+    // (sen/kurucular müşteriye demo yaparken) → otomatik Canlı AI.
     var inferenceMode = "demo";
+    var modeExplicitlySet = false;
     try {
         var saved = localStorage.getItem("mia_det_mode");
-        if (saved === "live" || saved === "demo") inferenceMode = saved;
+        if (saved === "live" || saved === "demo") { inferenceMode = saved; modeExplicitlySet = true; }
     } catch (e) {}
 
     function setInferenceMode(mode) {
@@ -825,7 +828,7 @@
         var report = {
             generated_at: new Date().toISOString(),
             tool: "MIA Video Safety Hazard Detector",
-            version: "1.0-demo",
+            version: "1.0",
             file: state.file ? { name: state.file.name, size_bytes: state.file.size, duration_sec: state.videoDurationSec } : null,
             summary: {
                 total_hazards: state.events.length,
@@ -1058,6 +1061,24 @@
                 setInferenceMode(mode);
             });
         });
+        // Visually sync the pills/label to the current mode (used after async auth check).
+        initModeToggle.refresh = function() {
+            Array.prototype.forEach.call(pills, function(p) {
+                p.classList.toggle("active", p.getAttribute("data-mode") === inferenceMode);
+            });
+            if (label) label.textContent = inferenceMode === "live" ? "Canlı AI" : "Demo";
+        };
     }
     initModeToggle();
+
+    // If the user hasn't explicitly chosen a mode, default logged-in users to Live
+    // (founder demoing a real video) and anonymous visitors to Demo (saves credits).
+    if (!modeExplicitlySet && window.supabase && window.supabase.auth) {
+        window.supabase.auth.getSession().then(function(r) {
+            if (r && r.data && r.data.session && inferenceMode !== "live") {
+                inferenceMode = "live";
+                if (initModeToggle.refresh) initModeToggle.refresh();
+            }
+        }).catch(function(){});
+    }
 })();
