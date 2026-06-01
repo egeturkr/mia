@@ -162,6 +162,19 @@
     function getLang() {
         try { return localStorage.getItem("mia_lang") || "tr"; } catch (e) { return "tr"; }
     }
+    // Map raw API/network errors to clear, customer-friendly messages
+    function friendlyError(err) {
+        var tr = getLang() === "tr";
+        var raw = (err && err.message) ? err.message : String(err || "");
+        var m = raw.match(/HTTP (\d{3})/);
+        var code = m ? parseInt(m[1], 10) : 0;
+        if (code === 401 || code === 403) return tr ? "AI servisi yetkilendirme hatası. Lütfen ekiple iletişime geçin." : "AI service authorization error. Please contact the team.";
+        if (code === 402) return tr ? "AI analiz kredisi tükendi. Lütfen planınızı yükseltin veya ekiple iletişime geçin." : "AI analysis credit exhausted. Please upgrade your plan or contact the team.";
+        if (code === 429) return tr ? "Çok fazla istek gönderildi. Lütfen birkaç dakika sonra tekrar deneyin." : "Too many requests. Please try again in a few minutes.";
+        if (code >= 500) return tr ? "AI servisinde geçici bir sorun var. Lütfen biraz sonra tekrar deneyin." : "The AI service is temporarily unavailable. Please try again shortly.";
+        if (/failed to fetch|networkerror|load failed/i.test(raw)) return tr ? "Bağlantı hatası. İnternet bağlantınızı kontrol edip tekrar deneyin." : "Connection error. Check your internet and try again.";
+        return raw;
+    }
 
     function setFile(file) {
         if (!file) return;
@@ -588,13 +601,14 @@
                 .catch(function(err) {
                     console.error("[MIA] Live analysis failed:", err);
                     // Inline error in progress bar (not just alert)
-                    els.progressStep.textContent = (lang === "tr" ? "❌ Canlı AI hatası: " : "❌ Live AI error: ") + (err.message || err);
+                    var friendly = friendlyError(err);
+                    els.progressStep.textContent = (lang === "tr" ? "❌ " : "❌ ") + friendly;
                     els.progressStep.style.color = "#ef4444";
                     els.progressFill.style.background = "#ef4444";
                     setTimeout(function() {
                         if (confirm(lang === "tr"
-                            ? "Canlı AI başarısız oldu:\n\n" + (err.message || err) + "\n\nDemo moduna geçip simüle edelim mi?"
-                            : "Live AI failed:\n\n" + (err.message || err) + "\n\nFall back to demo mode?")) {
+                            ? friendly + "\n\nDemo moduna geçip simüle edelim mi?"
+                            : friendly + "\n\nFall back to demo mode?")) {
                             els.progressStep.style.color = "";
                             els.progressFill.style.background = "";
                             setInferenceMode("demo");
