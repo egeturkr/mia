@@ -773,7 +773,7 @@ function dashRenderEmpty(listEl) {
         '<h3>' + (tr ? 'Burada henüz bir şey yok' : 'Nothing here yet') + '</h3>' +
         '<p>' + (tr ? 'İlk videonu yükleyip analiz ettir; PPE ihlalleri, risk skorları ve trend grafikleri burada görünecek.' : 'Upload your first video; PPE violations, risk scores, and trend charts will appear here.') + '</p>' +
         '<div class="dash-empty-actions">' +
-            '<a href="demo.html" class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>' + (tr ? 'İlk Analizi Başlat' : 'Start First Analysis') + '</span></a>' +
+            '<a href="detector.html" class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>' + (tr ? 'İlk Analizi Başlat' : 'Start First Analysis') + '</span></a>' +
             '<button type="button" class="dash-empty-link" id="dashDemoBtn">' + (tr ? 'Önce demo veriyi göster' : 'Show demo data first') + '</button>' +
         '</div>' +
     '</div>';

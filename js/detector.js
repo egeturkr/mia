@@ -395,6 +395,7 @@
         for (var i = 0; i < sampleCount; i++) {
             times.push((i + 0.5) * (dur / sampleCount));
         }
+        state.framesProcessed = times.length;
         var allEvents = [];
         var done = 0;
         // Sequential to respect rate limits + simpler progress
@@ -636,10 +637,72 @@
         tick();
     }
 
+    // Compute a dashboard-compatible summary from state.events.
+    // violations = PPE ihlalleri (NO-* sınıflar); safe = uyumlu PPE tespitleri.
+    function computeSummary() {
+        var evts = state.events || [];
+        var violationTypes = { no_hardhat: 1, no_vest: 1, no_mask: 1, no_helmet: 1 };
+        var safeTypes = { hardhat_ok: 1, vest_ok: 1, mask_ok: 1 };
+        var violations = 0, safe = 0;
+        evts.forEach(function(e) {
+            if (violationTypes[e.type]) violations++;
+            else if (safeTypes[e.type]) safe++;
+        });
+        var checks = violations + safe;
+        var score = checks ? Math.round((safe / checks) * 100) : 100;
+        return {
+            video_name: state.file ? state.file.name : "Video",
+            safety_score: score,
+            violations_count: violations,
+            safe_count: safe,
+            frames_processed: state.framesProcessed || 0,
+            processing_time: state.finishedAt && state.startedAt ? +( (state.finishedAt - state.startedAt) / 1000 ).toFixed(1) : 0
+        };
+    }
+
+    // Persist a finished analysis to Supabase so it shows in the dashboard.
+    // Only saves real (live) analyses for a logged-in user — demo data stays local.
+    function saveAnalysisToSupabase() {
+        if (inferenceMode !== "live") return;
+        var sb = window.supabase, user = window.currentUser;
+        if (!sb || !user || !state.events || !state.events.length) return;
+        var s = computeSummary();
+        var row = {
+            user_id: user.id,
+            video_name: s.video_name,
+            safety_score: s.safety_score,
+            violations_count: s.violations_count,
+            safe_count: s.safe_count,
+            frames_processed: s.frames_processed,
+            processing_time: s.processing_time,
+            detections_json: JSON.stringify(state.events)
+        };
+        try {
+            sb.from("analyses").insert(row).then(function(r) {
+                if (r.error) {
+                    // detections_json kolonu henüz eklenmemişse onsuz tekrar dene.
+                    var msg = (r.error.message || "").toLowerCase();
+                    if (msg.indexOf("detections_json") !== -1 || msg.indexOf("column") !== -1) {
+                        delete row.detections_json;
+                        sb.from("analyses").insert(row).then(function(r2) {
+                            if (r2.error) console.warn("[MIA] Analiz kaydedilemedi:", r2.error.message);
+                            else console.log("[MIA] Analiz kaydedildi (detections_json kolonu yok — sadece özet):", s.video_name);
+                        });
+                    } else {
+                        console.warn("[MIA] Analiz kaydedilemedi:", r.error.message);
+                    }
+                } else {
+                    console.log("[MIA] Analiz dashboard'a kaydedildi:", s.video_name, "skor", s.safety_score);
+                }
+            });
+        } catch (e) { console.warn("[MIA] Supabase insert hata:", e); }
+    }
+
     function finishAnalysis() {
         state.finishedAt = Date.now();
         // state.events already populated — live: Roboflow results, demo: generateEvents().
         // Do NOT regenerate here or real detections get overwritten.
+        saveAnalysisToSupabase();
         renderResults();
         els.previewPanel.style.display = "block";
         els.resultsPanel.style.display = "block";
