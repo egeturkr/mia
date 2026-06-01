@@ -678,6 +678,32 @@
         };
     }
 
+    // Yüksek riskli analizde giriş yapan kullanıcıya e-posta uyarısı gönder.
+    // Eşik: güvenlik skoru < 60. E-posta gönderimi sunucu tarafında (RESEND_API_KEY gizli).
+    var HIGH_RISK_THRESHOLD = 60;
+    function maybeSendHighRiskAlert(s, user) {
+        try {
+            if (!s || s.safety_score >= HIGH_RISK_THRESHOLD) return;
+            var to = user && user.email;
+            if (!to) return;
+            fetch("/api/notify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    to: to,
+                    lang: (typeof getLang === "function" ? getLang() : "tr"),
+                    video_name: s.video_name,
+                    safety_score: s.safety_score,
+                    violations_count: s.violations_count,
+                    safe_count: s.safe_count
+                })
+            }).then(function(r) {
+                if (!r.ok) console.warn("[MIA] Risk uyarısı e-postası gönderilemedi:", r.status);
+                else console.log("[MIA] Risk uyarısı e-postası gönderildi:", to);
+            }).catch(function(e) { console.warn("[MIA] Risk uyarısı isteği hata:", e); });
+        } catch (e) { console.warn("[MIA] maybeSendHighRiskAlert hata:", e); }
+    }
+
     // Persist a finished analysis to Supabase so it shows in the dashboard.
     // Only saves real (live) analyses for a logged-in user — demo data stays local.
     function saveAnalysisToSupabase() {
@@ -685,6 +711,7 @@
         var sb = window.supabase, user = window.currentUser;
         if (!sb || !user || !state.events || !state.events.length) return;
         var s = computeSummary();
+        maybeSendHighRiskAlert(s, user);
         var row = {
             user_id: user.id,
             video_name: s.video_name,

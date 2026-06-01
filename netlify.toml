@@ -11,6 +11,16 @@
   to = "/.netlify/functions/detect"
   status = 200
 
+# Serverless e-posta bildirimi (Resend) — anahtar sunucuda kalır.
+[[redirects]]
+  from = "/api/notify"
+  to = "/.netlify/functions/notify"
+  status = 200
+
+# Haftalık güvenlik özeti — her Pazartesi 07:00 UTC.
+[functions."weekly-digest"]
+  schedule = "0 7 * * 1"
+
 [[redirects]]
   from = "/demo"
   to = "/detector.html"
