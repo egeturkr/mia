@@ -143,6 +143,7 @@
         processedTime:  $("processedTime"),
         eventsGrid:     $("eventsGrid"),
         downloadJson:   $("downloadJsonBtn"),
+        downloadPdf:    $("downloadPdfBtn"),
         resetBtn:       $("resetBtn"),
         filterPills:    document.querySelectorAll(".det-pill")
     };
@@ -859,6 +860,176 @@
         a.click();
         setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 200);
     });
+
+    // PDF Report — branded, client-side via jsPDF (no server).
+    function buildPdf() {
+        if (!window.jspdf || !window.jspdf.jsPDF) { alert("PDF kütüphanesi yüklenemedi. Sayfayı yenileyip tekrar deneyin."); return; }
+        var tr = getLang() === "tr";
+        var doc = new window.jspdf.jsPDF({ unit: "pt", format: "a4" });
+        var pageW = doc.internal.pageSize.getWidth();
+        var pageH = doc.internal.pageSize.getHeight();
+        var margin = 48;
+        var gold = [245, 163, 0];
+        var dark = [20, 20, 20];
+        var gray = [110, 110, 110];
+
+        // Header band
+        doc.setFillColor(10, 10, 10);
+        doc.rect(0, 0, pageW, 86, "F");
+        doc.setTextColor(gold[0], gold[1], gold[2]);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(22);
+        doc.text("MIA", margin, 46);
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        doc.text(tr ? "AI Güvenlik Analiz Raporu" : "AI Safety Analysis Report", margin, 66);
+        var dateStr = new Date().toLocaleString(tr ? "tr-TR" : "en-US");
+        doc.setFontSize(9);
+        doc.setTextColor(180, 180, 180);
+        doc.text(dateStr, pageW - margin, 46, { align: "right" });
+
+        var y = 120;
+
+        // File / meta
+        doc.setTextColor(dark[0], dark[1], dark[2]);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text(tr ? "Analiz Özeti" : "Analysis Summary", margin, y);
+        y += 8;
+        doc.setDrawColor(gold[0], gold[1], gold[2]);
+        doc.setLineWidth(2);
+        doc.line(margin, y, margin + 60, y);
+        y += 22;
+
+        var evts = state.events || [];
+        var high = evts.filter(function(e){ return e.risk_level === "Yüksek"; }).length;
+        var med = evts.filter(function(e){ return e.risk_level === "Orta"; }).length;
+        var low = evts.filter(function(e){ return e.risk_level === "Düşük"; }).length;
+        var avgConf = evts.length ? Math.round(evts.reduce(function(s,e){ return s + (e.confidence||0); }, 0) / evts.length) : 0;
+        var summary = computeSummary();
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(gray[0], gray[1], gray[2]);
+        var metaLines = [
+            [(tr ? "Dosya" : "File"), summary.video_name],
+            [(tr ? "Video Süresi" : "Duration"), (state.videoDurationSec ? state.videoDurationSec.toFixed(1) + " s" : "-")],
+            [(tr ? "İşlenen Kare" : "Frames Processed"), String(summary.frames_processed)],
+            [(tr ? "İşlem Süresi" : "Processing Time"), summary.processing_time + " s"]
+        ];
+        metaLines.forEach(function(row){
+            doc.setTextColor(gray[0], gray[1], gray[2]);
+            doc.text(row[0] + ":", margin, y);
+            doc.setTextColor(dark[0], dark[1], dark[2]);
+            doc.text(String(row[1]), margin + 120, y);
+            y += 18;
+        });
+        y += 10;
+
+        // Stat cards row
+        var cards = [
+            { label: (tr ? "Güvenlik Skoru" : "Safety Score"), value: summary.safety_score + "%", color: summary.safety_score >= 80 ? [34,197,94] : summary.safety_score >= 60 ? [245,158,11] : [239,68,68] },
+            { label: (tr ? "Toplam Tespit" : "Total Detections"), value: String(evts.length), color: dark },
+            { label: (tr ? "İhlal" : "Violations"), value: String(summary.violations_count), color: [239,68,68] },
+            { label: (tr ? "Ort. Güven" : "Avg. Conf."), value: avgConf + "%", color: dark }
+        ];
+        var cardW = (pageW - margin * 2 - 24) / 4;
+        cards.forEach(function(c, i){
+            var cx = margin + i * (cardW + 8);
+            doc.setFillColor(245, 245, 245);
+            doc.roundedRect(cx, y, cardW, 56, 6, 6, "F");
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.setTextColor(c.color[0], c.color[1], c.color[2]);
+            doc.text(c.value, cx + 12, y + 28);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(gray[0], gray[1], gray[2]);
+            doc.text(c.label, cx + 12, y + 44);
+        });
+        y += 56 + 28;
+
+        // Risk breakdown line
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(dark[0], dark[1], dark[2]);
+        doc.text((tr ? "Risk Dağılımı" : "Risk Breakdown") + ":", margin, y);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(gray[0], gray[1], gray[2]);
+        doc.text(
+            (tr ? "Yüksek " : "High ") + high + "   •   " + (tr ? "Orta " : "Medium ") + med + "   •   " + (tr ? "Düşük " : "Low ") + low,
+            margin + 110, y
+        );
+        y += 28;
+
+        // Detections table
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.setTextColor(dark[0], dark[1], dark[2]);
+        doc.text(tr ? "Tespit Edilen Olaylar" : "Detected Events", margin, y);
+        y += 18;
+
+        var cols = [
+            { x: margin,        w: 60,  h: (tr ? "Zaman" : "Time") },
+            { x: margin + 60,   w: 230, h: (tr ? "Olay" : "Event") },
+            { x: margin + 290,  w: 90,  h: (tr ? "Risk" : "Risk") },
+            { x: margin + 380,  w: 70,  h: (tr ? "Güven" : "Conf.") }
+        ];
+        function tableHeader() {
+            doc.setFillColor(20, 20, 20);
+            doc.rect(margin, y, pageW - margin * 2, 22, "F");
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            cols.forEach(function(c){ doc.text(c.h, c.x + 6, y + 15); });
+            y += 22;
+        }
+        tableHeader();
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        var riskColor = { "Yüksek": [239,68,68], "Orta": [245,158,11], "Düşük": [34,197,94] };
+        evts.forEach(function(e, idx){
+            if (y > pageH - 60) { doc.addPage(); y = margin; tableHeader(); doc.setFont("helvetica","normal"); doc.setFontSize(9); }
+            if (idx % 2 === 0) { doc.setFillColor(248, 248, 248); doc.rect(margin, y, pageW - margin * 2, 20, "F"); }
+            doc.setTextColor(dark[0], dark[1], dark[2]);
+            doc.text(String(e.timestamp || (e.timestamp_sec != null ? e.timestamp_sec.toFixed(1) + "s" : "-")), cols[0].x + 6, y + 14);
+            var title = tr ? (e.title_tr || e.type || "-") : (e.title_en || e.type || "-");
+            doc.text(doc.splitTextToSize(title, cols[1].w - 12)[0], cols[1].x + 6, y + 14);
+            var rc = riskColor[e.risk_level] || gray;
+            doc.setTextColor(rc[0], rc[1], rc[2]);
+            doc.setFont("helvetica", "bold");
+            doc.text(String(e.risk_level || "-"), cols[2].x + 6, y + 14);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(dark[0], dark[1], dark[2]);
+            doc.text((e.confidence != null ? e.confidence + "%" : "-"), cols[3].x + 6, y + 14);
+            y += 20;
+        });
+        if (!evts.length) {
+            doc.setTextColor(gray[0], gray[1], gray[2]);
+            doc.text(tr ? "Tespit bulunamadı." : "No detections found.", margin + 6, y + 14);
+            y += 20;
+        }
+
+        // Footer on every page
+        var pages = doc.internal.getNumberOfPages();
+        for (var p = 1; p <= pages; p++) {
+            doc.setPage(p);
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text("MIA — miaissagligi.com", margin, pageH - 24);
+            doc.text((tr ? "Sayfa " : "Page ") + p + " / " + pages, pageW - margin, pageH - 24, { align: "right" });
+            doc.setTextColor(170, 170, 170);
+            doc.setFontSize(7);
+            doc.text(tr ? "Bu rapor MIA yapay zeka analizi ile otomatik oluşturulmuştur." : "Auto-generated by MIA AI analysis.", pageW / 2, pageH - 24, { align: "center" });
+        }
+
+        var base = (summary.video_name || "rapor").replace(/\.[^.]+$/, "");
+        doc.save("MIA-" + base + "-rapor.pdf");
+    }
+
+    els.downloadPdf.addEventListener("click", buildPdf);
 
     els.resetBtn.addEventListener("click", resetAll);
 
