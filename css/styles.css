@@ -37,11 +37,11 @@ header { position: fixed; top: 0; left: 0; right: 0; background: rgba(10,10,10,0
 .logo-icon { width: 40px; height: 40px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 .logo-icon svg { width: 24px; height: 24px; stroke: #000; }
 .logo-text { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
-.logo-img { height: 48px; width: auto; max-width: 240px; object-fit: contain; display: block; transition: opacity 0.2s; }
+.logo-img { height: 46px; width: auto; max-width: 260px; object-fit: contain; display: block; transition: opacity 0.2s; }
 .logo:hover .logo-img { opacity: 0.85; }
 [data-theme="light"] .logo-img { filter: invert(1) hue-rotate(180deg); }
 @media (max-width: 720px) {
-    .logo-img { height: 38px; max-width: 190px; }
+    .logo-img { height: 38px; max-width: 200px; }
 }
 
 nav { display: flex; gap: 0.35rem; align-items: center; }
@@ -52,7 +52,9 @@ nav a.active::after, nav button.active::after { content: ''; position: absolute;
 [data-theme="light"] nav a, [data-theme="light"] nav button { color: var(--text-primary); }
 .nav-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.12); margin: 0 0.65rem; }
 [data-theme="light"] .nav-divider { background: rgba(15,23,42,0.12); }
-.user-email { color: var(--text-secondary); font-size: 0.85rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+.user-email { display: inline-flex; align-items: center; gap: 0.35rem; color: #FFFFFF; font-size: 0.92rem; font-weight: 500; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.4rem 0.4rem 0.4rem 0.6rem; }
+.user-email::after { content: ''; flex-shrink: 0; width: 12px; height: 12px; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236E6E6E' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>"); background-repeat: no-repeat; background-position: center; }
+[data-theme="light"] .user-email { color: var(--text-primary); }
 /* Navbar logout button — premium dark with subtle border */
 #navLogout { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.16); color: #FFFFFF; border-radius: 8px; padding: 0.5rem 1rem; transition: border-color 0.2s, color 0.2s, background 0.2s; }
 #navLogout:hover { border-color: #D4AF37; color: #D4AF37; background: rgba(212,175,55,0.06); }
