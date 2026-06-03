@@ -136,6 +136,21 @@
                 </div>
             </div>
 
+            <!-- GEÇİŞ TARAMALARI (RFID/QR) — Sprint 6 birleşik panel -->
+            <div class="analyses-section" id="scanSection" style="display:none;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+                    <h2 id="scanTitle">Geçiş Taramaları (RFID/QR)</h2>
+                    <a href="tarama.html" class="btn btn-secondary btn-sm" id="scanCta">Tarama Yap</a>
+                </div>
+                <div class="dashboard-stats" style="margin-top:1rem;">
+                    <div class="dash-stat-card"><div class="dash-stat-label" id="scLblTotal">Toplam Geçiş</div><div class="dash-stat-value" id="scTotal">0</div></div>
+                    <div class="dash-stat-card"><div class="dash-stat-label" id="scLblOk">Uyumlu</div><div class="dash-stat-value good" id="scOk">0</div></div>
+                    <div class="dash-stat-card"><div class="dash-stat-label" id="scLblBad">Eksik KKD</div><div class="dash-stat-value bad" id="scBad">0</div></div>
+                    <div class="dash-stat-card"><div class="dash-stat-label" id="scLblRate">Uyum Oranı</div><div class="dash-stat-value" id="scRate">-</div></div>
+                </div>
+                <div class="analyses-list" id="scanList" style="margin-top:1rem;"></div>
+            </div>
+
             <div class="analyses-section">
                 <h2 data-i18n="dash_history">Analiz Geçmişi</h2>
                 <div class="analyses-list" id="analysesList"></div>
@@ -149,5 +164,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/overview.js"></script>
 </body>
 </html>
