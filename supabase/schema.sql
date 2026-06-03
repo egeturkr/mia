@@ -17,8 +17,12 @@ create table if not exists public.analyses (
   frames_processed int default 0,
   processing_time  numeric,
   pdf_base64      text,
+  detections_json text,
   created_at      timestamptz default now()
 );
+
+-- Mevcut kurulumlar için: kolon yoksa ekle (olay bazlı İhlal Raporu sayfası bunu kullanır).
+alter table public.analyses add column if not exists detections_json text;
 
 alter table public.analyses enable row level security;
 
