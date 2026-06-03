@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - QR Üret</title>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#0A0A0A">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .qr-wrap{max-width:880px;margin:0 auto;padding:1rem}
+        .qr-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin:1rem 0}
+        @media(max-width:640px){.qr-grid{grid-template-columns:1fr}}
+        .qr-card{background:rgba(255,255,255,.02);border:1px solid rgba(212,175,55,.2);border-radius:14px;padding:1.1rem}
+        .qr-card h3{margin:0 0 .8rem}
+        .qr-card label{display:block;font-size:.82rem;color:#8a8a8a;margin:.6rem 0 .25rem}
+        .qr-card input,.qr-card select{width:100%;background:var(--surface,#161616);color:inherit;border:1px solid rgba(212,175,55,.25);border-radius:9px;padding:.6rem;font:inherit}
+        .qr-list{margin-top:1.5rem}
+        .qr-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem}
+        .qr-item{background:#fff;color:#111;border-radius:12px;padding:1rem;text-align:center}
+        .qr-item .qrbox{display:flex;justify-content:center;margin-bottom:.5rem}
+        .qr-item .qr-name{font-weight:700;font-size:.95rem}
+        .qr-item .qr-meta{font-size:.78rem;color:#666;margin:.2rem 0 .5rem}
+        .qr-item .qr-code{font-family:monospace;font-size:.7rem;color:#999;word-break:break-all}
+        .qr-tabs{display:flex;gap:.5rem;margin-top:1.5rem}
+        .qr-tab{padding:.5rem 1rem;border-radius:99px;border:1px solid rgba(212,175,55,.25);background:transparent;color:inherit;cursor:pointer;font:inherit}
+        .qr-tab.active{background:#D4AF37;color:#0A0A0A;font-weight:700}
+        @media print{header,footer,.qr-grid,.qr-tabs,.qr-head-actions{display:none!important}.qr-item{break-inside:avoid;border:1px solid #ddd}}
+    </style>
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html"><img src="images/logo-horizontal-trim.png" alt="MIA" class="logo-img"></a>
+        <nav>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="tarama.html">Tarama</a>
+            <a href="qr-uret.html" class="active">QR Üret</a>
+            <span class="user-email" id="userEmail"></span>
+            <button type="button" id="navLogout" class="btn btn-secondary btn-sm">Çıkış</button>
+        </nav>
+    </header>
+
+    <main class="page-inner">
+        <div class="qr-wrap">
+            <div class="dashboard-header">
+                <div><h1 style="margin:0;">QR Üret & Eşleştir</h1><p class="dash-sub">İşçi rozetleri ve KKD etiketleri oluştur</p></div>
+                <div class="qr-head-actions"><button type="button" class="btn btn-secondary" onclick="window.print()">Yazdır</button></div>
+            </div>
+
+            <div class="qr-grid">
+                <div class="qr-card">
+                    <h3>İşçi Ekle</h3>
+                    <label>Ad Soyad</label><input id="wName" placeholder="örn. Ahmet Yılmaz">
+                    <label>Şantiye / Proje</label><input id="wSite" placeholder="örn. Mostar - A Blok">
+                    <button type="button" class="btn btn-primary" id="addWorker" style="margin-top:1rem;width:100%;">İşçi Oluştur + QR</button>
+                </div>
+                <div class="qr-card">
+                    <h3>KKD Ekle</h3>
+                    <label>Tür</label>
+                    <select id="eType"><option value="helmet">Baret</option><option value="vest">Yelek</option><option value="mask">Maske</option></select>
+                    <label>İşçiye Ata (opsiyonel)</label>
+                    <select id="eWorker"><option value="">— Atama yok —</option></select>
+                    <button type="button" class="btn btn-primary" id="addEquip" style="margin-top:1rem;width:100%;">KKD Oluştur + QR</button>
+                </div>
+            </div>
+
+            <div class="qr-tabs">
+                <button type="button" class="qr-tab active" data-tab="workers">İşçiler</button>
+                <button type="button" class="qr-tab" data-tab="equipment">KKD</button>
+            </div>
+
+            <div class="qr-list">
+                <div class="qr-items" id="qrItems"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer><p>© 2026 MIA</p></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/qr-uret.js"></script>
+</body>
+</html>

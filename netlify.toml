@@ -17,6 +17,12 @@
   to = "/.netlify/functions/notify"
   status = 200
 
+# Tarama ingestion (RFID/QR geçiş noktası okuyucuları) — Sprint 4.
+[[redirects]]
+  from = "/api/scan"
+  to = "/.netlify/functions/scan"
+  status = 200
+
 # Haftalık güvenlik özeti — her Pazartesi 07:00 UTC.
 [functions."weekly-digest"]
   schedule = "0 7 * * 1"
