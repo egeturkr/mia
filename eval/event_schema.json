@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MIA Detection Event",
+  "description": "Tek bir tespit olayının kanonik şeması. Hem demo hem canlı (Roboflow) analiz bunu üretir; S2 alarm ve S3 panel bu yapıya dayanır. Mevcut detector.js event nesnesiyle uyumludur.",
+  "type": "object",
+  "required": ["id", "type", "ppe", "timestamp_sec", "bbox", "risk_level", "confidence"],
+  "properties": {
+    "id":            { "type": "string", "description": "Benzersiz olay kimliği, örn. RF-12-0" },
+    "type":          { "type": "string", "enum": ["no_hardhat","hardhat_ok","no_vest","vest_ok","no_mask","mask_ok","person","machinery","vehicle","cone"], "description": "MIA olay tipi (Roboflow sınıfından eşlenir)" },
+    "ppe":           { "type": "string", "description": "İlgili KKD: Baret, Yelek, Maske, Person, Makine, Araç, Trafik Kon" },
+    "timestamp_sec": { "type": "number", "description": "Videoda olayın saniyesi" },
+    "duration_sec":  { "type": "number", "description": "Olayın ekranda kalma süresi" },
+    "bbox":          {
+      "type": "object", "description": "Normalize sınırlayıcı kutu (0..1)",
+      "required": ["x","y","w","h"],
+      "properties": { "x": {"type":"number"}, "y": {"type":"number"}, "w": {"type":"number"}, "h": {"type":"number"} }
+    },
+    "risk_level":    { "type": "string", "enum": ["Yüksek","Orta","Düşük"] },
+    "confidence":    { "type": "integer", "minimum": 0, "maximum": 100 },
+    "status":        { "type": "string", "enum": ["Onaylandı","İnceleme","Belirsiz"] },
+    "title":         { "type": "object", "properties": { "tr": {"type":"string"}, "en": {"type":"string"} } },
+    "description":   { "type": "object", "properties": { "tr": {"type":"string"}, "en": {"type":"string"} } },
+    "_source":       { "type": "string", "enum": ["roboflow","demo"], "description": "Olayın kaynağı" },
+
+    "location_id":   { "type": ["string","null"], "description": "S2+: olayın geldiği kamera/geçiş noktası kimliği" },
+    "alerted":       { "type": ["boolean","null"], "description": "S2+: bu olay için alarm/e-posta gönderildi mi" },
+    "acknowledged":  { "type": ["boolean","null"], "description": "S3+: panelde operatör tarafından kapatıldı mı" }
+  },
+
+  "x-roadmap-notes": {
+    "current": "detector.js bu nesneyi üretiyor; özet (safety_score, violations_count...) analyses tablosuna yazılıyor. Ham olaylar detections_json kolonuna yazılmaya çalışılıyor ama kolon şemada YOK.",
+    "s2_alarm": "Önerilen: analyses.detections_json (jsonb) kolonu ekle; her olayda location_id + alerted alanlarını doldur. Alarm eşiği: risk_level=Yüksek ve confidence>=85.",
+    "s3_panel": "Önerilen ayrı 'events' tablosu (aşağıdaki SQL) — panelde filtreleme/raporlama için olay başına satır, acknowledged alanı ile."
+  },
+
+  "x-suggested-sql": "alter table public.analyses add column if not exists detections_json jsonb;\n\ncreate table if not exists public.events (\n  id text primary key,\n  analysis_id uuid references public.analyses(id) on delete cascade,\n  user_id uuid not null references auth.users(id) on delete cascade,\n  type text, ppe text, risk_level text, confidence int,\n  timestamp_sec numeric, bbox jsonb,\n  location_id text, alerted boolean default false, acknowledged boolean default false,\n  created_at timestamptz default now()\n);\nalter table public.events enable row level security;\ncreate policy \"events private to owner\" on public.events for all using (auth.uid()=user_id) with check (auth.uid()=user_id);"
+}

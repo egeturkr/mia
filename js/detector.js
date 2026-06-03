@@ -582,6 +582,12 @@
 
             runLiveAnalysis()
                 .then(function(events) {
+                    // False-positive azaltma (Sprint 2): güven eşiği + min kutu + NMS + çelişki çözümü.
+                    if (window.MIAPostProcess && typeof window.MIAPostProcess.process === "function") {
+                        var before = events.length;
+                        events = window.MIAPostProcess.process(events);
+                        console.log("[MIA] Post-process: " + before + " → " + events.length + " olay (gürültü temizlendi)");
+                    }
                     console.log("[MIA] Live analysis complete — total events:", events.length);
                     state.events = events;
                     // 0 detection — kullaniciya net mesaj, fallback yok
@@ -686,6 +692,13 @@
             if (!s || s.safety_score >= HIGH_RISK_THRESHOLD) return;
             var to = user && user.email;
             if (!to) return;
+            // İhlal detaylarını (NO-* olaylar) alarma ekle — operatör neyin nerede olduğunu görsün.
+            var violationTypes = { no_hardhat: 1, no_vest: 1, no_mask: 1, no_helmet: 1 };
+            var violations = (state.events || [])
+                .filter(function(e) { return violationTypes[e.type]; })
+                .sort(function(a, b) { return (b.confidence || 0) - (a.confidence || 0); })
+                .slice(0, 10)
+                .map(function(e) { return { type: (getLang() === "tr" ? e.title_tr : e.title_en) || e.type, timestamp: e.timestamp, confidence: e.confidence }; });
             fetch("/api/notify", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -695,7 +708,8 @@
                     video_name: s.video_name,
                     safety_score: s.safety_score,
                     violations_count: s.violations_count,
-                    safe_count: s.safe_count
+                    safe_count: s.safe_count,
+                    violations: violations
                 })
             }).then(function(r) {
                 if (!r.ok) console.warn("[MIA] Risk uyarısı e-postası gönderilemedi:", r.status);

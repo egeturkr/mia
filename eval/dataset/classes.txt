@@ -1,0 +1,10 @@
+Hardhat
+NO-Hardhat
+Safety Vest
+NO-Safety Vest
+Mask
+NO-Mask
+Person
+machinery
+vehicle
+Safety Cone
