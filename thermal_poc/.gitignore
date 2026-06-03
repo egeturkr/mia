@@ -1,0 +1,5 @@
+_selftest/
+__pycache__/
+thermal_poc_report.json
+dataset/images/
+dataset/labels/
