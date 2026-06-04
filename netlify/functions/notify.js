@@ -39,13 +39,15 @@ exports.handler = async function (event) {
         intro: "Aşağıdaki analizde güvenlik skoru kritik eşiğin altında kaldı:",
         video: "Video", scoreL: "Güvenlik skoru", viol: "İhlal", safeL: "Uygun",
         detail: "İhlal detayları", time: "Zaman", type: "Tür", conf: "Güven",
-        cta: "Panele git", foot: "Bu e-posta MIA İş Sağlığı tarafından otomatik gönderildi."
+        cta: "Panele git", foot: "Bu e-posta MIA İş Sağlığı tarafından otomatik gönderildi.",
+        disc: "Bu uyarı AI destekli bir ön değerlendirmedir ve sertifikalı İSG denetiminin yerine geçmez."
     } : {
         head: "High-risk analysis detected",
         intro: "The following analysis scored below the critical safety threshold:",
         video: "Video", scoreL: "Safety score", viol: "Violations", safeL: "Compliant",
         detail: "Violation details", time: "Time", type: "Type", conf: "Conf.",
-        cta: "Open dashboard", foot: "This email was sent automatically by MIA."
+        cta: "Open dashboard", foot: "This email was sent automatically by MIA.",
+        disc: "This alert is an AI-assisted preliminary assessment and does not replace a certified OHS inspection."
     };
 
     const esc = (s) => String(s == null ? "" : s).replace(/</g, "&lt;");
@@ -85,7 +87,8 @@ exports.handler = async function (event) {
     </div>
     ${detailBlock}
     <a href="https://miaissagligi.com/dashboard.html" style="display:inline-block;margin-top:24px;background:#D4AF37;color:#0A0A0A;text-decoration:none;font-weight:700;padding:12px 22px;border-radius:8px;">${t.cta}</a>
-    <p style="color:#555;font-size:12px;margin-top:32px;">${t.foot}</p>
+    <p style="color:#6E6E6E;font-size:11px;line-height:1.5;margin-top:24px;border-top:1px solid #222;padding-top:12px;">${t.disc}</p>
+    <p style="color:#555;font-size:12px;margin-top:12px;">${t.foot}</p>
   </div>
 </body></html>`;
 

@@ -580,6 +580,15 @@
 
     function runAnalysis() {
         if (!state.file) return;
+        // Faz 2: görüntü işleme + sınır ötesi aktarım açık rızası (gerekirse modal).
+        if (window.MIALegal && window.MIALegal.ensureImageProcessingConsent) {
+            window.MIALegal.ensureImageProcessingConsent().then(function(ok) { if (ok) _runAnalysis(); });
+            return;
+        }
+        _runAnalysis();
+    }
+    function _runAnalysis() {
+        if (!state.file) return;
         state.startedAt = Date.now();
         els.startBtn.disabled = true;
         els.startBtn.classList.add("is-loading");
@@ -781,6 +790,15 @@
         // Do NOT regenerate here or real detections get overwritten.
         saveAnalysisToSupabase();
         renderResults();
+        // Faz 2: görünür AI/sorumluluk disclaimer (bir kez ekle)
+        if (els.resultsPanel && !document.getElementById("miaResDisc")) {
+            var dnode = document.createElement("div");
+            dnode.id = "miaResDisc";
+            dnode.style.cssText = "font-size:12px;line-height:1.5;color:#8a8a8a;margin:.6rem 0 1rem;padding:.6rem .8rem;border:1px solid rgba(212,175,55,.2);border-radius:8px;";
+            var dd = window.MIALegal ? window.MIALegal.DISCLAIMERS() : null;
+            dnode.textContent = dd ? (dd.ai + " " + dd.liability) : "AI destekli ön değerlendirme; sertifikalı İSG denetiminin yerine geçmez.";
+            els.resultsPanel.insertBefore(dnode, els.resultsPanel.firstChild);
+        }
         els.previewPanel.style.display = "block";
         els.resultsPanel.style.display = "block";
         els.startBtn.disabled = false;
@@ -1087,6 +1105,17 @@
             doc.text(tr ? "Tespit bulunamadı." : "No detections found.", margin + 6, y + 14);
             y += 20;
         }
+
+        // Faz 2: yasal sorumluluk / AI disclaimer bloğu
+        var disc = (window.MIALegal ? window.MIALegal.DISCLAIMERS(tr ? "tr" : "en") : null);
+        var discText = disc ? (disc.report + " " + disc.liability)
+            : (tr ? "Bu rapor AI destekli bir ön değerlendirmedir; sertifikalı İSG denetiminin yerine geçmez."
+                  : "This report is an AI-assisted preliminary assessment and does not replace a certified OHS inspection.");
+        if (y > pageH - 90) { doc.addPage(); y = margin; }
+        y += 16;
+        doc.setDrawColor(220, 220, 220); doc.setLineWidth(0.5); doc.line(margin, y, pageW - margin, y); y += 14;
+        doc.setFont("helvetica", "italic"); doc.setFontSize(8); doc.setTextColor(120, 120, 120);
+        doc.splitTextToSize(discText, pageW - margin * 2).forEach(function(ln){ doc.text(ln, margin, y); y += 11; });
 
         // Footer on every page
         var pages = doc.internal.getNumberOfPages();

@@ -97,14 +97,17 @@
                     <label data-i18n="label_password_confirm">Şifre Tekrar</label>
                     <input type="password" id="signupPasswordConfirm" name="new-password" autocomplete="new-password" placeholder="••••••••" required>
                 </div>
+                <label class="auth-terms" for="signupConsent" style="display:flex;gap:.5rem;align-items:flex-start;text-align:left;cursor:pointer;margin:0 0 .75rem;">
+                    <input type="checkbox" id="signupConsent" style="margin-top:3px;width:16px;height:16px;accent-color:#D4AF37;flex:none;">
+                    <span>
+                        <a href="kullanim-sartlari.html" target="_blank" data-i18n="terms_link">Kullanım Şartları</a>,
+                        <a href="gizlilik.html" target="_blank" data-i18n="privacy_link">Gizlilik Politikası</a>
+                        <span data-i18n="terms_and">ve</span>
+                        <a href="kvkk.html" target="_blank">KVKK Aydınlatma Metni</a>
+                        <span data-i18n="terms_accept">'ni okudum; kişisel verilerimin işlenmesini açık rıza ile kabul ediyorum.</span>
+                    </span>
+                </label>
                 <button type="submit" class="auth-btn" id="signupBtn" data-i18n="signup_btn">Hesap Oluştur</button>
-                <p class="auth-terms">
-                    <span data-i18n="terms_agree">Hesap oluşturarak</span>
-                    <a href="iletisim.html" data-i18n="terms_link">Kullanım Şartlarını</a>
-                    <span data-i18n="terms_and">ve</span>
-                    <a href="iletisim.html" data-i18n="privacy_link">Gizlilik Politikasını</a>
-                    <span data-i18n="terms_accept">kabul etmiş olursunuz.</span>
-                </p>
             </form>
 
             <div class="auth-success" id="signupSuccess">
@@ -133,5 +136,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/app.js"></script>
+    <script src="js/legal.js"></script>
 </body>
 </html>

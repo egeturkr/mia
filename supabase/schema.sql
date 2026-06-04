@@ -174,6 +174,39 @@ create index if not exists api_usage_created_idx on public.api_usage (created_at
 --   delete from public.api_usage where created_at < now() - interval '60 days';
 
 -- ============================================================================
+-- 6) RIZA / KABUL AUDIT TRAIL (Legal & Compliance — Faz 2)
+-- ----------------------------------------------------------------------------
+-- KVKK açık rıza, kullanım şartları, gizlilik, görüntü işleme ve sınır ötesi
+-- aktarım onaylarının DEĞİŞTİRİLEMEZ kaydı. Her kabul; doküman anahtarı + sürüm
+-- + zaman + (varsa) kullanıcı/e-posta ile saklanır → uyum denetiminde kanıt.
+-- ============================================================================
+create table if not exists public.consents (
+  id            bigint generated always as identity primary key,
+  user_id       uuid references auth.users(id) on delete set null, -- giriş yoksa null
+  email         text,                  -- doğrulama öncesi kayıt için
+  subject       text,                  -- 'user:<uuid>' | 'email:<e>' | 'ip:<hash>'
+  document_key  text not null,         -- 'terms' | 'privacy' | 'kvkk' | 'image_processing' | 'cross_border'
+  version       text not null,         -- kabul edilen doküman sürümü (örn. '1.0')
+  user_agent    text,
+  page          text,
+  accepted_at   timestamptz not null default now()
+);
+alter table public.consents enable row level security;
+
+-- Kabul kaydı eklenebilir (append-only): giriş yapan kendi adına, anonim/doğrulama
+-- öncesi user_id NULL ile. Okuma yalnızca kendi kayıtların (service_role hepsini görür).
+drop policy if exists "consents insert (self or anon)" on public.consents;
+create policy "consents insert (self or anon)" on public.consents for insert
+  with check (user_id is null or auth.uid() = user_id);
+
+drop policy if exists "consents select own" on public.consents;
+create policy "consents select own" on public.consents for select
+  using (auth.uid() = user_id);
+
+create index if not exists consents_user_doc_idx on public.consents (user_id, document_key, version);
+create index if not exists consents_email_idx on public.consents (email);
+
+-- ============================================================================
 -- Done. Verify in: Database → Tables — analyses, demo_requests, chat_messages,
--- workers, equipment, checkpoints, scans, api_usage (hepsi RLS açık).
+-- workers, equipment, checkpoints, scans, api_usage, consents (hepsi RLS açık).
 -- ============================================================================
