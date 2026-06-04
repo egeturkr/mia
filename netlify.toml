@@ -23,6 +23,12 @@
   to = "/.netlify/functions/scan"
   status = 200
 
+# Korumalı Modal video analiz proxy'si — Faz 1 (Modal URL env'de, MODAL_URL).
+[[redirects]]
+  from = "/api/analyze"
+  to = "/.netlify/functions/analyze"
+  status = 200
+
 # Haftalık güvenlik özeti — her Pazartesi 07:00 UTC.
 [functions."weekly-digest"]
   schedule = "0 7 * * 1"

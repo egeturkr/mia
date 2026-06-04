@@ -1134,7 +1134,9 @@ if (uploadArea) {
     var currentVideoBlob = null;
     var currentPdfBase64 = null;
     var currentVideoName = '';
-    var API_URL = 'https://dnizoge--mia-safety-detector-detect-video.modal.run';
+    // Faz 1: Modal URL artık istemcide hardcoded değil — korumalı proxy üzerinden
+    // (/api/analyze): origin allowlist + rate-limit + kota + (varsa) JWT.
+    var API_URL = '/api/analyze';
 
     var fileInput = document.getElementById('fileInput');
     var progressContainer = document.getElementById('progressContainer');
@@ -1157,7 +1159,13 @@ if (uploadArea) {
         reader.onload = function() {
             var base64 = reader.result.split(',')[1];
             progressFill.style.width = '30%'; progressText.textContent = t('sending_gpu');
-            fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ video: base64, confidence: 0.25, generate_report: true }) })
+            // Faz 1: giriş yapıldıysa JWT ekle (kullanıcı kotası); anonim demo IP limitiyle korunur.
+            supabase.auth.getSession().then(function(sess) {
+                var headers = { 'Content-Type': 'application/json' };
+                var tok = sess && sess.data && sess.data.session && sess.data.session.access_token;
+                if (tok) headers['Authorization'] = 'Bearer ' + tok;
+                return fetch(API_URL, { method: 'POST', headers: headers, body: JSON.stringify({ video: base64, confidence: 0.25, generate_report: true }) });
+            })
             .then(function(res) { return res.json(); })
             .then(function(result) {
                 progressFill.style.width = '100%';

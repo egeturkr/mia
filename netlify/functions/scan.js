@@ -1,6 +1,9 @@
-// MIA — Tarama ingestion (Sprint 4). Netlify function eşdeğeri (api/scan.js ile aynı mantık).
+// MIA — Tarama ingestion (Sprint 4 + Faz 1 hardening). Netlify function.
 // netlify.toml: /api/scan -> /.netlify/functions/scan
 // Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, MIA_SCAN_TOKEN
+// Headless okuyucular için paylaşılan token + token başına rate-limit + loglama.
+
+const guard = require("./lib/guard");
 
 exports.handler = async function (event) {
     if (event.httpMethod !== "POST") return { statusCode: 405, body: JSON.stringify({ error: "POST only" }) };
@@ -25,6 +28,14 @@ exports.handler = async function (event) {
     const source = p.source === "qr" ? "qr" : "rfid";
     const H = { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json" };
     const rest = (path) => SB_URL.replace(/\/$/, "") + "/rest/v1/" + path;
+
+    // Rate-limit: hesap (token+user) başına dakikada en fazla 120 geçiş okuması.
+    const subject = "token:" + userId;
+    const minAgo = new Date(Date.now() - 60 * 1000).toISOString();
+    const recent = await guard.countSince(subject, "scan", minAgo, 120);
+    if (recent !== null && recent >= 120) {
+        return { statusCode: 429, headers: { "Retry-After": "60" }, body: JSON.stringify({ error: "rate limit exceeded" }) };
+    }
 
     try {
         const wq = await fetch(rest(`workers?user_id=eq.${userId}&code=eq.${encodeURIComponent(workerCode)}&select=id,full_name&limit=1`), { headers: H });
@@ -55,6 +66,7 @@ exports.handler = async function (event) {
         const saved = await ins.json();
         if (!ins.ok) return { statusCode: 502, body: JSON.stringify({ error: "insert failed", detail: saved }) };
 
+        await guard.logUsage(subject, "token", "scan", 200);
         return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({
             ok: true, worker_found: !!worker, worker_name: worker ? worker.full_name : null,
             present, missing, compliant, scan: Array.isArray(saved) ? saved[0] : saved

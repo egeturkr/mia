@@ -1,17 +1,18 @@
-// Netlify Function mirror of /api/detect (Vercel).
-// netlify.toml redirects /api/detect → /.netlify/functions/detect so the
-// frontend uses one URL regardless of host. Runs server-side: no browser CORS,
-// API key stays secret. Set ROBOFLOW_API_KEY in Netlify → Site → Environment variables.
+// Netlify Function: /api/detect → Roboflow Hosted Inference (proxy).
+// PRODUCTION HARDENING (Faz 1): origin allowlist + Supabase JWT zorunlu +
+// rate-limit + aylık kota + loglama. Yetkisiz kullanıcı AI kredisi tüketemez.
+// API anahtarı sunucuda kalır. Env: ROBOFLOW_API_KEY, SUPABASE_URL,
+// SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, (ops.) MIA_ALLOWED_ORIGINS.
+
+const guard = require("./lib/guard");
 
 exports.handler = async function (event) {
-    if (event.httpMethod !== "POST") {
-        return { statusCode: 405, body: JSON.stringify({ error: "POST only" }) };
-    }
+    // 1) Güvenlik: origin + kimlik (login zorunlu) + rate-limit + kota
+    const g = await guard.enforce(event, { endpoint: "detect", perMin: 30, perMonth: 300, auth: "user" });
+    if (!g.ok) return g.response;
 
     const apiKey = process.env.ROBOFLOW_API_KEY;
-    if (!apiKey) {
-        return { statusCode: 500, body: JSON.stringify({ error: "ROBOFLOW_API_KEY env var not configured" }) };
-    }
+    if (!apiKey) return guard.resp(500, { error: "ROBOFLOW_API_KEY env var not configured" }, g.origin);
 
     const q = event.queryStringParameters || {};
     const model = (q.model || "construction-site-safety/27").toString();
@@ -19,14 +20,9 @@ exports.handler = async function (event) {
     const overlap = (q.overlap || "30").toString();
 
     let image;
-    try {
-        image = JSON.parse(event.body || "{}").image;
-    } catch (e) {
-        return { statusCode: 400, body: JSON.stringify({ error: "invalid JSON body" }) };
-    }
-    if (!image) {
-        return { statusCode: 400, body: JSON.stringify({ error: "missing 'image' in body" }) };
-    }
+    try { image = JSON.parse(event.body || "{}").image; }
+    catch (e) { return guard.resp(400, { error: "invalid JSON body" }, g.origin); }
+    if (!image) return guard.resp(400, { error: "missing 'image' in body" }, g.origin);
 
     const url = "https://serverless.roboflow.com/" + model +
         "?api_key=" + encodeURIComponent(apiKey) +
@@ -40,12 +36,11 @@ exports.handler = async function (event) {
             body: image
         });
         const text = await rf.text();
-        return {
-            statusCode: rf.status,
-            headers: { "Content-Type": "application/json" },
-            body: text
-        };
+        // 2) Kullanım kaydı (kota/rate sayımı + denetim)
+        await guard.logUsage(g.subject, g.subjectType, "detect", rf.status);
+        return { statusCode: rf.status, headers: guard.corsHeaders(g.origin), body: text };
     } catch (err) {
-        return { statusCode: 502, body: JSON.stringify({ error: "Roboflow upstream failed: " + (err && err.message || err) }) };
+        await guard.logUsage(g.subject, g.subjectType, "detect", 502);
+        return guard.resp(502, { error: "Roboflow upstream failed: " + (err && err.message || err) }, g.origin);
     }
 };

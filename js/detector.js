@@ -348,6 +348,19 @@
         });
     }
 
+    // Faz 1: Supabase oturum access token'ını getir (kısa süre cache'le).
+    var _tokCache = { v: null, t: 0 };
+    function miaGetToken() {
+        var now = Date.now();
+        if (_tokCache.v && now - _tokCache.t < 60000) return Promise.resolve(_tokCache.v);
+        if (!(window.supabase && window.supabase.auth)) return Promise.resolve(null);
+        return window.supabase.auth.getSession().then(function(r) {
+            var tok = (r && r.data && r.data.session && r.data.session.access_token) || null;
+            _tokCache = { v: tok, t: now };
+            return tok;
+        }).catch(function() { return null; });
+    }
+
     // POST a frame to Roboflow Hosted API → predictions[]
     function callRoboflow(frame) {
         var url = ROBOFLOW.endpoint +
@@ -355,10 +368,15 @@
                   "&confidence=" + ROBOFLOW.confidence +
                   "&overlap=" + ROBOFLOW.overlap;
         console.log("[MIA] Inference POST →", url, "frame size:", frame.base64.length, "bytes");
-        return fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: frame.base64 })
+        // Faz 1: sunucu artık Supabase JWT bekliyor (yetkisiz kredi tüketimi engellendi).
+        return miaGetToken().then(function(token) {
+            var headers = { "Content-Type": "application/json" };
+            if (token) headers["Authorization"] = "Bearer " + token;
+            return fetch(url, {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify({ image: frame.base64 })
+            });
         }).then(function(r) {
             if (!r.ok) {
                 return r.text().then(function(txt) {

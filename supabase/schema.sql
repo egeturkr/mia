@@ -148,6 +148,32 @@ create policy "scans private to owner" on public.scans for all
 create index if not exists scans_user_created_idx on public.scans (user_id, created_at desc);
 
 -- ============================================================================
+-- 5) API KULLANIM / RATE-LIMIT / KOTA (Production Hardening — Faz 1)
+-- ----------------------------------------------------------------------------
+-- Sunucusuz fonksiyonlar (detect/analyze/scan) her isteği buraya yazar ve
+-- pencere içi sayımla rate-limit + aylık kota uygular. Yalnızca service_role
+-- erişir (RLS açık, politika YOK → anon/auth okuyamaz/yazamaz). Bu tablo AI
+-- kredisi suistimalini önler ve Faz 5 faturalandırma kotalarının temelidir.
+-- ============================================================================
+create table if not exists public.api_usage (
+  id            bigint generated always as identity primary key,
+  subject       text not null,          -- 'user:<uuid>' veya 'ip:<sha256-önek>'
+  subject_type  text not null,          -- 'user' | 'ip' | 'token'
+  endpoint      text not null,          -- 'detect' | 'analyze' | 'scan'
+  status        int,                    -- upstream/sonuç durum kodu (opsiyonel)
+  created_at    timestamptz not null default now()
+);
+alter table public.api_usage enable row level security;
+-- Politika eklenmedi: yalnızca service_role (RLS bypass) yazar/okur.
+
+create index if not exists api_usage_window_idx on public.api_usage (endpoint, subject, created_at desc);
+create index if not exists api_usage_created_idx on public.api_usage (created_at);
+
+-- İsteğe bağlı bakım: 60 günden eski kayıtları temizlemek için zamanlanmış görev
+-- (pg_cron veya Netlify scheduled function) eklenebilir:
+--   delete from public.api_usage where created_at < now() - interval '60 days';
+
+-- ============================================================================
 -- Done. Verify in: Database → Tables — analyses, demo_requests, chat_messages,
--- workers, equipment, checkpoints, scans (hepsi RLS açık — kilit ikonu).
+-- workers, equipment, checkpoints, scans, api_usage (hepsi RLS açık).
 -- ============================================================================
