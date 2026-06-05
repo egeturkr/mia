@@ -1,0 +1,12 @@
+{
+  "status": "pending",
+  "message": "Bağımsız saha doğrulaması henüz tamamlanmadı. Metrikler, Mostar pilot sahasından toplanan etiketli veriyle ölçülüp burada yayınlanacaktır.",
+  "model_version": "rf-27",
+  "model": "construction-site-safety/27",
+  "dataset_name": null,
+  "images": 0,
+  "measured_at": null,
+  "mAP50": null,
+  "violation_detection": null,
+  "per_class": {}
+}

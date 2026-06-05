@@ -1,0 +1,14 @@
+{
+  "current": "rf-27",
+  "models": [
+    {
+      "version": "rf-27",
+      "provider": "Roboflow",
+      "model": "construction-site-safety/27",
+      "classes": ["Hardhat","NO-Hardhat","Safety Vest","NO-Safety Vest","Mask","NO-Mask","Person","machinery","vehicle","Safety Cone"],
+      "deployed_at": "2026-05-01",
+      "published_map": 0.70,
+      "notes": "Üçüncü taraf temel model. MIA kendi sahasında bağımsız doğrular (validation_latest.json)."
+    }
+  ]
+}

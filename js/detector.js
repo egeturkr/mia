@@ -920,6 +920,8 @@
             generated_at: new Date().toISOString(),
             tool: "MIA Video Safety Hazard Detector",
             version: "1.0",
+            model: ROBOFLOW.model,
+            model_version: "rf-27",
             file: state.file ? { name: state.file.name, size_bytes: state.file.size, duration_sec: state.videoDurationSec } : null,
             summary: {
                 total_hazards: state.events.length,

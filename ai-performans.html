@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - AI Performans & Doğrulama</title>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <meta name="description" content="MIA yapay zeka tespit modelinin bağımsız, ölçülen performans metrikleri (precision, recall, mAP) ve doğrulama metodolojisi.">
+    <meta name="theme-color" content="#0A0A0A">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .perf-wrap{max-width:920px;margin:0 auto;padding:1.5rem 1rem 4rem}
+        .perf-status{display:inline-block;padding:.3rem .8rem;border-radius:99px;font-size:.8rem;font-weight:700}
+        .perf-pending{background:rgba(212,175,55,.15);color:#D4AF37}
+        .perf-measured{background:rgba(34,197,94,.15);color:#22c55e}
+        .perf-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin:1.5rem 0}
+        .perf-card{background:rgba(255,255,255,.02);border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:1.1rem}
+        .perf-card .v{font-size:1.8rem;font-weight:800;color:#D4AF37}
+        .perf-card .l{font-size:.8rem;color:#8a8a8a;margin-top:.2rem}
+        table.perf-tbl{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:1rem}
+        table.perf-tbl th,table.perf-tbl td{padding:.6rem .8rem;text-align:left;border-bottom:1px solid rgba(255,255,255,.06)}
+        table.perf-tbl th{font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;color:#8a8a8a}
+        .perf-note{font-size:.85rem;color:#8a8a8a;line-height:1.6;margin-top:1rem;padding:1rem;border:1px solid rgba(212,175,55,.15);border-radius:10px}
+        .perf-method{margin-top:2rem}
+        .perf-method h2{font-size:1.1rem;margin:0 0 .6rem}
+        .perf-method p,.perf-method li{font-size:.9rem;color:#bfbfbf;line-height:1.7}
+    </style>
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html"><img src="images/logo-horizontal-trim.png" alt="MIA" class="logo-img"></a>
+        <nav>
+            <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
+            <a href="sirket.html" data-i18n="nav_company">Şirket</a>
+            <a href="cozumler.html" data-i18n="nav_pricing">Çözümler</a>
+            <a href="ai-performans.html" class="active">AI Performans</a>
+            <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
+        </nav>
+    </header>
+
+    <main class="page-inner">
+        <div class="perf-wrap">
+            <h1 style="margin:0 0 .4rem;">AI Performans & Doğrulama</h1>
+            <p style="color:#8a8a8a;margin:0 0 1rem;">MIA tespit modelinin bağımsız, ölçülen metrikleri. Pazarlama iddiası değil; yeniden üretilebilir değerlendirme sonucudur.</p>
+            <span class="perf-status" id="perfStatus">—</span>
+
+            <div id="perfBody"></div>
+
+            <div class="perf-method">
+                <h2>Metodoloji</h2>
+                <p>Metrikler, üretimde kullanılan eşiklerle (güven 0.35, IoU 0.5) etiketli bir değerlendirme setine karşı ölçülür. Her çalıştırma model sürümü, veri seti ve tarih ile arşivlenir ve yeniden üretilebilir (<code>eval/run_validation.py</code>).</p>
+                <ul>
+                    <li><b>Precision:</b> tespit edilenlerin ne kadarı doğru.</li>
+                    <li><b>Recall:</b> gerçek ihlallerin ne kadarı yakalandı.</li>
+                    <li><b>mAP@0.5:</b> sınıflar arası genel tespit doğruluğu.</li>
+                    <li><b>İhlal tespiti:</b> baret/yelek/maske eksikliği (iş-kritik) için birleşik precision/recall.</li>
+                </ul>
+                <p style="font-size:.82rem;color:#777;">Not: Sonuçlar AI destekli ön değerlendirme niteliğindedir ve sertifikalı İSG denetiminin yerine geçmez.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer><p data-i18n="footer">© 2026 MIA - Tüm hakları saklıdır.</p></footer>
+
+    <script>
+    (function () {
+        var elB = document.getElementById('perfBody');
+        var elS = document.getElementById('perfStatus');
+        function pct(x){ return (x==null)?'—':(Math.round(x*1000)/10)+'%'; }
+        fetch('eval/validation_latest.json', { cache: 'no-store' })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if (!d || d.status !== 'measured') {
+                    elS.textContent = 'Doğrulama sürüyor';
+                    elS.className = 'perf-status perf-pending';
+                    elB.innerHTML = '<div class="perf-note">' +
+                        ((d && d.message) || 'Bağımsız saha doğrulaması henüz tamamlanmadı.') +
+                        '<br><br>Model: <b>' + ((d && d.model) || '—') + '</b> · Sürüm: <b>' + ((d && d.model_version) || '—') + '</b></div>';
+                    return;
+                }
+                elS.textContent = 'Ölçüldü · ' + (d.measured_at || '');
+                elS.className = 'perf-status perf-measured';
+                var v = d.violation_detection || {};
+                var cards =
+                    card(pct(d.mAP50), 'mAP@0.5') +
+                    card(pct(v.precision), 'İhlal precision') +
+                    card(pct(v.recall), 'İhlal recall') +
+                    card(String(d.images || 0), 'Değerlendirilen görsel');
+                var rows = '';
+                var pc = d.per_class || {};
+                Object.keys(pc).forEach(function(c){
+                    var m = pc[c];
+                    rows += '<tr><td>' + c + '</td><td>' + pct(m.precision) + '</td><td>' + pct(m.recall) +
+                        '</td><td>' + pct(m.f1) + '</td><td>' + pct(m.ap50) + '</td><td>' + (m.gt_count||0) + '</td></tr>';
+                });
+                elB.innerHTML =
+                    '<div class="perf-cards">' + cards + '</div>' +
+                    '<div style="font-size:.85rem;color:#8a8a8a;">Model: <b>' + (d.model||'—') + '</b> · Sürüm: <b>' + (d.model_version||'—') + '</b> · Veri seti: <b>' + (d.dataset_name||'—') + '</b></div>' +
+                    '<table class="perf-tbl"><thead><tr><th>Sınıf</th><th>Precision</th><th>Recall</th><th>F1</th><th>AP@0.5</th><th>GT</th></tr></thead><tbody>' + rows + '</tbody></table>';
+            })
+            .catch(function(){
+                elS.textContent = 'Veri yüklenemedi';
+                elS.className = 'perf-status perf-pending';
+                elB.innerHTML = '<div class="perf-note">Performans verisi şu an yüklenemedi.</div>';
+            });
+        function card(v,l){ return '<div class="perf-card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
+    })();
+    </script>
+</body>
+</html>

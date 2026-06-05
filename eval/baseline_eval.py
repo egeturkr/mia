@@ -206,9 +206,11 @@ def main():
         p, r, f = prf(tp, fp, fn)
         ap_c = average_precision(agg[c]["scores"], gt_counts[c])
         aps.append(ap_c)
+        confs = [s[0] for s in agg[c]["scores"]]
+        mean_conf = round(sum(confs) / len(confs), 4) if confs else 0.0
         per_class[c] = {"tp": tp, "fp": fp, "fn": fn, "precision": round(p, 4),
                         "recall": round(r, 4), "f1": round(f, 4), "ap50": round(ap_c, 4),
-                        "gt_count": gt_counts[c]}
+                        "mean_confidence": mean_conf, "gt_count": gt_counts[c]}
 
     # İş-kritik ihlal aggregate
     vt = vfp = vfn = 0

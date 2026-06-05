@@ -1,0 +1,12 @@
+{
+  "model": "construction-site-safety/27",
+  "model_version": "rf-27",
+  "dataset_name": "MIA geçiş noktası değerlendirme seti v1",
+  "confidence": 0.35,
+  "iou": 0.5,
+  "overlap": 30,
+  "images": "eval/dataset/images",
+  "labels": "eval/dataset/labels",
+  "classes": "eval/dataset/classes.txt",
+  "notes": "Üretimde kullanılan eşiklerle (conf 0.35 / overlap 30) ölçülür. Veri Mostar sahasından toplanacak."
+}
