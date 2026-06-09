@@ -35,6 +35,18 @@
   to = "/.netlify/functions/health"
   status = 200
 
+# Kullanım & plan özeti — Faz 5.
+[[redirects]]
+  from = "/api/usage"
+  to = "/.netlify/functions/usage"
+  status = 200
+
+# Ödeme sağlayıcı webhook'u (sağlayıcıdan bağımsız stub) — Faz 5.
+[[redirects]]
+  from = "/api/billing-webhook"
+  to = "/.netlify/functions/billing-webhook"
+  status = 200
+
 # Haftalık güvenlik özeti — her Pazartesi 07:00 UTC.
 [functions."weekly-digest"]
   schedule = "0 7 * * 1"

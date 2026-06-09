@@ -207,6 +207,35 @@ create index if not exists consents_user_doc_idx on public.consents (user_id, do
 create index if not exists consents_email_idx on public.consents (email);
 
 -- ============================================================================
--- Done. Verify in: Database → Tables — analyses, demo_requests, chat_messages,
--- workers, equipment, checkpoints, scans, api_usage, consents (hepsi RLS açık).
+-- 7) ABONELİK / FATURALANDIRMA (Billing — Faz 5, sağlayıcıdan bağımsız)
+-- ----------------------------------------------------------------------------
+-- Plan + kota tek kullanıcı/hesap başına. Ödeme sağlayıcısı (iyzico/Stripe) sonra
+-- takılır; provider_* alanları o zaman dolar. Abonesi olmayan kullanıcı 'free'
+-- sayılır. Yazma yalnızca service_role (webhook) ile; kullanıcı kendi kaydını okur.
+-- ============================================================================
+create table if not exists public.subscriptions (
+  id                       uuid primary key default gen_random_uuid(),
+  user_id                  uuid not null unique references auth.users(id) on delete cascade,
+  plan                     text not null default 'free',   -- 'free'|'giris'|'kamera_ai'|'pro'|'kurumsal'
+  status                   text not null default 'active',  -- 'active'|'trialing'|'past_due'|'canceled'
+  provider                 text,                            -- 'iyzico'|'stripe'|null
+  provider_customer_id     text,
+  provider_subscription_id text,
+  current_period_start     timestamptz,
+  current_period_end       timestamptz,
+  created_at               timestamptz default now(),
+  updated_at               timestamptz default now()
+);
+alter table public.subscriptions enable row level security;
+
+drop policy if exists "subscriptions select own" on public.subscriptions;
+create policy "subscriptions select own" on public.subscriptions for select
+  using (auth.uid() = user_id);
+-- Yazma (insert/update) yalnızca service_role (RLS bypass) ile — ödeme webhook'u.
+
+create index if not exists subscriptions_user_idx on public.subscriptions (user_id);
+
+-- ============================================================================
+-- Done. Tablolar: analyses, demo_requests, chat_messages, workers, equipment,
+-- checkpoints, scans, api_usage, consents, subscriptions (hepsi RLS açık).
 -- ============================================================================

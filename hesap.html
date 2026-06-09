@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - Hesap & Abonelik</title>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#0A0A0A">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .acc-wrap{max-width:880px;margin:0 auto;padding:1.5rem 1rem 4rem}
+        .acc-card{background:rgba(255,255,255,.02);border:1px solid rgba(212,175,55,.2);border-radius:14px;padding:1.3rem;margin-bottom:1.2rem}
+        .acc-plan{font-size:1.5rem;font-weight:800;color:#D4AF37}
+        .acc-bar{height:10px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin:.6rem 0 .3rem}
+        .acc-bar > i{display:block;height:100%;background:#D4AF37;width:0;transition:width .3s}
+        .acc-muted{color:#8a8a8a;font-size:.88rem}
+        .acc-plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:1rem}
+        .acc-pl{border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:1rem;background:rgba(255,255,255,.02)}
+        .acc-pl.current{border-color:#D4AF37;box-shadow:0 0 0 1px #D4AF37 inset}
+        .acc-pl h3{margin:0 0 .3rem;font-size:1rem}
+        .acc-pl .pr{font-size:1.3rem;font-weight:800;margin:.2rem 0}
+        .acc-pl .q{font-size:.82rem;color:#8a8a8a}
+        .acc-pl button{margin-top:.7rem;width:100%;padding:.55rem;border-radius:8px;border:none;background:#D4AF37;color:#0A0A0A;font-weight:700;cursor:pointer}
+        .acc-pl button[disabled]{background:#333;color:#888;cursor:default}
+    </style>
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html"><img src="images/logo-horizontal-trim.png" alt="MIA" class="logo-img"></a>
+        <nav>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="events.html">İhlal Raporu</a>
+            <a href="tarama.html">Tarama</a>
+            <a href="hesap.html" class="active">Hesap</a>
+            <span class="user-email" id="userEmail"></span>
+            <button type="button" id="navLogout" class="btn btn-secondary btn-sm">Çıkış</button>
+        </nav>
+    </header>
+
+    <main class="page-inner">
+        <div class="acc-wrap">
+            <h1 style="margin:0 0 1rem;">Hesap & Abonelik</h1>
+
+            <div class="acc-card">
+                <div class="acc-muted">Mevcut plan</div>
+                <div class="acc-plan" id="curPlan">—</div>
+                <div class="acc-bar"><i id="usageBar"></i></div>
+                <div class="acc-muted" id="usageText">Kullanım yükleniyor…</div>
+            </div>
+
+            <h2 style="font-size:1.1rem;margin:1.5rem 0 .3rem;">Planlar</h2>
+            <p class="acc-muted" style="margin:0;">Yükseltme talebi şu an satış ekibi üzerinden işlenir; otomatik ödeme yakında.</p>
+            <div class="acc-plans" id="planList"></div>
+        </div>
+    </main>
+
+    <footer><p>© 2026 MIA</p></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+    <script src="js/plans.js"></script>
+    <script src="js/hesap.js"></script>
+</body>
+</html>

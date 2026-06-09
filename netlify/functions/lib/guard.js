@@ -103,6 +103,37 @@ async function countSince(subject, endpoint, sinceIso, cap) {
   return Array.isArray(rows) ? rows.length : null;
 }
 
+// Birden çok endpoint için birleşik sayım (plan AI kotası: detect + analyze birlikte).
+async function countSinceGroup(subject, endpoints, sinceIso, cap) {
+  const inList = endpoints.map(function (e) { return '"' + e + '"'; }).join(",");
+  const url = restBase() + "api_usage?select=id&subject=eq." + encodeURIComponent(subject) +
+    "&endpoint=in.(" + encodeURIComponent(inList) + ")" +
+    "&created_at=gte." + encodeURIComponent(sinceIso) +
+    "&limit=" + (cap + 1);
+  const r = await fetch(url, { headers: svcHeaders() });
+  if (!r.ok) return null;
+  const rows = await r.json();
+  return Array.isArray(rows) ? rows.length : null;
+}
+
+// Plana göre aylık AI kotası (plans.js ile aynı; değiştirirken ikisini de güncelle).
+const PLAN_QUOTAS = { free: 10, giris: 30, kamera_ai: 300, pro: 1000, kurumsal: 100000 };
+
+// Kullanıcının aktif planını çöz (abonesi yoksa 'free').
+async function resolvePlan(userId) {
+  try {
+    const url = restBase() + "subscriptions?user_id=eq." + encodeURIComponent(userId) +
+      "&select=plan,status&limit=1";
+    const r = await fetch(url, { headers: svcHeaders() });
+    if (!r.ok) return "free";
+    const rows = await r.json();
+    const s = Array.isArray(rows) && rows[0];
+    if (!s) return "free";
+    if (["active", "trialing"].indexOf(s.status) === -1) return "free";
+    return PLAN_QUOTAS[s.plan] ? s.plan : "free";
+  } catch (e) { return "free"; }
+}
+
 async function logUsage(subject, subjectType, endpoint, status) {
   try {
     await fetch(restBase() + "api_usage", {
@@ -158,21 +189,34 @@ async function enforce(event, opts) {
     return { ok: false, response: { statusCode: 429, headers: Object.assign({ "Retry-After": "60" }, corsHeaders(origin)), body: JSON.stringify({ error: "rate limit exceeded", retry_after: 60 }) } };
   }
 
-  // Kota (kullanıcı: aylık / anonim: günlük)
-  const windowMs = subjectType === "ip" ? 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000;
-  const sinceIso = new Date(nowMs - windowMs).toISOString();
-  const used = await countSince(subject, opts.endpoint, sinceIso, perMonth);
+  // Kota — kullanıcı: plana göre aylık AI kotası (detect+analyze birleşik);
+  //        anonim: IP başına günlük.
+  var plan = null;
+  var used, limit, windowLabel;
+  if (subjectType === "user") {
+    plan = await resolvePlan(user.id);
+    limit = PLAN_QUOTAS[plan];
+    var since30 = new Date(nowMs - 30 * 24 * 60 * 60 * 1000).toISOString();
+    used = await countSinceGroup(subject, ["detect", "analyze"], since30, limit);
+    windowLabel = "month";
+  } else {
+    limit = perMonth; // anonim günlük
+    var since1 = new Date(nowMs - 24 * 60 * 60 * 1000).toISOString();
+    used = await countSince(subject, opts.endpoint, since1, limit);
+    windowLabel = "day";
+  }
   if (used === null) {
     return { ok: false, response: resp(503, { error: "quota check unavailable" }, origin) };
   }
-  if (used >= perMonth) {
-    return { ok: false, response: resp(402, { error: "quota exceeded", limit: perMonth, window: subjectType === "ip" ? "day" : "month" }, origin) };
+  if (used >= limit) {
+    return { ok: false, response: resp(402, { error: "quota exceeded", plan: plan, limit: limit, window: windowLabel }, origin) };
   }
 
-  return { ok: true, origin, subject, subjectType, user, resp, logUsage };
+  return { ok: true, origin, subject, subjectType, user, plan: plan, resp: resp, logUsage: logUsage };
 }
 
 module.exports = {
   enforce, resp, corsHeaders, isOriginAllowed, getOrigin, getClientIp,
-  ipHash, bearer, verifyUser, logUsage, countSince,
+  ipHash, bearer, verifyUser, logUsage, countSince, countSinceGroup,
+  resolvePlan, PLAN_QUOTAS,
 };
