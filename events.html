@@ -12,19 +12,26 @@
     <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        .ev-toolbar{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin:1rem 0 1.5rem}
-        .ev-toolbar select{background:var(--surface,#161616);color:inherit;border:1px solid rgba(212,175,55,.25);border-radius:8px;padding:.5rem .75rem;font:inherit}
+        .ev-toolbar{display:flex;flex-wrap:wrap;gap:.65rem;align-items:center}
+        .ev-toolbar select{background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);border-radius:10px;padding:.55rem 2rem .55rem .85rem;font:inherit;font-size:.86rem;font-weight:500;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center;background-size:14px;transition:border-color .2s}
+        .ev-toolbar select:hover,.ev-toolbar select:focus{border-color:rgba(212,175,55,.5);outline:none}
         .ev-spacer{flex:1}
-        .ev-table-wrap{overflow-x:auto;border:1px solid rgba(212,175,55,.15);border-radius:12px}
-        table.ev-table{width:100%;border-collapse:collapse;font-size:.92rem}
-        table.ev-table th,table.ev-table td{padding:.7rem .9rem;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);white-space:nowrap}
-        table.ev-table th{font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;color:#8a8a8a;background:rgba(255,255,255,.02)}
-        .ev-badge{display:inline-block;padding:.15rem .55rem;border-radius:99px;font-size:.78rem;font-weight:600}
-        .ev-high{background:rgba(239,68,68,.15);color:#ef4444}
-        .ev-med{background:rgba(212,175,55,.15);color:#D4AF37}
-        .ev-low{background:rgba(34,197,94,.15);color:#22c55e}
-        .ev-empty{padding:3rem 1rem;text-align:center;color:#8a8a8a}
-        .ev-note{background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);border-radius:10px;padding:.8rem 1rem;font-size:.88rem;color:#c9b27a;margin-bottom:1rem}
+        .ev-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:16px;background:var(--bg-card)}
+        table.ev-table{width:100%;border-collapse:collapse;font-size:.9rem}
+        table.ev-table th,table.ev-table td{padding:.85rem 1.1rem;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+        table.ev-table tbody tr:last-child td{border-bottom:none}
+        table.ev-table tbody tr{transition:background .15s}
+        table.ev-table tbody tr:hover{background:rgba(212,175,55,.04)}
+        table.ev-table th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);background:var(--bg-secondary);font-weight:600;position:sticky;top:0}
+        table.ev-table td:first-child{color:var(--text-secondary)}
+        table.ev-table td:nth-child(2){font-weight:600;max-width:280px;overflow:hidden;text-overflow:ellipsis}
+        table.ev-table td:last-child{font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+        .ev-badge{display:inline-block;padding:.22rem .7rem;border-radius:99px;font-size:.76rem;font-weight:700;letter-spacing:.01em}
+        .ev-high{background:rgba(239,68,68,.12);color:#ef4444;box-shadow:inset 0 0 0 1px rgba(239,68,68,.3)}
+        .ev-med{background:rgba(212,175,55,.12);color:#D4AF37;box-shadow:inset 0 0 0 1px rgba(212,175,55,.3)}
+        .ev-low{background:rgba(34,197,94,.12);color:#22c55e;box-shadow:inset 0 0 0 1px rgba(34,197,94,.3)}
+        .ev-empty{padding:3rem 1rem;text-align:center;color:var(--text-muted)}
+        .ev-note{background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:.8rem 1rem;font-size:.88rem;color:#c9b27a;margin-bottom:1rem}
     </style>
 </head>
 <body>
@@ -50,45 +57,104 @@
         </nav>
     </header>
 
-    <main class="page-inner page-dashboard">
+    <main class="page-inner page-dashboard mia-dash-v2">
+        <div class="dash-shell">
+        <aside class="dash-sidebar" aria-label="Panel menüsü">
+            <div class="dside-label">GENEL BAKIŞ</div>
+            <nav class="dside-nav">
+                <a href="dashboard.html" class="dside-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Overview</span></a>
+                <a href="detector.html" class="dside-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Analyses</span></a>
+                <span class="dside-link dside-disabled" title="Yakında"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Reports</span></span>
+                <a href="events.html" class="dside-link active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Violations</span></a>
+                <a href="tarama.html" class="dside-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>Checkpoints</span></a>
+                <span class="dside-link dside-disabled" title="Yakında"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Team</span></span>
+                <a href="hesap.html" class="dside-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></a>
+            </nav>
+            <div class="dside-plan">
+                <a href="cozumler.html" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span>Planı Yükselt</span></a>
+            </div>
+        </aside>
         <div class="dashboard-container">
             <div class="dashboard-header">
                 <div>
                     <h1 id="evTitle">İhlal Raporu</h1>
                     <p class="dash-sub" id="evSub">Tüm analizlerdeki KKD ihlalleri — olay bazında</p>
                 </div>
+                <div class="ev-toolbar">
+                    <select id="fPeriod">
+                        <option value="all">Tüm Zamanlar</option>
+                        <option value="month" selected>Bu Ay</option>
+                        <option value="week">Bu Hafta</option>
+                    </select>
+                    <select id="fPpe">
+                        <option value="all">Tüm KKD</option>
+                        <option value="Baret">Baret</option>
+                        <option value="Yelek">Yelek</option>
+                        <option value="Maske">Maske</option>
+                    </select>
+                    <button type="button" id="btnCsv" class="btn btn-secondary btn-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CSV</button>
+                    <button type="button" id="btnPdf" class="btn btn-primary btn-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF</button>
+                </div>
             </div>
 
-            <div class="dashboard-stats">
-                <div class="dash-stat-card"><div class="dash-stat-label" id="lblTotal">Toplam İhlal</div><div class="dash-stat-value bad" id="evTotal">0</div></div>
-                <div class="dash-stat-card"><div class="dash-stat-label" id="lblHigh">Yüksek Risk</div><div class="dash-stat-value bad" id="evHigh">0</div></div>
-                <div class="dash-stat-card"><div class="dash-stat-label" id="lblHardhat">Baret İhlali</div><div class="dash-stat-value" id="evHardhat">0</div></div>
-                <div class="dash-stat-card"><div class="dash-stat-label" id="lblVest">Yelek İhlali</div><div class="dash-stat-value" id="evVest">0</div></div>
+            <div class="ev-stats">
+                <div class="dash-stat-card">
+                    <div class="dash-stat-top"><span class="dash-stat-ico ico-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><div class="dash-stat-label" id="lblTotal">Toplam İhlal</div></div>
+                    <div class="dash-stat-value bad" id="evTotal">0</div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-top"><span class="dash-stat-ico ico-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><div class="dash-stat-label" id="lblHigh">Yüksek Risk</div></div>
+                    <div class="dash-stat-value bad" id="evHigh">0</div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-top"><span class="dash-stat-ico ico-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span><div class="dash-stat-label" id="lblMed">Orta Riskli</div></div>
+                    <div class="dash-stat-value" id="evMed" style="color:#D4AF37;">0</div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-top"><span class="dash-stat-ico ico-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span><div class="dash-stat-label" id="lblLow">Düşük Riskli</div></div>
+                    <div class="dash-stat-value" id="evLow" style="color:#60a5fa;">0</div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-top"><span class="dash-stat-ico ico-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><div class="dash-stat-label" id="lblHardhat">Baret İhlali</div></div>
+                    <div class="dash-stat-value" id="evHardhat">0</div>
+                </div>
+                <div class="dash-stat-card" style="display:none;"><div class="dash-stat-label" id="lblVest">Yelek İhlali</div><div class="dash-stat-value" id="evVest">0</div></div>
+            </div>
+
+            <div class="ev-analytics" id="evAnalytics" style="display:none;">
+                <div class="ev-an-card">
+                    <h3 id="evAnTimeTitle">İhlallerin Zaman İçindeki Dağılımı</h3>
+                    <div class="ev-an-body"><canvas id="evChartTime"></canvas></div>
+                </div>
+                <div class="ev-an-card">
+                    <h3 id="evAnRiskTitle">Risk Seviyesine Göre Dağılım</h3>
+                    <div class="ev-an-body"><canvas id="evChartRisk"></canvas></div>
+                </div>
+                <div class="ev-an-card">
+                    <h3 id="evAnCatTitle">İhlal Kategorileri</h3>
+                    <div class="ev-cat-list" id="evCatList"></div>
+                </div>
             </div>
 
             <div id="evNote" class="ev-note" style="display:none;"></div>
 
-            <div class="ev-toolbar">
-                <select id="fPeriod">
-                    <option value="all">Tüm Zamanlar</option>
-                    <option value="month" selected>Bu Ay</option>
-                    <option value="week">Bu Hafta</option>
-                </select>
-                <select id="fRisk">
+            <div class="ev-table-bar">
+                <div class="ev-tabs" id="evTabs">
+                    <button type="button" class="ev-tab active" data-risk="all">Tüm İhlaller</button>
+                    <button type="button" class="ev-tab" data-risk="Yüksek">Yüksek Risk</button>
+                    <button type="button" class="ev-tab" data-risk="Orta">Orta Risk</button>
+                    <button type="button" class="ev-tab" data-risk="Düşük">Düşük Risk</button>
+                </div>
+                <select id="fRisk" style="display:none;" aria-hidden="true">
                     <option value="all">Tüm Riskler</option>
                     <option value="Yüksek">Yüksek</option>
                     <option value="Orta">Orta</option>
                     <option value="Düşük">Düşük</option>
                 </select>
-                <select id="fPpe">
-                    <option value="all">Tüm KKD</option>
-                    <option value="Baret">Baret</option>
-                    <option value="Yelek">Yelek</option>
-                    <option value="Maske">Maske</option>
-                </select>
-                <div class="ev-spacer"></div>
-                <button type="button" id="btnCsv" class="btn btn-secondary btn-sm">CSV</button>
-                <button type="button" id="btnPdf" class="btn btn-success btn-sm">PDF</button>
+                <div class="ev-search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="evSearch" placeholder="İhlal ara..." autocomplete="off">
+                </div>
             </div>
 
             <div class="ev-table-wrap">
@@ -101,13 +167,16 @@
                 </table>
             </div>
         </div>
+        </div>
     </main>
 
     <footer><p data-i18n="footer">© 2026 MIA - Tüm hakları saklıdır.</p></footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="js/app.js"></script>
     <script src="js/events.js"></script>
+    <script src="js/events-ui.js"></script>
 </body>
 </html>

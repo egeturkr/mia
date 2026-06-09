@@ -1494,3 +1494,109 @@ footer p { color: var(--text-muted); font-size: 0.9rem; }
 
 [data-theme="light"] .auth-container { box-shadow: 0 20px 50px rgba(15,23,42,0.08), 0 0 0 1px rgba(212,175,55,0.06); }
 [data-theme="light"] .auth-success h2 { color: var(--text-primary); }
+
+/* ============================================================
+   ENTERPRISE DASHBOARD REDESIGN (Dashboard + İhlal Raporu)
+   Scoped under .mia-dash-v2 — diğer sayfalar etkilenmez.
+   Sadece görsel katman; tüm id/handler'lar aynen korunur.
+   ============================================================ */
+.mia-dash-v2 { padding: 92px 1.5rem 4rem; }
+.mia-dash-v2 .dash-shell { display: flex; gap: 1.5rem; max-width: 1520px; margin: 0 auto; align-items: flex-start; }
+.mia-dash-v2 .dashboard-container { max-width: none; flex: 1; min-width: 0; }
+
+/* --- Sidebar --- */
+.dash-sidebar { position: sticky; top: 92px; width: 218px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 1.15rem 0.8rem; min-height: calc(100vh - 150px); }
+.dside-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; color: var(--text-muted); padding: 0 0.7rem; margin-bottom: 0.75rem; }
+.dside-nav { display: flex; flex-direction: column; gap: 0.25rem; }
+.dside-link { display: flex; align-items: center; gap: 0.7rem; padding: 0.62rem 0.75rem; border-radius: 10px; color: var(--text-secondary); font-size: 0.88rem; font-weight: 500; text-decoration: none; transition: background 0.18s, color 0.18s; }
+.dside-link svg { width: 17px; height: 17px; flex-shrink: 0; }
+.dside-link:hover { background: rgba(212,175,55,0.07); color: var(--text-primary); }
+.dside-link.active { background: linear-gradient(135deg, rgba(212,175,55,0.16), rgba(212,175,55,0.05)); color: var(--accent); font-weight: 600; box-shadow: inset 0 0 0 1px rgba(212,175,55,0.25); }
+.dside-disabled { opacity: 0.38; cursor: default; }
+.dside-disabled:hover { background: transparent; color: var(--text-secondary); }
+.dside-plan { margin-top: auto; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+
+/* --- Header --- */
+.mia-dash-v2 .dashboard-header h1 { font-size: 1.9rem; letter-spacing: -0.02em; }
+
+/* --- Stat kartları --- */
+.mia-dash-v2 .dash-stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 1.4rem 1.5rem; transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s; }
+.mia-dash-v2 .dash-stat-card:hover { border-color: rgba(212,175,55,0.4); transform: translateY(-2px); box-shadow: 0 14px 34px rgba(0,0,0,0.28); }
+[data-theme="light"] .mia-dash-v2 .dash-stat-card:hover { box-shadow: 0 14px 34px rgba(15,23,42,0.08); }
+.dash-stat-top { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.85rem; }
+.dash-stat-top .dash-stat-label { margin-bottom: 0; }
+.dash-stat-ico { width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dash-stat-ico svg { width: 18px; height: 18px; }
+.ico-gold { background: rgba(212,175,55,0.12); color: #D4AF37; box-shadow: inset 0 0 0 1px rgba(212,175,55,0.25); }
+.ico-green { background: rgba(34,197,94,0.1); color: #22c55e; box-shadow: inset 0 0 0 1px rgba(34,197,94,0.22); }
+.ico-red { background: rgba(239,68,68,0.1); color: #ef4444; box-shadow: inset 0 0 0 1px rgba(239,68,68,0.22); }
+.ico-blue { background: rgba(96,165,250,0.1); color: #60a5fa; box-shadow: inset 0 0 0 1px rgba(96,165,250,0.22); }
+.mia-dash-v2 .dash-stat-value { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+
+/* --- Grafik kartları --- */
+.mia-dash-v2 .dash-chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 1.4rem 1.4rem 1.1rem; }
+.mia-dash-v2 .dash-chart-card:hover { border-color: rgba(212,175,55,0.4); }
+
+/* --- Panel kartları (Analiz Geçmişi / Taramalar) --- */
+.mia-dash-v2 .dash-panel-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 1.4rem 1.5rem; margin-bottom: 1.5rem; }
+.mia-dash-v2 .dash-panel-card h2 { font-size: 1.05rem; font-weight: 700; }
+.mia-dash-v2 .dash-panel-card .dashboard-stats { margin-bottom: 1rem; }
+.mia-dash-v2 .dash-panel-card .dash-stat-card { background: var(--bg-secondary); border-radius: 14px; padding: 1.1rem 1.25rem; }
+.mia-dash-v2 .dash-panel-card .dash-stat-card .dash-stat-value { font-size: 1.6rem; }
+
+/* --- Analiz listesi: premium satırlar --- */
+.mia-dash-v2 .analyses-list { gap: 0.6rem; }
+.mia-dash-v2 .analysis-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 14px; padding: 0.95rem 1.2rem; transition: border-color 0.2s, transform 0.2s; }
+.mia-dash-v2 .analysis-card:hover { border-color: rgba(212,175,55,0.45); transform: translateY(-1px); }
+.mia-dash-v2 .analysis-info { display: flex; align-items: center; gap: 0.9rem; min-width: 0; }
+.mia-dash-v2 .analysis-info::before { content: ""; width: 40px; height: 40px; flex-shrink: 0; border-radius: 11px; background: rgba(212,175,55,0.1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2'%3E%3Cpolygon points='23 7 16 12 23 17 23 7'/%3E%3Crect x='1' y='5' width='15' height='14' rx='2'/%3E%3C/svg%3E") center / 18px no-repeat; box-shadow: inset 0 0 0 1px rgba(212,175,55,0.22); }
+.mia-dash-v2 .analysis-info h3 { font-size: 0.95rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 380px; }
+.mia-dash-v2 .analysis-stat { text-align: center; min-width: 64px; }
+.mia-dash-v2 .analysis-stat-value.score { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); border-radius: 8px; padding: 0.15rem 0.55rem; font-size: 0.95rem; display: inline-block; }
+.mia-dash-v2 .analysis-stat-value.violations { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 0.15rem 0.55rem; font-size: 0.95rem; display: inline-block; }
+.mia-dash-v2 .analysis-stat-label { margin-top: 0.3rem; }
+
+/* --- İhlal Raporu (events) sayfası --- */
+.mia-dash-v2 .ev-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.mia-dash-v2 .ev-analytics { display: grid; grid-template-columns: 1.4fr 1fr 1.1fr; gap: 1rem; margin-bottom: 1.5rem; }
+.ev-an-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 1.3rem 1.4rem 1.1rem; display: flex; flex-direction: column; gap: 0.8rem; transition: border-color 0.25s; }
+.ev-an-card:hover { border-color: rgba(212,175,55,0.4); }
+.ev-an-card h3 { font-size: 0.95rem; font-weight: 700; margin: 0; }
+.ev-an-body { position: relative; height: 220px; }
+.ev-cat-list { display: flex; flex-direction: column; gap: 0.85rem; justify-content: center; flex: 1; }
+.ev-cat-row { display: flex; align-items: center; gap: 0.75rem; }
+.ev-cat-name { flex: 0 0 92px; font-size: 0.84rem; color: var(--text-secondary); font-weight: 500; }
+.ev-cat-bar { flex: 1; height: 7px; border-radius: 99px; background: var(--bg-secondary); overflow: hidden; }
+.ev-cat-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+.ev-cat-val { flex: 0 0 64px; text-align: right; font-size: 0.82rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.ev-tabs { display: inline-flex; gap: 0.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 0.3rem; }
+.ev-tab { background: transparent; border: none; padding: 0.5rem 1.05rem; border-radius: 9px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+.ev-tab:hover { color: var(--text-primary); }
+.ev-tab.active { background: linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.07)); color: var(--accent); box-shadow: inset 0 0 0 1px rgba(212,175,55,0.3); }
+.ev-table-bar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem; }
+.ev-search { position: relative; margin-left: auto; }
+.ev-search svg { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; stroke: var(--text-muted); pointer-events: none; }
+.ev-search input { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.55rem 0.9rem 0.55rem 2.3rem; color: var(--text-primary); font: inherit; font-size: 0.86rem; width: 220px; transition: border-color 0.2s; }
+.ev-search input:focus { outline: none; border-color: rgba(212,175,55,0.5); }
+.ev-search input::placeholder { color: var(--text-muted); }
+
+@media (max-width: 1280px) {
+    .mia-dash-v2 .ev-stats { grid-template-columns: repeat(3, 1fr); }
+    .mia-dash-v2 .ev-analytics { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 1100px) {
+    .dash-sidebar { display: none; }
+}
+@media (max-width: 768px) {
+    .mia-dash-v2 { padding: 88px 1rem 3rem; }
+    .mia-dash-v2 .ev-stats { grid-template-columns: 1fr 1fr; }
+    .mia-dash-v2 .ev-analytics { grid-template-columns: 1fr; }
+    .mia-dash-v2 .analysis-info::before { display: none; }
+    .ev-search { margin-left: 0; width: 100%; }
+    .ev-search input { width: 100%; }
+    .ev-tabs { width: 100%; overflow-x: auto; }
+    .ev-tab { flex: 1; white-space: nowrap; }
+}
+@media (max-width: 480px) {
+    .mia-dash-v2 .ev-stats { grid-template-columns: 1fr; }
+}
