@@ -9,7 +9,9 @@ exports.handler = async function (event) {
     if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: guard.corsHeaders(origin), body: "" };
     if (event.httpMethod !== "GET" && event.httpMethod !== "POST")
         return guard.resp(405, { error: "GET only" }, origin);
-    if (!guard.isOriginAllowed(origin)) return guard.resp(403, { error: "origin not allowed" }, origin);
+    // Origin zorunlu DEĞİL: aynı-origin GET'lerde tarayıcı Origin göndermez.
+    // Gerçek koruma JWT'dir (read-only, durum değiştirmez). Yabancı origin VARSA reddet.
+    if (origin && !guard.isOriginAllowed(origin)) return guard.resp(403, { error: "origin not allowed" }, origin);
 
     const token = guard.bearer(event);
     const user = token ? await guard.verifyUser(token) : null;
