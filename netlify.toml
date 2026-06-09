@@ -29,9 +29,19 @@
   to = "/.netlify/functions/analyze"
   status = 200
 
+# Sağlık & yapılandırma kontrolü — Faz 4.
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/health"
+  status = 200
+
 # Haftalık güvenlik özeti — her Pazartesi 07:00 UTC.
 [functions."weekly-digest"]
   schedule = "0 7 * * 1"
+
+# api_usage log temizliği — her gün 03:00 UTC (60 günden eskiyi sil).
+[functions."cleanup"]
+  schedule = "0 3 * * *"
 
 [[redirects]]
   from = "/demo"
