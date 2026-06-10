@@ -72,6 +72,11 @@
   status = 200
 
 [[redirects]]
+  from = "/customers"
+  to = "/customers.html"
+  status = 200
+
+[[redirects]]
   from = "/demo"
   to = "/detector.html"
   status = 302

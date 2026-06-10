@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - Müşteri Operasyonları</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#0A0A0A">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .cu-wrap{max-width:1240px;margin:0 auto;padding:7rem 1.25rem 4rem}
+        .cu-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem}
+        .cu-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.8rem;margin-bottom:1.2rem}
+        .cu-stat{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:.9rem 1.1rem}
+        .cu-stat .v{font-size:1.5rem;font-weight:800}
+        .cu-stat .l{font-size:.74rem;color:var(--text-muted);margin-top:.15rem}
+        .cu-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.3rem 1.4rem;margin-bottom:1.1rem}
+        .cu-panel h2{font-size:1rem;margin:0 0 .9rem}
+        table.cu-tbl{width:100%;border-collapse:collapse;font-size:.86rem}
+        table.cu-tbl th,table.cu-tbl td{padding:.55rem .65rem;text-align:left;border-bottom:1px solid var(--border)}
+        table.cu-tbl th{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
+        table.cu-tbl tbody tr{cursor:pointer;transition:background .15s}
+        table.cu-tbl tbody tr:hover{background:rgba(212,175,55,.04)}
+        .cu-badge{display:inline-block;padding:.16rem .6rem;border-radius:99px;font-size:.7rem;font-weight:700;white-space:nowrap}
+        .cu-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem}
+        .cu-form input,.cu-form select,.cu-form textarea,.cu-row input,.cu-row select,.cu-row textarea{width:100%;background:var(--bg-secondary);border:1px solid var(--border);border-radius:9px;padding:.5rem .65rem;color:var(--text-primary);font:inherit;font-size:.86rem}
+        .cu-form input:focus,.cu-row input:focus{outline:none;border-color:rgba(212,175,55,.5)}
+        .cu-row{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;margin-bottom:.6rem}
+        .cu-row>*{flex:1;min-width:130px}
+        .cu-row>button{flex:0 0 auto;min-width:auto}
+        .cu-muted{color:var(--text-muted);font-size:.82rem}
+        .cu-empty{border:1px dashed var(--border);border-radius:16px;padding:2.6rem 1.5rem;text-align:center;color:var(--text-muted)}
+        .cu-full{grid-column:1/-1}
+        .cu-task-done{text-decoration:line-through;color:var(--text-muted)}
+        .cu-overdue{color:#ef4444;font-weight:700}
+    </style>
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html"><img src="images/logo-horizontal-trim.png" alt="MIA" class="logo-img"></a>
+        <nav>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="pilot.html">Pilot</a>
+            <a href="customers.html" class="active">Müşteriler</a>
+            <a href="hesap.html">Hesap</a>
+            <span class="user-email" id="userEmail"></span>
+            <button type="button" id="navLogout" class="btn btn-secondary btn-sm">Çıkış</button>
+        </nav>
+    </header>
+
+    <main class="cu-wrap">
+        <div class="cu-head">
+            <div>
+                <h1 style="margin:0 0 .25rem;">Müşteri Operasyonları</h1>
+                <p class="cu-muted" style="margin:0;">Hedef: 60 firma → 24 keşif → 12 demo → 5-6 ücretli pilot → 2-3 müşteri. İç araç — gerçek veri, sahte kayıt yok.</p>
+            </div>
+            <div style="display:flex;gap:.6rem;">
+                <button type="button" class="btn btn-secondary" id="cuBackBtn" style="display:none;">← Liste</button>
+                <button type="button" class="btn btn-primary" id="cuNewBtn">+ Hedef Firma</button>
+            </div>
+        </div>
+
+        <!-- Pipeline özeti -->
+        <div class="cu-stats" id="cuStats"></div>
+
+        <!-- Yeni firma formu -->
+        <div class="cu-panel" id="cuCreatePanel" style="display:none;">
+            <h2>Hedef Firma Ekle</h2>
+            <div class="cu-form">
+                <div class="cu-full"><input id="cfName" type="text" placeholder="Firma adı *"></div>
+                <select id="cfSegment">
+                    <option value="construction">İnşaat</option><option value="contractor">Müteahhit</option>
+                    <option value="infrastructure">Altyapı</option><option value="industrial">Sanayi</option>
+                    <option value="logistics">Lojistik</option><option value="osgb">OSGB</option><option value="other">Diğer</option>
+                </select>
+                <input id="cfCity" type="text" placeholder="Şehir">
+                <select id="cfSource">
+                    <option value="founder_network">Kurucu ağı</option><option value="mostar_referral">Mostar referansı</option>
+                    <option value="linkedin">LinkedIn</option><option value="osgb">OSGB</option>
+                    <option value="inbound">Gelen talep</option><option value="event">Etkinlik</option>
+                    <option value="cold_outreach">Soğuk erişim</option><option value="other">Diğer</option>
+                </select>
+                <select id="cfPriority"><option value="high">Yüksek öncelik</option><option value="medium" selected>Orta</option><option value="low">Düşük</option></select>
+                <div class="cu-full"><textarea id="cfNotes" rows="2" placeholder="Notlar (kaç şantiye, tanışma bağlamı...)"></textarea></div>
+            </div>
+            <div style="margin-top:.8rem;display:flex;gap:.6rem;">
+                <button type="button" class="btn btn-primary btn-sm" id="cfSaveBtn">Ekle</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="cfCancelBtn">Vazgeç</button>
+                <span class="cu-muted" id="cfMsg"></span>
+            </div>
+        </div>
+
+        <!-- Gelen demo talepleri (yalnız CRM admin görür) -->
+        <div class="cu-panel" id="cuInboundPanel" style="display:none;">
+            <h2>Gelen Demo Talepleri</h2>
+            <div id="cuInbound"></div>
+        </div>
+
+        <!-- Açık takipler -->
+        <div class="cu-panel" id="cuTasksPanel">
+            <h2>Açık Takipler <button type="button" class="btn btn-secondary btn-sm" id="cuTaskFilterBtn" style="margin-left:.6rem;">Yalnız gecikenler</button></h2>
+            <div id="cuTasks" class="cu-muted">Yükleniyor…</div>
+        </div>
+
+        <!-- Firma listesi -->
+        <div id="cuListView">
+            <div class="cu-empty" id="cuEmpty" style="display:none;">
+                <h3 style="color:var(--text-secondary);">Henüz hedef firma yok</h3>
+                <p>İlk 20 hedef firmayı ekleyerek başla — kaynak olarak kurucu ağı ve Mostar çevresine öncelik ver (SALES_PLAYBOOK.md).</p>
+            </div>
+            <div class="cu-panel" id="cuListPanel" style="display:none;">
+                <h2>Firmalar</h2>
+                <div style="overflow-x:auto;"><table class="cu-tbl">
+                    <thead><tr><th>Firma</th><th>Segment</th><th>Şehir</th><th>Durum</th><th>Öncelik</th><th>Kaynak</th><th>Sonraki takip</th></tr></thead>
+                    <tbody id="cuList"></tbody>
+                </table></div>
+            </div>
+        </div>
+
+        <!-- Firma detayı -->
+        <div id="cuDetailView" style="display:none;">
+            <div class="cu-panel">
+                <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:flex-start;">
+                    <div>
+                        <h2 style="margin:0;" id="cdName">—</h2>
+                        <div class="cu-muted" id="cdMeta">—</div>
+                    </div>
+                    <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+                        <select id="cdStatus" style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:9px;padding:.45rem .65rem;color:var(--text-primary);font:inherit;font-size:.85rem;"></select>
+                        <select id="cdPriority" style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:9px;padding:.45rem .65rem;color:var(--text-primary);font:inherit;font-size:.85rem;">
+                            <option value="high">Yüksek</option><option value="medium">Orta</option><option value="low">Düşük</option>
+                        </select>
+                        <button type="button" class="btn btn-danger btn-sm" id="cdDeleteBtn">Sil</button>
+                    </div>
+                </div>
+                <div class="cu-row" style="margin-top:.8rem;">
+                    <select id="cdPilotSelect"><option value="">Pilota bağla…</option></select>
+                    <button type="button" class="btn btn-secondary btn-sm" id="cdPilotBtn">Bağla</button>
+                    <span class="cu-muted" id="cdPilotInfo"></span>
+                </div>
+            </div>
+
+            <div class="cu-panel">
+                <h2>Karar Vericiler</h2>
+                <div class="cu-row">
+                    <input id="ctName" type="text" placeholder="Ad Soyad *">
+                    <input id="ctTitle" type="text" placeholder="Ünvan (İSG Müdürü...)">
+                    <input id="ctEmail" type="email" placeholder="E-posta">
+                    <input id="ctPhone" type="tel" placeholder="Telefon">
+                    <select id="ctRole">
+                        <option value="champion">Şampiyon (İSG)</option><option value="budget_owner">Bütçe sahibi (PM)</option>
+                        <option value="decision_maker">Karar verici (GM)</option><option value="influencer">Etkileyici</option>
+                        <option value="procurement">Satınalma</option><option value="legal">Hukuk</option>
+                        <option value="technical">Teknik</option><option value="other">Diğer</option>
+                    </select>
+                    <button type="button" class="btn btn-secondary btn-sm" id="ctAddBtn">Ekle</button>
+                </div>
+                <div id="cdContacts" class="cu-muted">—</div>
+            </div>
+
+            <div class="cu-panel">
+                <h2>Fırsatlar</h2>
+                <div class="cu-row">
+                    <input id="opName" type="text" placeholder="Fırsat adı (örn. 4 haftalık pilot) *">
+                    <select id="opStage">
+                        <option value="lead">Aday</option><option value="discovery">Keşif</option><option value="demo">Demo</option>
+                        <option value="pilot_proposed">Pilot teklif</option><option value="paid_pilot">Ücretli pilot</option>
+                        <option value="negotiation">Pazarlık</option><option value="won">Kazanıldı</option><option value="lost">Kaybedildi</option>
+                    </select>
+                    <input id="opValue" type="number" placeholder="Beklenen ₺" value="25000">
+                    <input id="opClose" type="date" title="Beklenen kapanış">
+                    <input id="opProb" type="number" min="0" max="100" placeholder="%">
+                    <button type="button" class="btn btn-secondary btn-sm" id="opAddBtn">Ekle</button>
+                </div>
+                <div id="cdOpps" class="cu-muted">—</div>
+            </div>
+
+            <div class="cu-panel">
+                <h2>Görüşme Günlüğü</h2>
+                <div class="cu-row">
+                    <select id="inType" style="flex:0 0 130px;">
+                        <option value="call">Telefon</option><option value="meeting">Toplantı</option><option value="email">E-posta</option>
+                        <option value="demo">Demo</option><option value="site_visit">Saha ziyareti</option>
+                        <option value="whatsapp">WhatsApp</option><option value="note">Not</option>
+                    </select>
+                    <input id="inSummary" type="text" placeholder="Özet (ne konuşuldu) *" style="flex:2;">
+                    <input id="inNext" type="text" placeholder="Sonraki aksiyon">
+                    <input id="inFollow" type="date" title="Takip tarihi" style="flex:0 0 150px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="inAddBtn">Kaydet</button>
+                </div>
+                <div id="cdInteractions" class="cu-muted">—</div>
+            </div>
+
+            <div class="cu-panel">
+                <h2>Takip Görevleri</h2>
+                <div class="cu-row">
+                    <input id="tkTitle" type="text" placeholder="Görev *" style="flex:2;">
+                    <input id="tkDue" type="date" style="flex:0 0 150px;">
+                    <select id="tkPriority" style="flex:0 0 110px;"><option value="high">Yüksek</option><option value="medium" selected>Orta</option><option value="low">Düşük</option></select>
+                    <button type="button" class="btn btn-secondary btn-sm" id="tkAddBtn">Ekle</button>
+                </div>
+                <div id="cdTasks" class="cu-muted">—</div>
+            </div>
+
+            <div class="cu-panel">
+                <h2>Vaka Çalışması Hazırlığı</h2>
+                <div class="cu-row">
+                    <select id="csStatus">
+                        <option value="not_started">Başlanmadı</option><option value="candidate">Aday</option>
+                        <option value="permission_requested">İzin istendi</option><option value="approved">İzin alındı</option>
+                        <option value="published">Yayınlandı</option><option value="rejected">Reddedildi</option>
+                    </select>
+                    <input id="csHeadline" type="text" placeholder="Başlık taslağı" style="flex:2;">
+                    <input id="csMetrics" type="text" placeholder="Anahtar metrikler (ihlal düşüşü %, süre tasarrufu...)" style="flex:2;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="csSaveBtn">Kaydet</button>
+                </div>
+                <div class="cu-muted">Hiçbir şey otomatik yayınlanmaz — müşteri izni olmadan logo/isim/rakam kullanılmaz.</div>
+            </div>
+        </div>
+
+        <p class="cu-muted">İç operasyon aracı — kamuya kapalı. Pratik adımlar: docs/SALES_PLAYBOOK.md</p>
+    </main>
+
+    <footer><p>© 2026 MIA - Tüm hakları saklıdır.</p></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+    <script src="js/org.js"></script>
+    <script src="js/customers.js"></script>
+</body>
+</html>

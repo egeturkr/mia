@@ -773,11 +773,185 @@ alter table public.api_usage add column if not exists org_id uuid;
 create index if not exists api_usage_org_idx on public.api_usage (org_id, created_at desc);
 
 -- ============================================================================
+-- 12) MÜŞTERİ OPERASYONLARI / SATIŞ HATTI (Faz 8 — iç CRM, kamuya KAPALI)
+-- ----------------------------------------------------------------------------
+-- Hafif iç CRM: hedef firma → keşif → demo → ücretli pilot → abonelik takibi.
+-- Erişim: kayıt sahibi VEYA org owner/admin (yazma); org üyeleri okuma;
+-- viewer düzenleyemez (yazma politikalarının dışında). Sahte veri YOK.
+-- ============================================================================
+
+-- Ortak yazma kalıbı için not: owner_user_id = auth.uid() veya org owner/admin.
+
+create table if not exists public.customer_accounts (
+  id            uuid primary key default gen_random_uuid(),
+  org_id        uuid references public.organizations(id) on delete set null,
+  owner_user_id uuid not null references auth.users(id) on delete cascade,
+  company_name  text not null,
+  industry      text,
+  segment       text default 'construction' check (segment in
+                ('construction','contractor','infrastructure','industrial','logistics','osgb','other')),
+  company_size  text,
+  city          text,
+  country       text default 'TR',
+  website       text,
+  linkedin_url  text,
+  source        text default 'other' check (source in
+                ('founder_network','mostar_referral','linkedin','osgb','inbound','event','cold_outreach','other')),
+  status        text not null default 'target' check (status in
+                ('target','contacted','discovery_scheduled','discovery_completed','demo_sent',
+                 'pilot_proposed','pilot_active','customer','lost')),
+  priority      text default 'medium' check (priority in ('low','medium','high')),
+  linked_pilot_id uuid references public.pilot_projects(id) on delete set null,
+  notes         text,
+  metadata      jsonb,
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now()
+);
+
+create table if not exists public.customer_contacts (
+  id            uuid primary key default gen_random_uuid(),
+  customer_id   uuid not null references public.customer_accounts(id) on delete cascade,
+  org_id        uuid references public.organizations(id) on delete set null,
+  owner_user_id uuid not null references auth.users(id) on delete cascade,
+  full_name     text not null,
+  role_title    text,
+  email         text,
+  phone         text,
+  linkedin_url  text,
+  decision_role text default 'other' check (decision_role in
+                ('champion','budget_owner','decision_maker','influencer','legal','procurement','technical','other')),
+  notes         text,
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now()
+);
+
+create table if not exists public.sales_opportunities (
+  id            uuid primary key default gen_random_uuid(),
+  customer_id   uuid not null references public.customer_accounts(id) on delete cascade,
+  org_id        uuid references public.organizations(id) on delete set null,
+  owner_user_id uuid not null references auth.users(id) on delete cascade,
+  opportunity_name text not null,
+  stage         text not null default 'lead' check (stage in
+                ('lead','discovery','demo','pilot_proposed','paid_pilot','negotiation','won','lost')),
+  expected_value numeric,
+  currency      text default 'TRY',
+  expected_close_date date,
+  probability   int check (probability between 0 and 100),
+  linked_pilot_id uuid references public.pilot_projects(id) on delete set null,
+  linked_subscription_id uuid references public.subscriptions(id) on delete set null,
+  next_step     text,
+  next_follow_up_date date,
+  lost_reason   text,
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now()
+);
+
+create table if not exists public.customer_interactions (
+  id             uuid primary key default gen_random_uuid(),
+  customer_id    uuid not null references public.customer_accounts(id) on delete cascade,
+  opportunity_id uuid references public.sales_opportunities(id) on delete set null,
+  org_id         uuid references public.organizations(id) on delete set null,
+  owner_user_id  uuid not null references auth.users(id) on delete cascade,
+  interaction_type text not null default 'note' check (interaction_type in
+                 ('call','email','meeting','demo','site_visit','whatsapp','note')),
+  interaction_date date default current_date,
+  summary        text,
+  outcome        text,
+  next_action    text,
+  next_follow_up_date date,
+  created_at     timestamptz default now()
+);
+
+create table if not exists public.sales_tasks (
+  id             uuid primary key default gen_random_uuid(),
+  customer_id    uuid references public.customer_accounts(id) on delete cascade,
+  opportunity_id uuid references public.sales_opportunities(id) on delete set null,
+  org_id         uuid references public.organizations(id) on delete set null,
+  owner_user_id  uuid not null references auth.users(id) on delete cascade,
+  title          text not null,
+  due_date       date,
+  status         text not null default 'open' check (status in ('open','completed','cancelled')),
+  priority       text default 'medium' check (priority in ('low','medium','high')),
+  notes          text,
+  created_at     timestamptz default now(),
+  updated_at     timestamptz default now()
+);
+
+create table if not exists public.case_study_candidates (
+  id            uuid primary key default gen_random_uuid(),
+  customer_id   uuid not null references public.customer_accounts(id) on delete cascade,
+  pilot_id      uuid references public.pilot_projects(id) on delete set null,
+  org_id        uuid references public.organizations(id) on delete set null,
+  owner_user_id uuid not null references auth.users(id) on delete cascade,
+  status        text not null default 'not_started' check (status in
+                ('not_started','candidate','permission_requested','approved','published','rejected')),
+  headline      text,
+  key_metrics   text,
+  permission_notes text,
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now()
+);
+
+-- RLS: okuma = sahibi veya org üyesi · yazma = sahibi veya org owner/admin
+-- (etkileşimler: safety_manager da NOT ekleyebilir).
+do $$
+declare t text;
+begin
+  foreach t in array array['customer_accounts','customer_contacts','sales_opportunities',
+                           'customer_interactions','sales_tasks','case_study_candidates'] loop
+    execute format('alter table public.%I enable row level security', t);
+    execute format('drop policy if exists "crm read" on public.%I', t);
+    execute format('create policy "crm read" on public.%I for select using
+      (owner_user_id = auth.uid() or (org_id is not null and is_org_member(org_id)))', t);
+    execute format('drop policy if exists "crm write" on public.%I', t);
+    if t = 'customer_interactions' then
+      execute format('create policy "crm write" on public.%I for all using
+        (owner_user_id = auth.uid() or (org_id is not null and is_org_member(org_id, array[''owner'',''admin'',''safety_manager''])))
+        with check
+        (owner_user_id = auth.uid() and (org_id is null or is_org_member(org_id, array[''owner'',''admin'',''safety_manager''])))', t);
+    else
+      execute format('create policy "crm write" on public.%I for all using
+        (owner_user_id = auth.uid() or (org_id is not null and is_org_member(org_id, array[''owner'',''admin''])))
+        with check
+        (owner_user_id = auth.uid() and (org_id is null or is_org_member(org_id, array[''owner'',''admin''])))', t);
+    end if;
+  end loop;
+end $$;
+
+create index if not exists customer_accounts_owner_idx on public.customer_accounts (owner_user_id, status);
+create index if not exists customer_contacts_cust_idx on public.customer_contacts (customer_id);
+create index if not exists sales_opps_cust_idx on public.sales_opportunities (customer_id, stage);
+create index if not exists interactions_cust_idx on public.customer_interactions (customer_id, interaction_date desc);
+create index if not exists sales_tasks_owner_idx on public.sales_tasks (owner_user_id, status, due_date);
+
+-- Gelen demo taleplerini CRM'de görebilecek MIA ekibi (service_role yönetir; politika YOK).
+create table if not exists public.crm_admins (
+  user_email text primary key,
+  created_at timestamptz default now()
+);
+alter table public.crm_admins enable row level security;
+insert into public.crm_admins (user_email) values
+  ('dennizoge@gmail.com')
+on conflict (user_email) do nothing;
+
+create or replace function public.is_crm_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.crm_admins c
+                 where lower(c.user_email) = lower(coalesce(auth.email(), '')));
+$$;
+
+-- demo_requests: yalnız CRM admin'leri OKUYABİLİR (anon insert politikası aynen durur).
+drop policy if exists "crm admins read demo requests" on public.demo_requests;
+create policy "crm admins read demo requests" on public.demo_requests for select
+  using (is_crm_admin());
+
+-- ============================================================================
 -- Done. Tablolar: analyses, demo_requests, chat_messages, workers, equipment,
 -- checkpoints, scans, api_usage, consents, subscriptions, pilot_projects,
 -- pilot_checklists, pilot_weekly_reports, pilot_analysis_links,
 -- legal_document_versions, data_subject_requests, pilot_legal_reviews,
 -- organizations, organization_memberships, organization_invitations,
 -- organization_sites, billing_customers, payment_records, invoices,
--- billing_events (hepsi RLS açık).
+-- billing_events, customer_accounts, customer_contacts, sales_opportunities,
+-- customer_interactions, sales_tasks, case_study_candidates, crm_admins (hepsi RLS açık).
 -- ============================================================================
