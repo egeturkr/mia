@@ -47,6 +47,12 @@
   to = "/.netlify/functions/billing-webhook"
   status = 200
 
+# Ödeme başlatma / sağlayıcı soyutlaması — Faz 6.
+[[redirects]]
+  from = "/api/create-checkout"
+  to = "/.netlify/functions/create-checkout"
+  status = 200
+
 # Haftalık güvenlik özeti — her Pazartesi 07:00 UTC.
 [functions."weekly-digest"]
   schedule = "0 7 * * 1"

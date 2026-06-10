@@ -37,7 +37,7 @@ function corsHeaders(origin) {
     "Content-Type": "application/json",
     "Vary": "Origin",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, x-scan-token",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, x-scan-token, x-mia-org",
     "Access-Control-Max-Age": "86400",
   };
   if (origin && isOriginAllowed(origin)) h["Access-Control-Allow-Origin"] = origin;
@@ -138,14 +138,90 @@ async function resolvePlan(userId) {
   } catch (e) { return "free"; }
 }
 
-async function logUsage(subject, subjectType, endpoint, status) {
+async function logUsage(subject, subjectType, endpoint, status, orgId) {
   try {
-    await fetch(restBase() + "api_usage", {
+    const row = { subject, subject_type: subjectType, endpoint, status: status || null };
+    if (orgId) row.org_id = orgId;
+    let r = await fetch(restBase() + "api_usage", {
       method: "POST",
       headers: Object.assign({ Prefer: "return=minimal" }, svcHeaders()),
-      body: JSON.stringify({ subject, subject_type: subjectType, endpoint, status: status || null }),
+      body: JSON.stringify(row),
     });
+    // org_id kolonu yoksa (migration koşulmadıysa) onsuz tekrar dene — geri uyumluluk.
+    if (!r.ok && orgId) {
+      delete row.org_id;
+      await fetch(restBase() + "api_usage", {
+        method: "POST",
+        headers: Object.assign({ Prefer: "return=minimal" }, svcHeaders()),
+        body: JSON.stringify(row),
+      });
+    }
   } catch (e) { /* loglama hatası isteği düşürmesin */ }
+}
+
+// ---- Faz 6: org bağlamı + org-aware plan/kota çözümü -------------------------
+// İstemci x-mia-org başlığı gönderir; üyelik SERVICE ROLE ile doğrulanır
+// (başlığa körü körüne güvenilmez). Üye değilse org bağlamı YOK sayılır.
+async function resolveOrgContext(userId, event) {
+  const hh = event.headers || {};
+  const orgId = (hh["x-mia-org"] || hh["X-Mia-Org"] || "").toString().trim();
+  if (!orgId || !userId) return null;
+  if (!/^[0-9a-f-]{36}$/i.test(orgId)) return null;
+  try {
+    const url = restBase() + "organization_memberships?org_id=eq." + encodeURIComponent(orgId) +
+      "&user_id=eq." + encodeURIComponent(userId) + "&status=eq.active&select=role&limit=1";
+    const r = await fetch(url, { headers: svcHeaders() });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    return (Array.isArray(rows) && rows[0]) ? { orgId: orgId, role: rows[0].role } : null;
+  } catch (e) { return null; }
+}
+
+const ACTIVE_SUB_STATUSES = ["active", "trialing", "manual_active", "pilot_active"];
+
+// Abonelik satırı → {plan, limit}. quota_overrides.monthly_ai varsa onu kullanır.
+function planFromSub(sub) {
+  const plan = (sub && PLAN_QUOTAS[sub.plan]) ? sub.plan : "free";
+  let limit = PLAN_QUOTAS[plan];
+  const ov = sub && sub.quota_overrides;
+  if (ov && typeof ov.monthly_ai === "number" && ov.monthly_ai > 0) limit = ov.monthly_ai;
+  return { plan: plan, limit: limit };
+}
+
+async function fetchSub(filter) {
+  try {
+    const url = restBase() + "subscriptions?" + filter + "&select=plan,status,quota_overrides&limit=1";
+    const r = await fetch(url, { headers: svcHeaders() });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    const s = Array.isArray(rows) && rows[0];
+    return (s && ACTIVE_SUB_STATUSES.indexOf(s.status) !== -1) ? s : null;
+  } catch (e) { return null; }
+}
+
+// Çözüm sırası: org aboneliği → kişisel abonelik → free.
+async function resolvePlanContext(userId, orgId) {
+  if (orgId) {
+    const orgSub = await fetchSub("org_id=eq." + encodeURIComponent(orgId));
+    if (orgSub) return Object.assign(planFromSub(orgSub), { scope: "org" });
+  }
+  const userSub = await fetchSub("user_id=eq." + encodeURIComponent(userId) + "&org_id=is.null");
+  if (userSub) return Object.assign(planFromSub(userSub), { scope: "user" });
+  return { plan: "free", limit: PLAN_QUOTAS.free, scope: "user" };
+}
+
+// Org bazlı aylık kullanım sayımı (tüm üyelerin detect+analyze toplamı).
+async function countOrgUsage(orgId, endpoints, sinceIso, cap) {
+  const inList = endpoints.map(function (e) { return '"' + e + '"'; }).join(",");
+  const url = restBase() + "api_usage?select=id&org_id=eq." + encodeURIComponent(orgId) +
+    "&endpoint=in.(" + encodeURIComponent(inList) + ")" +
+    "&created_at=gte." + encodeURIComponent(sinceIso) + "&limit=" + (cap + 1);
+  try {
+    const r = await fetch(url, { headers: svcHeaders() });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    return Array.isArray(rows) ? rows.length : null;
+  } catch (e) { return null; }
 }
 
 // ---- Ana koruma akışı -------------------------------------------------------
@@ -193,15 +269,22 @@ async function enforce(event, opts) {
     return { ok: false, response: { statusCode: 429, headers: Object.assign({ "Retry-After": "60" }, corsHeaders(origin)), body: JSON.stringify({ error: "rate limit exceeded", retry_after: 60 }) } };
   }
 
-  // Kota — kullanıcı: plana göre aylık AI kotası (detect+analyze birleşik);
+  // Kota — kullanıcı: org aboneliği → kişisel abonelik → free (Faz 6 org-aware);
   //        anonim: IP başına günlük.
-  var plan = null;
+  var plan = null, orgCtx = null, planCtx = null;
   var used, limit, windowLabel;
   if (subjectType === "user") {
-    plan = await resolvePlan(user.id);
-    limit = PLAN_QUOTAS[plan];
+    orgCtx = await resolveOrgContext(user.id, event);
+    planCtx = await resolvePlanContext(user.id, orgCtx ? orgCtx.orgId : null);
+    plan = planCtx.plan;
+    limit = planCtx.limit;
     var since30 = new Date(nowMs - 30 * 24 * 60 * 60 * 1000).toISOString();
-    used = await countSinceGroup(subject, ["detect", "analyze"], since30, limit);
+    if (planCtx.scope === "org" && orgCtx) {
+      // Org kotası: tüm üyelerin toplam kullanımı. Sayım başarısızsa fail-closed.
+      used = await countOrgUsage(orgCtx.orgId, ["detect", "analyze"], since30, limit);
+    } else {
+      used = await countSinceGroup(subject, ["detect", "analyze"], since30, limit);
+    }
     windowLabel = "month";
   } else {
     limit = perMonth; // anonim günlük
@@ -216,11 +299,14 @@ async function enforce(event, opts) {
     return { ok: false, response: resp(402, { error: "quota exceeded", plan: plan, limit: limit, window: windowLabel }, origin) };
   }
 
-  return { ok: true, origin, subject, subjectType, user, plan: plan, resp: resp, logUsage: logUsage };
+  return { ok: true, origin, subject, subjectType, user, plan: plan,
+           orgId: (orgCtx && planCtx && planCtx.scope === "org") ? orgCtx.orgId : (orgCtx ? orgCtx.orgId : null),
+           resp: resp, logUsage: logUsage };
 }
 
 module.exports = {
   enforce, resp, corsHeaders, isOriginAllowed, getOrigin, getClientIp,
   ipHash, bearer, verifyUser, logUsage, countSince, countSinceGroup,
+  resolveOrgContext, resolvePlanContext, countOrgUsage,
   resolvePlan, PLAN_QUOTAS,
 };

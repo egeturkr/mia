@@ -13,7 +13,7 @@
         var P = window.MIAPlans;
         var curKey = (usage && usage.plan) || "free";
         var cur = P.get(curKey);
-        $("curPlan").textContent = cur.name;
+        $("curPlan").textContent = cur.name + (usage && usage.scope === "org" ? " · Organizasyon aboneliği" : "");
 
         var used = (usage && usage.used_monthly_ai != null) ? usage.used_monthly_ai : null;
         var quota = (usage && usage.quota_monthly_ai) || cur.monthly_ai;
@@ -55,7 +55,10 @@
     }
 
     function loadUsage() {
-        fetch("/api/usage", { headers: { Authorization: "Bearer " + token } })
+        var h = { Authorization: "Bearer " + token };
+        var oid = window.MIAOrg && window.MIAOrg.currentId();
+        if (oid) h["x-mia-org"] = oid;
+        fetch("/api/usage", { headers: h })
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (u) { render(u || {}); })
             .catch(function () { render({}); });
@@ -65,6 +68,7 @@
         if (!r.data.session) { window.location.href = "giris-yap.html?next=hesap.html"; return; }
         user = r.data.session.user;
         token = r.data.session.access_token;
-        loadUsage();
+        if (window.MIAOrg && window.MIAOrg.ready) window.MIAOrg.ready.then(loadUsage);
+        else loadUsage();
     });
 })();

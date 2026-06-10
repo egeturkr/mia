@@ -1201,6 +1201,8 @@ if (uploadArea) {
                 var headers = { 'Content-Type': 'application/json' };
                 var tok = sess && sess.data && sess.data.session && sess.data.session.access_token;
                 if (tok) headers['Authorization'] = 'Bearer ' + tok;
+                var oid = window.MIAOrg && window.MIAOrg.currentId();
+                if (oid) headers['x-mia-org'] = oid; // Faz 6: org-aware kota
                 return fetch(API_URL, { method: 'POST', headers: headers, body: JSON.stringify({ video: base64, confidence: 0.25, generate_report: true }) });
             })
             .then(function(res) { return res.json(); })

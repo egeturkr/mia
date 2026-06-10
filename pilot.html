@@ -168,6 +168,23 @@
                     </div>
                 </div>
 
+                <!-- Faz 6: Pilot ödeme durumu -->
+                <div class="pi-panel">
+                    <h2>Pilot Ödemesi (₺<span id="ppAmount">25.000</span>)</h2>
+                    <div class="pi-link-row" style="margin-bottom:.4rem;">
+                        <select id="ppStatus" style="flex:0 0 auto;min-width:220px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:9px;padding:.5rem .7rem;color:var(--text-primary);font:inherit;font-size:.86rem;">
+                            <option value="unpaid">Ödenmedi</option>
+                            <option value="pending">Fatura kesildi / bekleniyor</option>
+                            <option value="manual_confirmed">Havale alındı (manuel onay)</option>
+                            <option value="refunded">İade edildi</option>
+                            <option value="converted">Aboneliğe sayıldı</option>
+                        </select>
+                        <button type="button" class="btn btn-secondary btn-sm" id="ppSaveBtn">Kaydet</button>
+                        <span class="pi-muted" id="ppMsg"></span>
+                    </div>
+                    <div class="pi-muted">"Havale alındı" işareti, ödemenin platform DIŞINDA (banka) alındığının kaydıdır — burada tahsilat yapılmaz. Kayıt payment_records tablosuna düşer.</div>
+                </div>
+
                 <!-- Faz 4: Hukuki hazırlık durumu — onay olmadan saha videosu TOPLANMAZ -->
                 <div class="pi-panel" id="plrPanel">
                     <h2>Hukuki Hazırlık</h2>

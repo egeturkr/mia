@@ -37,10 +37,10 @@ exports.handler = async function (event) {
         });
         const text = await rf.text();
         // 2) Kullanım kaydı (kota/rate sayımı + denetim)
-        await guard.logUsage(g.subject, g.subjectType, "detect", rf.status);
+        await guard.logUsage(g.subject, g.subjectType, "detect", rf.status, g.orgId);
         return { statusCode: rf.status, headers: guard.corsHeaders(g.origin), body: text };
     } catch (err) {
-        await guard.logUsage(g.subject, g.subjectType, "detect", 502);
+        await guard.logUsage(g.subject, g.subjectType, "detect", 502, g.orgId);
         return guard.resp(502, { error: "Roboflow upstream failed: " + (err && err.message || err) }, g.origin);
     }
 };

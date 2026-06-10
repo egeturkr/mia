@@ -637,10 +637,147 @@ create policy "org staff write pilot links" on public.pilot_analysis_links for a
   with check (org_id is not null and is_org_member(org_id, array['owner','admin','safety_manager']));
 
 -- ============================================================================
+-- 11) FATURALANDIRMA & ABONELİK (Faz 6)
+-- ----------------------------------------------------------------------------
+-- Manuel ödeme (erken müşteri) + sağlayıcı-hazır abonelik. KURAL: aboneliği
+-- AKTİF yapmak (kota açmak) yalnızca service_role'dedir — müşteri kendi kendine
+-- kota açamaz. payment_records'taki 'manual_confirmed' bir BEYANDIR; kota vermez.
+-- ============================================================================
+
+-- 11a) subscriptions genişletmesi (org-aware; user_id unique kısıtı kaldırılır,
+-- yerine kısmi unique indexler: kullanıcı başına 1 kişisel + org başına 1 abonelik)
+alter table public.subscriptions add column if not exists org_id uuid references public.organizations(id) on delete cascade;
+alter table public.subscriptions add column if not exists cancel_at_period_end boolean default false;
+alter table public.subscriptions add column if not exists trial_end timestamptz;
+alter table public.subscriptions add column if not exists quota_overrides jsonb;
+alter table public.subscriptions drop constraint if exists subscriptions_user_id_key;
+create unique index if not exists subs_user_personal_key on public.subscriptions (user_id) where org_id is null;
+create unique index if not exists subs_org_key on public.subscriptions (org_id) where org_id is not null;
+
+drop policy if exists "subscriptions org members read" on public.subscriptions;
+create policy "subscriptions org members read" on public.subscriptions for select
+  using (org_id is not null and is_org_member(org_id));
+-- Plan seçim NİYETİ: owner/admin yalnızca pasif (unpaid/trialing) kayıt açabilir.
+-- Aktifleştirme (active/manual_active/pilot_active) SADECE service_role.
+drop policy if exists "subscriptions intent insert" on public.subscriptions;
+create policy "subscriptions intent insert" on public.subscriptions for insert
+  with check (
+    user_id = auth.uid() and status in ('unpaid','trialing')
+    and (org_id is null or is_org_member(org_id, array['owner','admin']))
+  );
+
+-- 11b) Fatura müşterisi (vergi/iletişim bilgileri)
+create table if not exists public.billing_customers (
+  id            uuid primary key default gen_random_uuid(),
+  org_id        uuid references public.organizations(id) on delete cascade,
+  user_id       uuid references auth.users(id) on delete cascade,
+  provider      text not null default 'manual' check (provider in ('manual','iyzico','stripe')),
+  provider_customer_id text,
+  billing_email text,
+  company_name  text,
+  tax_number    text,
+  tax_office    text,
+  billing_address text,
+  country       text default 'TR',
+  currency      text default 'TRY',
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now()
+);
+alter table public.billing_customers enable row level security;
+drop policy if exists "billing_customers manage" on public.billing_customers;
+create policy "billing_customers manage" on public.billing_customers for all
+  using ((org_id is null and user_id = auth.uid()) or (org_id is not null and is_org_member(org_id, array['owner','admin'])))
+  with check ((org_id is null and user_id = auth.uid()) or (org_id is not null and is_org_member(org_id, array['owner','admin'])));
+
+-- 11c) Ödeme kayıtları
+create table if not exists public.payment_records (
+  id                  uuid primary key default gen_random_uuid(),
+  org_id              uuid references public.organizations(id) on delete set null,
+  user_id             uuid references auth.users(id) on delete set null,
+  subscription_id     uuid references public.subscriptions(id) on delete set null,
+  pilot_id            uuid references public.pilot_projects(id) on delete set null,
+  provider            text not null default 'manual' check (provider in ('manual','iyzico','stripe')),
+  provider_payment_id text,
+  amount              numeric not null,
+  currency            text not null default 'TRY',
+  status              text not null default 'pending'
+                      check (status in ('pending','paid','failed','refunded','manual_confirmed')),
+  payment_method      text default 'bank_transfer'
+                      check (payment_method in ('bank_transfer','credit_card','iyzico','stripe','manual')),
+  paid_at             timestamptz,
+  metadata            jsonb,
+  created_at          timestamptz default now(),
+  updated_at          timestamptz default now()
+);
+alter table public.payment_records enable row level security;
+drop policy if exists "payment_records read" on public.payment_records;
+create policy "payment_records read" on public.payment_records for select
+  using (user_id = auth.uid() or (org_id is not null and is_org_member(org_id)));
+drop policy if exists "payment_records insert" on public.payment_records;
+create policy "payment_records insert" on public.payment_records for insert
+  with check (
+    user_id = auth.uid()
+    and (org_id is null or is_org_member(org_id, array['owner','admin']))
+    and status in ('pending','manual_confirmed')      -- 'paid' YALNIZ sağlayıcı webhook'u yazar
+    and provider = 'manual'
+  );
+drop policy if exists "payment_records update own manual" on public.payment_records;
+create policy "payment_records update own manual" on public.payment_records for update
+  using (provider = 'manual' and (user_id = auth.uid() or (org_id is not null and is_org_member(org_id, array['owner','admin']))));
+create index if not exists payment_records_org_idx on public.payment_records (org_id, created_at desc);
+create index if not exists payment_records_pilot_idx on public.payment_records (pilot_id);
+create unique index if not exists payment_records_provider_evt on public.payment_records (provider, provider_payment_id) where provider_payment_id is not null;
+
+-- 11d) Faturalar (yalnızca MIA/servis düzenler; kullanıcı görüntüler)
+create table if not exists public.invoices (
+  id                uuid primary key default gen_random_uuid(),
+  org_id            uuid references public.organizations(id) on delete set null,
+  user_id           uuid references auth.users(id) on delete set null,
+  subscription_id   uuid references public.subscriptions(id) on delete set null,
+  payment_record_id uuid references public.payment_records(id) on delete set null,
+  invoice_number    text unique,
+  amount            numeric not null,
+  currency          text not null default 'TRY',
+  status            text not null default 'draft' check (status in ('draft','issued','paid','void')),
+  invoice_url       text,
+  issued_at         timestamptz,
+  due_at            timestamptz,
+  paid_at           timestamptz,
+  metadata          jsonb,
+  created_at        timestamptz default now()
+);
+alter table public.invoices enable row level security;
+drop policy if exists "invoices read" on public.invoices;
+create policy "invoices read" on public.invoices for select
+  using (user_id = auth.uid() or (org_id is not null and is_org_member(org_id, array['owner','admin'])));
+-- Yazma yalnız service_role.
+
+-- 11e) Webhook idempotency — işlenmiş olay kaydı (yalnız service_role; politika yok)
+create table if not exists public.billing_events (
+  id         bigint generated always as identity primary key,
+  provider   text not null,
+  event_id   text not null,
+  payload    jsonb,
+  created_at timestamptz default now(),
+  unique (provider, event_id)
+);
+alter table public.billing_events enable row level security;
+
+-- 11f) Pilot ödeme durumu
+alter table public.pilot_projects add column if not exists payment_status text default 'unpaid'
+  check (payment_status in ('unpaid','pending','manual_confirmed','refunded','converted'));
+alter table public.pilot_projects add column if not exists payment_record_id uuid references public.payment_records(id) on delete set null;
+
+-- 11g) api_usage org bağlamı (org bazlı kota sayımı)
+alter table public.api_usage add column if not exists org_id uuid;
+create index if not exists api_usage_org_idx on public.api_usage (org_id, created_at desc);
+
+-- ============================================================================
 -- Done. Tablolar: analyses, demo_requests, chat_messages, workers, equipment,
 -- checkpoints, scans, api_usage, consents, subscriptions, pilot_projects,
 -- pilot_checklists, pilot_weekly_reports, pilot_analysis_links,
 -- legal_document_versions, data_subject_requests, pilot_legal_reviews,
 -- organizations, organization_memberships, organization_invitations,
--- organization_sites (hepsi RLS açık).
+-- organization_sites, billing_customers, payment_records, invoices,
+-- billing_events (hepsi RLS açık).
 -- ============================================================================

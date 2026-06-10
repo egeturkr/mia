@@ -372,6 +372,8 @@
         return miaGetToken().then(function(token) {
             var headers = { "Content-Type": "application/json" };
             if (token) headers["Authorization"] = "Bearer " + token;
+            var oid = window.MIAOrg && window.MIAOrg.currentId();
+            if (oid) headers["x-mia-org"] = oid; // Faz 6: org-aware kota
             return fetch(url, {
                 method: "POST",
                 headers: headers,

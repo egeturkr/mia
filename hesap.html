@@ -56,6 +56,25 @@
             <p class="acc-muted" style="margin:0;">Yükseltme talebi şu an satış ekibi üzerinden işlenir; otomatik ödeme yakında.</p>
             <div class="acc-plans" id="planList"></div>
 
+            <!-- Faz 6: Faturalandırma -->
+            <h2 style="font-size:1.1rem;margin:2rem 0 .3rem;">Faturalandırma</h2>
+            <div class="acc-card" id="bilCard">
+                <div class="acc-muted" id="bilOrg">—</div>
+                <div id="bilSub" style="margin:.5rem 0;font-size:.92rem;">Abonelik bilgisi yükleniyor…</div>
+                <div id="bilActions" style="display:none;margin:.6rem 0;">
+                    <select id="bilPlan" style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:9px;padding:.5rem .7rem;color:var(--text-primary);font:inherit;font-size:.86rem;">
+                        <option value="kamera_ai">Kamera AI — ₺12.000/ay</option>
+                        <option value="giris">Giriş QR — ₺4.000/ay</option>
+                        <option value="pro">Pro Füzyon — ₺25.000/ay</option>
+                    </select>
+                    <button type="button" class="btn btn-primary btn-sm" id="bilIntentBtn">Planı Seç (Havale/EFT)</button>
+                    <span class="acc-muted" id="bilMsg" style="margin-left:.5rem;"></span>
+                </div>
+                <div class="acc-muted" style="font-size:.78rem;">Otomatik kart tahsilatı henüz aktif değil — plan seçimi bir ödeme niyeti oluşturur; havale/EFT alındıktan sonra abonelik MIA tarafından aktive edilir. Ödeme tamamlandı bilgisi yalnızca sunucu tarafında doğrulanır.</div>
+                <div id="bilPayments" style="margin-top:1rem;"></div>
+                <div id="bilInvoices" style="margin-top:.6rem;"></div>
+            </div>
+
             <!-- Faz 4: Veri Sahibi Talepleri (KVKK m.11 hakları — manuel inceleme akışı) -->
             <h2 style="font-size:1.1rem;margin:2rem 0 .3rem;">Veri Talepleri</h2>
             <p class="acc-muted" style="margin:0 0 .8rem;">Hesap/analiz silme, kişisel veri silme veya rıza kayıtlarının dışa aktarımını talep edebilirsiniz. Talepler ekip tarafından manuel incelenir (hedef: 30 gün içinde yanıt).</p>
@@ -81,8 +100,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/app.js"></script>
+    <script src="js/org.js"></script>
     <script src="js/plans.js"></script>
     <script src="js/hesap.js"></script>
     <script src="js/data-requests.js"></script>
+    <script src="js/billing.js"></script>
 </body>
 </html>

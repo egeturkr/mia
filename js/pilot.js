@@ -139,6 +139,10 @@
         loadLinksAndAnalyses();
         loadWeekly();
         loadLegalReview();
+        // Faz 6: ödeme durumu
+        $("ppAmount").textContent = Number(current.pilot_price || 25000).toLocaleString("tr-TR");
+        $("ppStatus").value = current.payment_status || "unpaid";
+        $("ppMsg").textContent = "";
     }
 
     // ---- Hukuki hazırlık (Faz 4) ----
@@ -162,6 +166,35 @@
             renderLegalReview(r.data && r.data[0]);
         });
     }
+    // Faz 6: pilot ödeme durumu — payment_status + payment_records kaydı (manuel beyan)
+    $("ppSaveBtn").addEventListener("click", function () {
+        var st = $("ppStatus").value;
+        var upd = { payment_status: st, updated_at: new Date().toISOString() };
+        supabase.from("pilot_projects").update(upd).eq("id", current.id).then(function (r) {
+            if (r.error) { $("ppMsg").textContent = "Kaydedilemedi: " + r.error.message + " (migration?)"; return; }
+            current.payment_status = st;
+            $("ppMsg").textContent = "Ödeme durumu kaydedildi.";
+            // pending/manual_confirmed → payment_records'a kayıt (varsa güncellenmez, yenisi açılmaz: tek kayıt mantığı basit tutuldu)
+            if ((st === "pending" || st === "manual_confirmed") && !current.payment_record_id) {
+                supabase.from("payment_records").insert({
+                    user_id: user.id, org_id: current.org_id || null, pilot_id: current.id,
+                    provider: "manual", amount: current.pilot_price || 25000, currency: "TRY",
+                    status: st === "manual_confirmed" ? "manual_confirmed" : "pending",
+                    payment_method: "bank_transfer",
+                    paid_at: st === "manual_confirmed" ? new Date().toISOString() : null,
+                    metadata: { source: "pilot", company: current.company_name }
+                }).select().single().then(function (r2) {
+                    if (r2.error) { console.warn("[MIA] payment_record açılamadı:", r2.error.message); return; }
+                    supabase.from("pilot_projects").update({ payment_record_id: r2.data.id }).eq("id", current.id)
+                        .then(function () { current.payment_record_id = r2.data.id; });
+                });
+            } else if (st === "manual_confirmed" && current.payment_record_id) {
+                supabase.from("payment_records").update({ status: "manual_confirmed", paid_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+                    .eq("id", current.payment_record_id).then(function(){});
+            }
+        });
+    });
+
     $("plrSaveBtn").addEventListener("click", function () {
         var row = {
             user_id: user.id, pilot_id: current.id,

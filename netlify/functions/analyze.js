@@ -28,10 +28,10 @@ exports.handler = async function (event) {
             body: payload,
         });
         const text = await r.text();
-        await guard.logUsage(g.subject, g.subjectType, "analyze", r.status);
+        await guard.logUsage(g.subject, g.subjectType, "analyze", r.status, g.orgId);
         return { statusCode: r.status, headers: guard.corsHeaders(g.origin), body: text };
     } catch (err) {
-        await guard.logUsage(g.subject, g.subjectType, "analyze", 502);
+        await guard.logUsage(g.subject, g.subjectType, "analyze", 502, g.orgId);
         return guard.resp(502, { error: "Modal upstream failed: " + (err && err.message || err) }, g.origin);
     }
 };
