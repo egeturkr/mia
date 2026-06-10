@@ -433,9 +433,26 @@
         state.framesProcessed = times.length;
         var allEvents = [];
         var done = 0;
+        var failures = 0, lastErr = null;
+        // 401/402/403/429 → kalıcı engel: kalan kareleri deneme, hatayı yüzeye çıkar.
+        function isFatalApiError(err) {
+            var m = String(err && err.message || "").match(/HTTP (\d{3})/);
+            var c = m ? parseInt(m[1], 10) : 0;
+            return c === 401 || c === 402 || c === 403 || c === 429;
+        }
         // Sequential to respect rate limits + simpler progress
         function next() {
-            if (done >= times.length) return Promise.resolve(allEvents);
+            if (done >= times.length) {
+                // HOTFIX: tüm kareler başarısızsa bu "0 tespit" DEĞİL, API hatasıdır.
+                if (failures > 0 && failures === times.length) {
+                    console.error("[MIA] Tüm kareler başarısız (" + failures + "/" + times.length + ") — analiz hatası olarak raporlanıyor.");
+                    return Promise.reject(lastErr || new Error("AI analysis failed"));
+                }
+                if (failures > 0) {
+                    console.warn("[MIA] Kısmi sonuç: " + failures + "/" + times.length + " kare analiz edilemedi.");
+                }
+                return Promise.resolve(allEvents);
+            }
             var t = times[done++];
             var lang = getLang();
             els.progressStep.textContent = (lang === "tr" ? "Frame " : "Frame ") + done + "/" + times.length + " — Roboflow AI";
@@ -445,7 +462,15 @@
             return captureFrame(t)
                 .then(callRoboflow)
                 .then(function(events) { allEvents = allEvents.concat(events); })
-                .catch(function(e) { console.warn("Frame " + done + " inference failed:", e); })
+                .catch(function(e) {
+                    failures++; lastErr = e;
+                    console.warn("Frame " + done + " inference failed:", e);
+                    // Kota/yetki/limit hatası tüm kalan karelerde de tekrarlar — erken kes.
+                    if (isFatalApiError(e)) {
+                        console.error("[MIA] Kalıcı API hatası — kalan kareler atlanıyor:", e.message);
+                        return Promise.reject(e);
+                    }
+                })
                 .then(next);
         }
         return next();

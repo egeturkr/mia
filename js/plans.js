@@ -9,11 +9,13 @@
     if (typeof module !== "undefined" && module.exports) module.exports = api;
     if (root) root.MIAPlans = api;
 })(typeof window !== "undefined" ? window : null, function () {
+    // monthly_ai birimi: AI ÇAĞRISI (işlenen kare / Modal isteği) — "analiz" değil.
+    // 1 video analizi ≈ 10 çağrı. guard.js PLAN_QUOTAS ile birebir aynı tutulmalı.
     var PLANS = {
-        free:      { key: "free",      name: "Ücretsiz / Deneme", monthly_ai: 10,    cameras: 1,   price_try: 0,     order: 0 },
-        giris:     { key: "giris",     name: "Giriş — QR Pasif Takip", monthly_ai: 30,   cameras: 0,  price_try: 4000,  order: 1 },
-        kamera_ai: { key: "kamera_ai", name: "Kamera AI",         monthly_ai: 300,   cameras: 10,  price_try: 12000, order: 2 },
-        pro:       { key: "pro",       name: "Pro Füzyon",        monthly_ai: 1000,  cameras: 30,  price_try: 25000, order: 3 },
+        free:      { key: "free",      name: "Ücretsiz / Deneme", monthly_ai: 150,    cameras: 1,   price_try: 0,     order: 0 },
+        giris:     { key: "giris",     name: "Giriş — QR Pasif Takip", monthly_ai: 450,   cameras: 0,  price_try: 4000,  order: 1 },
+        kamera_ai: { key: "kamera_ai", name: "Kamera AI",         monthly_ai: 4500,   cameras: 10,  price_try: 12000, order: 2 },
+        pro:       { key: "pro",       name: "Pro Füzyon",        monthly_ai: 15000,  cameras: 30,  price_try: 25000, order: 3 },
         kurumsal:  { key: "kurumsal",  name: "Kurumsal",          monthly_ai: 100000, cameras: -1, price_try: null,  order: 4 },
     };
     function get(key) { return PLANS[key] || PLANS.free; }

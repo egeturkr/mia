@@ -22,7 +22,7 @@
         } else {
             var pctv = quota ? Math.min(100, Math.round(used / quota * 100)) : 0;
             $("usageBar").style.width = pctv + "%";
-            $("usageText").textContent = "Bu ay " + used + " / " + quota + " AI analizi (" + pctv + "%)";
+            $("usageText").textContent = "Bu ay " + used + " / " + quota + " AI çağrısı (" + pctv + "%) — 1 video analizi ≈ 10 çağrı";
         }
 
         var order = Object.keys(P.PLANS).map(function(k){ return P.PLANS[k]; }).sort(function(a,b){ return a.order - b.order; });
@@ -35,7 +35,7 @@
             html += '<div class="acc-pl' + (isCur ? ' current' : '') + '">' +
                 '<h3>' + pl.name + '</h3>' +
                 '<div class="pr">' + price + '</div>' +
-                '<div class="q">' + pl.monthly_ai.toLocaleString("tr-TR") + ' AI analizi/ay · ' + cam + '</div>' +
+                '<div class="q">' + pl.monthly_ai.toLocaleString("tr-TR") + ' AI çağrısı/ay (≈' + Math.round(pl.monthly_ai / 10).toLocaleString("tr-TR") + ' analiz) · ' + cam + '</div>' +
                 (isCur
                     ? '<button disabled>Mevcut plan</button>'
                     : '<button data-plan="' + pl.key + '">' + (pl.price_try == null ? "İletişime Geç" : "Yükselt") + '</button>') +

@@ -117,7 +117,11 @@ async function countSinceGroup(subject, endpoints, sinceIso, cap) {
 }
 
 // Plana göre aylık AI kotası (plans.js ile aynı; değiştirirken ikisini de güncelle).
-const PLAN_QUOTAS = { free: 10, giris: 30, kamera_ai: 300, pro: 1000, kurumsal: 100000 };
+// HOTFIX (birim düzeltmesi): kota birimi "AI çağrısı"dır (işlenen kare / Modal isteği),
+// "analiz" değil. Canlı analiz video başına ~10 kare gönderir; eski free=10 değeri
+// TEK videoda tükeniyor ve sonraki tüm kareler 402 alıyordu (boş sonuç bug'ı).
+// Limitler ~15 analiz/ay eşdeğerine ölçeklendi. Güvenlik mantığı DEĞİŞMEDİ (fail-closed).
+const PLAN_QUOTAS = { free: 150, giris: 450, kamera_ai: 4500, pro: 15000, kurumsal: 100000 };
 
 // Kullanıcının aktif planını çöz (abonesi yoksa 'free').
 async function resolvePlan(userId) {
