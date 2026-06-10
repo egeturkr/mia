@@ -4,9 +4,15 @@
   "model_version": "rf-27",
   "model": "construction-site-safety/27",
   "dataset_name": null,
-  "images": 0,
+  "validated_at": null,
   "measured_at": null,
+  "num_images": 0,
+  "num_videos": 0,
+  "num_annotations": 0,
+  "images": 0,
+  "metrics": { "precision": null, "recall": null, "f1": null, "mAP50": null },
   "mAP50": null,
   "violation_detection": null,
-  "per_class": {}
+  "per_class": {},
+  "notes": "Gerçek saha doğrulama verisi henüz çalıştırılmadı. Metrik iddia edilemez."
 }

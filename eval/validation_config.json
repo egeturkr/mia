@@ -8,5 +8,7 @@
   "images": "eval/dataset/images",
   "labels": "eval/dataset/labels",
   "classes": "eval/dataset/classes.txt",
-  "notes": "Üretimde kullanılan eşiklerle (conf 0.35 / overlap 30) ölçülür. Veri Mostar sahasından toplanacak."
+  "videos": "eval/dataset/videos",
+  "predictions": "eval/dataset/predictions",
+  "notes": "Üretimde kullanılan eşiklerle (conf 0.35 / overlap 30) ölçülür. Veri Mostar sahasından toplanacak. predictions/ doluysa offline mod (API çağrılmaz)."
 }

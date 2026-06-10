@@ -74,11 +74,12 @@
             .then(function(r){ return r.json(); })
             .then(function(d){
                 if (!d || d.status !== 'measured') {
-                    elS.textContent = 'Doğrulama sürüyor';
+                    elS.textContent = 'Henüz saha verisiyle ölçülmedi';
                     elS.className = 'perf-status perf-pending';
                     elB.innerHTML = '<div class="perf-note">' +
                         ((d && d.message) || 'Bağımsız saha doğrulaması henüz tamamlanmadı.') +
-                        '<br><br>Model: <b>' + ((d && d.model) || '—') + '</b> · Sürüm: <b>' + ((d && d.model_version) || '—') + '</b></div>';
+                        '<br><br>Model: <b>' + ((d && d.model) || '—') + '</b> · Sürüm: <b>' + ((d && d.model_version) || '—') + '</b>' +
+                        '<br>Precision / Recall / mAP: <b>henüz ölçülmedi</b> — sayılar ancak gerçek saha verisiyle çalıştırılan doğrulama sonrası yayınlanır.</div>';
                     return;
                 }
                 elS.textContent = 'Ölçüldü · ' + (d.measured_at || '');
@@ -98,7 +99,9 @@
                 });
                 elB.innerHTML =
                     '<div class="perf-cards">' + cards + '</div>' +
-                    '<div style="font-size:.85rem;color:#8a8a8a;">Model: <b>' + (d.model||'—') + '</b> · Sürüm: <b>' + (d.model_version||'—') + '</b> · Veri seti: <b>' + (d.dataset_name||'—') + '</b></div>' +
+                    '<div style="font-size:.85rem;color:#8a8a8a;">Model: <b>' + (d.model||'—') + '</b> · Sürüm: <b>' + (d.model_version||'—') + '</b> · Veri seti: <b>' + (d.dataset_name||'—') + '</b>' +
+                    (d.num_annotations ? ' · Etiket: <b>' + d.num_annotations + '</b>' : '') +
+                    (d.num_videos ? ' · Video: <b>' + d.num_videos + '</b>' : '') + '</div>' +
                     '<table class="perf-tbl"><thead><tr><th>Sınıf</th><th>Precision</th><th>Recall</th><th>F1</th><th>AP@0.5</th><th>GT</th></tr></thead><tbody>' + rows + '</tbody></table>';
             })
             .catch(function(){

@@ -79,6 +79,35 @@ def infer(model, api_key, img_path, conf, overlap):
     return out
 
 
+def load_offline_preds(preds_dir, base):
+    """Önceden hesaplanmış tahminleri oku (Roboflow çağrısı yapmadan — offline mod).
+    Desteklenen formatlar (preds/<görsel-adı>.json):
+      A) [{"class": str, "confidence": float, "box": [x1,y1,x2,y2] (0..1 normalize)}]
+      B) Roboflow ham çıktısı: {"predictions":[{x,y,width,height,class,confidence}],
+                                "image":{"width":W,"height":H}}
+    Dosya yoksa None döner (görsel atlanmaz; tahminsiz = tüm GT'ler FN sayılır).
+    """
+    path = os.path.join(preds_dir, base + ".json")
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        j = json.load(f)
+    out = []
+    if isinstance(j, dict) and "predictions" in j:  # format B (Roboflow ham)
+        W = (j.get("image") or {}).get("width") or 1
+        H = (j.get("image") or {}).get("height") or 1
+        for p in j["predictions"]:
+            x, y, w, h = p["x"], p["y"], p["width"], p["height"]
+            out.append({"class": p["class"], "conf": p.get("confidence", 0),
+                        "box": ((x - w / 2) / W, (y - h / 2) / H, (x + w / 2) / W, (y + h / 2) / H)})
+    elif isinstance(j, list):  # format A (normalize liste)
+        for p in j:
+            b = p["box"]
+            out.append({"class": p["class"], "conf": p.get("confidence", p.get("conf", 0)),
+                        "box": (b[0], b[1], b[2], b[3])})
+    return out
+
+
 def iou(a, b):
     ax1, ay1, ax2, ay2 = a
     bx1, by1, bx2, by2 = b
@@ -92,9 +121,13 @@ def iou(a, b):
     return inter / ua if ua > 0 else 0.0
 
 
-def match(preds, gts, iou_thr):
-    """Greedy IoU matching per class. Returns TP/FP/FN counts per class + confidences for AP."""
+def match(preds, gts, iou_thr, image=None):
+    """Greedy IoU matching per class.
+    Returns (stats, records): stats = TP/FP/FN sayıları + AP skorları (sınıf bazında);
+    records = örnek-seviyesi kayıtlar (FP/FN analizi için) — {type, image, class, conf, iou, box}.
+    """
     stats = defaultdict(lambda: {"tp": 0, "fp": 0, "fn": 0, "scores": []})
+    records = []
     by_cls_pred = defaultdict(list)
     by_cls_gt = defaultdict(list)
     for p in preds:
@@ -118,11 +151,22 @@ def match(preds, gts, iou_thr):
                 used[bi] = True
                 stats[c]["tp"] += 1
                 stats[c]["scores"].append((p["conf"], 1))
+                records.append({"type": "tp", "image": image, "class": c,
+                                "conf": round(p["conf"], 4), "iou": round(best, 4),
+                                "box": [round(x, 4) for x in p["box"]]})
             else:
                 stats[c]["fp"] += 1
                 stats[c]["scores"].append((p["conf"], 0))
+                records.append({"type": "fp", "image": image, "class": c,
+                                "conf": round(p["conf"], 4), "iou": None,
+                                "box": [round(x, 4) for x in p["box"]]})
+        for i, g in enumerate(gs):
+            if not used[i]:
+                records.append({"type": "fn", "image": image, "class": c,
+                                "conf": None, "iou": None,
+                                "box": [round(x, 4) for x in g["box"]]})
         stats[c]["fn"] += used.count(False)
-    return stats
+    return stats, records
 
 
 def prf(tp, fp, fn):
@@ -168,11 +212,21 @@ def main():
     ap.add_argument("--iou", type=float, default=0.5)
     ap.add_argument("--overlap", type=int, default=30)
     ap.add_argument("--out", default="eval/baseline_report.json")
+    # --- Faz 2 eklemeleri (opsiyonel; verilmezse davranış öncekiyle aynı) ---
+    ap.add_argument("--preds", default=None,
+                    help="önceden hesaplanmış tahmin klasörü (offline mod — Roboflow çağrılmaz)")
+    ap.add_argument("--details-dir", default=None,
+                    help="FP/FN/düşük-güven detay JSON'larının yazılacağı klasör")
+    ap.add_argument("--model-version", default=None, help="model_registry sürümü (örn. rf-27)")
+    ap.add_argument("--frames-meta", default=None,
+                    help="frames_metadata.json yolu (kare → kaynak video + zaman izlenebilirliği)")
+    ap.add_argument("--low-conf", type=float, default=0.5,
+                    help="düşük-güven eşiği (detay raporu için, varsayılan 0.5)")
     args = ap.parse_args()
 
     api_key = os.environ.get("ROBOFLOW_API_KEY")
-    if not api_key:
-        sys.exit("ROBOFLOW_API_KEY ortam değişkeni gerekli.")
+    if not args.preds and not api_key:
+        sys.exit("ROBOFLOW_API_KEY ortam değişkeni gerekli (ya da --preds ile offline tahmin verin).")
 
     classes = load_classes(args.classes)
     imgs = sorted(sum([glob.glob(os.path.join(args.images, e))
@@ -180,25 +234,58 @@ def main():
     if not imgs:
         sys.exit(f"{args.images} içinde görsel bulunamadı.")
 
+    # Kare → kaynak video izlenebilirliği (varsa)
+    frames_meta = {}
+    fm_path = args.frames_meta or os.path.join(os.path.dirname(args.images.rstrip("/")), "frames_metadata.json")
+    if os.path.exists(fm_path):
+        try:
+            with open(fm_path, encoding="utf-8") as f:
+                frames_meta = json.load(f).get("frames", {})
+        except Exception:
+            frames_meta = {}
+
+    def trace(image_name):
+        """Detay kaydına kaynak video + zaman ekle (video karesi ise)."""
+        m = frames_meta.get(image_name)
+        if not m:
+            return {}
+        return {"source_video": m.get("source_video"), "timestamp_sec": m.get("timestamp_sec")}
+
     agg = defaultdict(lambda: {"tp": 0, "fp": 0, "fn": 0, "scores": []})
     gt_counts = defaultdict(int)
-    print(f"{len(imgs)} görsel değerlendiriliyor (model={args.model}, conf={args.conf}, IoU={args.iou})...")
+    all_records = []
+    n_preds_total = 0
+    mode = "offline (--preds)" if args.preds else "Roboflow API"
+    print(f"{len(imgs)} görsel değerlendiriliyor (model={args.model}, conf={args.conf}, IoU={args.iou}, mod={mode})...")
     for i, img in enumerate(imgs, 1):
         base = os.path.splitext(os.path.basename(img))[0]
+        img_name = os.path.basename(img)
         gts = load_gt(os.path.join(args.labels, base + ".txt"), classes)
         for g in gts:
             gt_counts[g["class"]] += 1
-        try:
-            preds = infer(args.model, api_key, img, args.conf, args.overlap)
-        except Exception as e:
-            print(f"  ! {base}: inference hata: {e}")
-            continue
-        s = match(preds, gts, args.iou)
+        if args.preds:
+            preds = load_offline_preds(args.preds, base)
+            if preds is None:
+                print(f"  ! {base}: offline tahmin dosyası yok — tahminsiz değerlendirildi (GT'ler FN)")
+                preds = []
+        else:
+            try:
+                preds = infer(args.model, api_key, img, args.conf, args.overlap)
+            except Exception as e:
+                print(f"  ! {base}: inference hata: {e}")
+                continue
+        n_preds_total += len(preds)
+        s, recs = match(preds, gts, args.iou, image=img_name)
+        for rec in recs:
+            rec.update(trace(img_name))
+            rec["model_version"] = args.model_version
+        all_records.extend(recs)
         for c, v in s.items():
             agg[c]["tp"] += v["tp"]; agg[c]["fp"] += v["fp"]; agg[c]["fn"] += v["fn"]
             agg[c]["scores"].extend(v["scores"])
         print(f"  [{i}/{len(imgs)}] {base}: {len(preds)} tespit / {len(gts)} gerçek")
-        time.sleep(0.05)
+        if not args.preds:
+            time.sleep(0.05)
 
     per_class, aps = {}, []
     for c in sorted(set(agg) | set(gt_counts)):
@@ -221,6 +308,10 @@ def main():
 
     report = {
         "model": args.model, "images": len(imgs),
+        "model_version": args.model_version,
+        "num_annotations": sum(gt_counts.values()),
+        "num_predictions": n_preds_total,
+        "prediction_source": "offline" if args.preds else "roboflow_api",
         "conf_threshold": args.conf, "iou_threshold": args.iou,
         "mAP50": round(sum(aps) / len(aps), 4) if aps else 0.0,
         "violation_detection": {"precision": round(vp, 4), "recall": round(vr, 4),
@@ -230,6 +321,33 @@ def main():
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
+
+    # --- Faz 2: FP/FN analiz detayları (model iyileştirme döngüsünün girdisi) ---
+    if args.details_dir:
+        os.makedirs(args.details_dir, exist_ok=True)
+        def dump(name, data):
+            with open(os.path.join(args.details_dir, name), "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        fps_ = [r for r in all_records if r["type"] == "fp"]
+        fns_ = [r for r in all_records if r["type"] == "fn"]
+        low_ = [r for r in all_records if r["type"] in ("tp", "fp")
+                and r["conf"] is not None and r["conf"] < args.low_conf]
+        dump("false_positives.json", fps_)
+        dump("false_negatives.json", fns_)
+        dump("low_confidence_predictions.json", low_)
+        dump("per_class_summary.json", per_class)
+        dump("validation_summary.json", {
+            "model": args.model, "model_version": args.model_version,
+            "images": len(imgs), "num_annotations": report["num_annotations"],
+            "num_predictions": n_preds_total,
+            "conf_threshold": args.conf, "iou_threshold": args.iou,
+            "low_conf_threshold": args.low_conf,
+            "mAP50": report["mAP50"], "violation_detection": report["violation_detection"],
+            "counts": {"tp": sum(1 for r in all_records if r["type"] == "tp"),
+                        "fp": len(fps_), "fn": len(fns_), "low_confidence": len(low_)},
+        })
+        print(f"  Detaylar: {args.details_dir}/ (false_positives, false_negatives, "
+              f"low_confidence_predictions, per_class_summary, validation_summary)")
 
     print("\n=== BASELINE ÖZET ===")
     print(f"mAP@0.5: {report['mAP50']*100:.1f}%")

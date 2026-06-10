@@ -1,3 +1,10 @@
-eval/dataset/images/
-eval/dataset/labels/
-eval/baseline_report.json
+# Saha verisi (kişisel veri içerebilir) repoya GİRMEZ — yapı .gitkeep ile korunur.
+images/*
+labels/*
+videos/*
+predictions/*
+frames_metadata.json
+!images/.gitkeep
+!labels/.gitkeep
+!videos/.gitkeep
+!predictions/.gitkeep

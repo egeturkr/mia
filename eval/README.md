@@ -1,5 +1,9 @@
 # MIA — Sprint 1: Baseline Değerlendirme & Veri Toplama
 
+> **Güncel rehber:** video→kare çıkarma, offline tahmin karşılaştırma, FP/FN analizi ve
+> tam doğrulama akışı için bkz. [`docs/PHASE2_AI_VALIDATION.md`](../docs/PHASE2_AI_VALIDATION.md).
+> Bu dosyadaki etiketleme kuralları (§2, §4) geçerliliğini korur.
+
 Bu klasör, mevcut PPE tespit modelinin (`construction-site-safety/27`, Roboflow) **kendi
 sahalarımızdaki gerçek doğruluğunu** ölçmek için kurulmuştur. Roboflow'un ilan ettiği
 ~%70 mAP genel bir rakamdır; bizim geçiş noktası senaryomuzdaki performansı bilmiyoruz.
