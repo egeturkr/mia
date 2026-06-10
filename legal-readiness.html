@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - Hukuki Hazırlık</title>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#0A0A0A">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .lr-wrap{max-width:980px;margin:0 auto;padding:7rem 1.25rem 4rem}
+        .lr-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.3rem 1.4rem;margin-bottom:1.1rem}
+        .lr-card h2{font-size:1rem;margin:0 0 .9rem}
+        table.lr-tbl{width:100%;border-collapse:collapse;font-size:.86rem}
+        table.lr-tbl th,table.lr-tbl td{padding:.5rem .65rem;text-align:left;border-bottom:1px solid var(--border)}
+        table.lr-tbl th{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
+        .lr-badge{display:inline-block;padding:.16rem .6rem;border-radius:99px;font-size:.72rem;font-weight:700}
+        .lr-ok{background:rgba(34,197,94,.12);color:#22c55e}
+        .lr-warn{background:rgba(212,175,55,.13);color:#D4AF37}
+        .lr-bad{background:rgba(239,68,68,.12);color:#ef4444}
+        .lr-muted{color:var(--text-muted);font-size:.83rem}
+        .lr-note{background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);border-radius:10px;padding:.8rem 1rem;font-size:.85rem;color:var(--text-muted);line-height:1.55;margin-bottom:1.2rem}
+    </style>
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html"><img src="images/logo-horizontal-trim.png" alt="MIA" class="logo-img"></a>
+        <nav>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="pilot.html">Pilot</a>
+            <a href="hesap.html">Hesap</a>
+            <span class="user-email" id="userEmail"></span>
+            <button type="button" id="navLogout" class="btn btn-secondary btn-sm">Çıkış</button>
+        </nav>
+    </header>
+
+    <main class="lr-wrap">
+        <h1 style="margin:0 0 .3rem;">Hukuki Hazırlık Durumu</h1>
+        <p class="lr-muted" style="margin:0 0 1rem;">İç kontrol paneli — rıza sistemi, doküman sürümleri, alt-işleyenler, saklama politikası ve açık talepler.</p>
+        <div class="lr-note">Bu sayfa ve referans verdiği tüm dokümanlar hukuki tavsiye değildir; MIA ekibi tarafından operasyonel hazırlık amacıyla hazırlanmıştır. Pilot kullanımdan önce yetkili hukuk danışmanı tarafından incelenmeli ve onaylanmalıdır. <b>MIA şu an tam KVKK uyumu İDDİA ETMEMEKTEDİR.</b></div>
+
+        <div class="lr-card">
+            <h2>Hukuki Doküman Sürümleri</h2>
+            <table class="lr-tbl"><thead><tr><th>Doküman</th><th>Sürüm</th><th>Yürürlük</th><th>Sizin Kabulünüz</th><th>Hukukçu İncelemesi</th></tr></thead>
+            <tbody id="lrDocs"><tr><td colspan="5" class="lr-muted">Yükleniyor…</td></tr></tbody></table>
+        </div>
+
+        <div class="lr-card">
+            <h2>Alt-İşleyenler (detay: docs/SUBPROCESSORS_DRAFT.md)</h2>
+            <table class="lr-tbl"><thead><tr><th>Sağlayıcı</th><th>Amaç</th><th>Veri</th><th>Bölge</th><th>DPA Durumu</th></tr></thead>
+            <tbody id="lrSubs"></tbody></table>
+        </div>
+
+        <div class="lr-card">
+            <h2>Veri Saklama Özeti (taslak: docs/DATA_RETENTION_POLICY_DRAFT.md)</h2>
+            <table class="lr-tbl"><thead><tr><th>Veri kategorisi</th><th>Varsayılan saklama</th><th>Silme</th></tr></thead>
+            <tbody id="lrRetention"></tbody></table>
+            <p class="lr-muted" style="margin:.7rem 0 0;">Otomatik silme bu fazda devrede DEĞİL (api_usage 60 gün temizliği hariç) — silme talepleri manuel incelenir.</p>
+        </div>
+
+        <div class="lr-card">
+            <h2>Pilot Hukuki Hazırlık</h2>
+            <div id="lrPilots" class="lr-muted">Yükleniyor…</div>
+        </div>
+
+        <div class="lr-card">
+            <h2>Açık Veri Talepleri</h2>
+            <div id="lrDsr" class="lr-muted">Yükleniyor…</div>
+        </div>
+
+        <div class="lr-card">
+            <h2>Hukukçu İncelemesi Bekleyen Maddeler</h2>
+            <ul style="font-size:.88rem;line-height:1.9;color:var(--text-secondary);margin:0;padding-left:1.2rem;">
+                <li>Tüm hukuki metinlerin (KVKK, gizlilik, şartlar, rıza metinleri) onayı</li>
+                <li>Çalışan görüntüsü işlemenin hukuki dayanağı (açık rıza vs İSG yükümlülüğü/meşru menfaat)</li>
+                <li>VERBİS kayıt yükümlülüğü değerlendirmesi (veri sorumlusu/işleyen sıfatları)</li>
+                <li>Roboflow ve Modal ile veri işleme sözleşmeleri (DPA) — imzalanmadı</li>
+                <li>Sınır ötesi aktarım mekanizması (ABD'ye aktarım) hukuki değerlendirmesi</li>
+                <li>Pilot sözleşme şablonu + saha afişi + işveren onay formu</li>
+                <li>Veri ihlali bildirim prosedürü (72 saat) taslağı</li>
+                <li>Saklama sürelerinin ve silme prosedürünün resmileştirilmesi</li>
+            </ul>
+        </div>
+    </main>
+
+    <footer><p>© 2026 MIA - Tüm hakları saklıdır.</p></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+    <script src="js/legal.js"></script>
+    <script>
+    (function () {
+        function $(id) { return document.getElementById(id); }
+        function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+        var badge = function (cls, txt) { return '<span class="lr-badge ' + cls + '">' + txt + '</span>'; };
+
+        // Statik kayıtlar — docs/ altındaki taslaklarla senkron tutulur.
+        var SUBS = [
+            ["Supabase", "Veritabanı, kimlik doğrulama", "Hesap + analiz verisi", "AB/ABD (proje bölgesine göre)", "lr-warn", "İncelenecek"],
+            ["Roboflow", "AI çıkarım (kare tespiti)", "Yüklenen görüntü kareleri", "ABD", "lr-bad", "Başlanmadı"],
+            ["Modal", "AI çıkarım (tam video)", "Yüklenen videolar", "ABD", "lr-bad", "Başlanmadı"],
+            ["Netlify", "Barındırma + sunucusuz fonksiyonlar", "Trafik + fonksiyon logları", "ABD/küresel CDN", "lr-warn", "İncelenecek"],
+            ["Resend", "İşlemsel e-posta", "E-posta adresi + bildirim içeriği", "ABD", "lr-warn", "İncelenecek"]
+        ];
+        var RETENTION = [
+            ["Yüklenen videolar", "Sunucuda SAKLANMAZ (tarayıcıda işlenir; Modal geçici işleme)", "—"],
+            ["Analiz sonuçları (detections_json)", "Hesap aktif olduğu sürece", "Talep üzerine manuel"],
+            ["PDF raporlar (pdf_base64)", "Hesap aktif olduğu sürece", "Talep üzerine manuel"],
+            ["Paylaşım linkleri", "İptal edilene kadar", "Kullanıcı silebilir (analiz silme)"],
+            ["Rıza kayıtları (consents)", "Yasal savunma için süresiz (append-only)", "Hukuki değerlendirme gerekli"],
+            ["Pilot kayıtları", "Pilot bitişi + 90 gün (öneri)", "Talep üzerine manuel"],
+            ["API kullanım logları", "60 gün (otomatik temizlik CANLI)", "Otomatik"]
+        ];
+        SUBS.forEach(function (r) {
+            $("lrSubs").innerHTML += "<tr><td><b>" + r[0] + "</b></td><td>" + r[1] + "</td><td>" + r[2] + "</td><td>" + r[3] + "</td><td>" + badge(r[4], r[5]) + "</td></tr>";
+        });
+        RETENTION.forEach(function (r) {
+            $("lrRetention").innerHTML += "<tr><td>" + r[0] + "</td><td>" + r[1] + "</td><td>" + r[2] + "</td></tr>";
+        });
+
+        var PLR_TR = { not_started: ["lr-bad", "Başlanmadı"], in_progress: ["lr-warn", "Devam ediyor"],
+                       ready_for_review: ["lr-warn", "İncelemeye hazır"], approved: ["lr-ok", "Hukukçu onaylı"],
+                       not_approved: ["lr-bad", "Onaylanmadı"] };
+        var DSR_TR = { submitted: "İletildi", under_review: "İncelemede", completed: "Tamamlandı", rejected: "Reddedildi" };
+
+        function load(user) {
+            // Doküman sürümleri + kullanıcının kendi kabulleri
+            var REG = (window.MIALegal && window.MIALegal.DOC_REGISTRY) || {};
+            supabase.from("consents").select("document_key,version").then(function (r) {
+                var mine = {};
+                ((r && r.data) || []).forEach(function (c) { mine[c.document_key + "@" + c.version] = 1; });
+                var html = "";
+                Object.keys(REG).forEach(function (k) {
+                    var d = REG[k];
+                    var accepted = mine[k + "@" + d.version];
+                    html += "<tr><td>" + esc(d.label_tr) + "</td><td>" + d.version + "</td><td>" + d.effective_date + "</td>" +
+                        "<td>" + (accepted ? badge("lr-ok", "Kabul edildi") : badge("lr-warn", "Kayıt yok")) + "</td>" +
+                        "<td>" + badge("lr-warn", "Hukukçu incelemesi bekliyor") + "</td></tr>";
+                });
+                $("lrDocs").innerHTML = html;
+            });
+
+            // Pilot hukuki hazırlık özeti
+            Promise.all([
+                supabase.from("pilot_projects").select("id,company_name,site_name,status"),
+                supabase.from("pilot_legal_reviews").select("pilot_id,status")
+            ]).then(function (rs) {
+                var pilots = rs[0].data || [];
+                var revs = {};
+                ((rs[1] && rs[1].data) || []).forEach(function (x) { revs[x.pilot_id] = x.status; });
+                if (!pilots.length) { $("lrPilots").innerHTML = '<span class="lr-muted">Pilot projesi yok.</span>'; return; }
+                var html = '<table class="lr-tbl"><thead><tr><th>Pilot</th><th>Pilot Durumu</th><th>Hukuki Hazırlık</th></tr></thead><tbody>';
+                pilots.forEach(function (p) {
+                    var st = PLR_TR[revs[p.id] || "not_started"];
+                    html += "<tr><td><b>" + esc(p.company_name) + "</b> <span class='lr-muted'>" + esc(p.site_name || "") + "</span></td>" +
+                        "<td>" + esc(p.status) + "</td><td>" + badge(st[0], st[1]) + "</td></tr>";
+                });
+                $("lrPilots").innerHTML = html + "</tbody></table>" +
+                    '<p class="lr-muted" style="margin:.7rem 0 0;">Hukuki hazırlık <b>onaylı olmayan</b> pilotlarda saha videosu toplanmamalıdır.</p>';
+            });
+
+            // Açık veri talepleri
+            supabase.from("data_subject_requests").select("request_type,status,created_at").order("created_at", { ascending: false }).then(function (r) {
+                var rows = (r && r.data) || [];
+                if (r && r.error) { $("lrDsr").textContent = "Yüklenemedi (migration koşuldu mu?)."; return; }
+                if (!rows.length) { $("lrDsr").innerHTML = '<span class="lr-muted">Açık veri talebi yok.</span>'; return; }
+                var open = rows.filter(function (x) { return x.status === "submitted" || x.status === "under_review"; });
+                $("lrDsr").innerHTML = "<b>" + open.length + "</b> açık / " + rows.length + " toplam talep. " +
+                    '<a href="hesap.html" style="color:#D4AF37;">Hesap sayfasında yönet →</a>';
+            });
+        }
+
+        supabase.auth.getSession().then(function (r) {
+            if (!r.data.session) { window.location.href = "giris-yap.html?next=legal-readiness.html"; return; }
+            load(r.data.session.user);
+        });
+    })();
+    </script>
+</body>
+</html>

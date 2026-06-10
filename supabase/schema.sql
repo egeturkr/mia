@@ -322,7 +322,88 @@ create policy "pilot_analysis_links private to owner" on public.pilot_analysis_l
 create index if not exists pilot_analysis_links_pilot_idx on public.pilot_analysis_links (pilot_id);
 
 -- ============================================================================
+-- 9) HUKUK / KVKK / VERİ YÖNETİŞİMİ SERTLEŞTİRME (Faz 4)
+-- ----------------------------------------------------------------------------
+-- NOT: Bu yapılar operasyonel hazırlık içindir; KVKK uyum İDDİASI değildir.
+-- Tüm hukuki metinler yetkili hukuk danışmanı incelemesi gerektirir.
+-- ============================================================================
+
+-- 9a) consents tablosuna ek bağlam kolonları (geri uyumlu — eski insert'ler çalışır)
+alter table public.consents add column if not exists lang text;
+alter table public.consents add column if not exists pilot_id uuid references public.pilot_projects(id) on delete set null;
+alter table public.consents add column if not exists metadata jsonb;
+
+-- 9b) HUKUKİ DOKÜMAN SÜRÜM KAYDI — js/legal.js DOC_REGISTRY ile senkron tutulur.
+-- Yazma yalnızca service_role; herkes okuyabilir (sürüm bilgisi kamusal).
+create table if not exists public.legal_document_versions (
+  doc_key               text primary key,
+  version               text not null,
+  effective_date        date,
+  requires_reacceptance boolean not null default false,
+  review_status         text not null default 'pending_legal_review'
+                        check (review_status in ('draft','pending_legal_review','lawyer_approved','retired')),
+  notes                 text,
+  updated_at            timestamptz default now()
+);
+alter table public.legal_document_versions enable row level security;
+drop policy if exists "legal versions are public" on public.legal_document_versions;
+create policy "legal versions are public" on public.legal_document_versions for select using (true);
+-- Tohum (idempotent). review_status BİLİNÇLİ olarak 'pending_legal_review' — onay iddia edilmez.
+insert into public.legal_document_versions (doc_key, version, effective_date) values
+  ('terms', '1.0', '2026-06-10'),
+  ('privacy', '1.0', '2026-06-10'),
+  ('kvkk', '1.0', '2026-06-10'),
+  ('image_processing', '1.0', '2026-06-10'),
+  ('cross_border', '1.0', '2026-06-10'),
+  ('ai_disclaimer', '1.0', '2026-06-10'),
+  ('pilot_site_notice', '1.0', '2026-06-10'),
+  ('data_retention', '1.0', '2026-06-10')
+on conflict (doc_key) do nothing;
+
+-- 9c) VERİ SAHİBİ TALEPLERİ — silme/dışa aktarma talepleri (manuel inceleme akışı)
+create table if not exists public.data_subject_requests (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references auth.users(id) on delete cascade,
+  request_type    text not null check (request_type in
+                    ('account_deletion','analysis_deletion','report_deletion','consent_export','personal_data_deletion')),
+  status          text not null default 'submitted'
+                  check (status in ('submitted','under_review','completed','rejected')),
+  request_details text,
+  admin_notes     text,
+  created_at      timestamptz default now(),
+  updated_at      timestamptz default now(),
+  completed_at    timestamptz
+);
+alter table public.data_subject_requests enable row level security;
+drop policy if exists "dsr insert own" on public.data_subject_requests;
+create policy "dsr insert own" on public.data_subject_requests for insert
+  with check (auth.uid() = user_id);
+drop policy if exists "dsr select own" on public.data_subject_requests;
+create policy "dsr select own" on public.data_subject_requests for select
+  using (auth.uid() = user_id);
+-- Durum güncelleme yalnızca service_role (manuel inceleme) — kullanıcı update/delete edemez.
+create index if not exists dsr_user_idx on public.data_subject_requests (user_id, created_at desc);
+
+-- 9d) PİLOT HUKUKİ HAZIRLIK DURUMU — pilot başına tek kayıt.
+-- 'approved' yalnızca gerçek hukukçu onayı alındığında elle işaretlenir; sistem onay üretmez.
+create table if not exists public.pilot_legal_reviews (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null references auth.users(id) on delete cascade,
+  pilot_id      uuid not null unique references public.pilot_projects(id) on delete cascade,
+  status        text not null default 'not_started'
+                check (status in ('not_started','in_progress','ready_for_review','approved','not_approved')),
+  reviewer_name text,
+  notes         text,
+  updated_at    timestamptz default now()
+);
+alter table public.pilot_legal_reviews enable row level security;
+drop policy if exists "pilot_legal_reviews private to owner" on public.pilot_legal_reviews;
+create policy "pilot_legal_reviews private to owner" on public.pilot_legal_reviews for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ============================================================================
 -- Done. Tablolar: analyses, demo_requests, chat_messages, workers, equipment,
 -- checkpoints, scans, api_usage, consents, subscriptions, pilot_projects,
--- pilot_checklists, pilot_weekly_reports, pilot_analysis_links (hepsi RLS açık).
+-- pilot_checklists, pilot_weekly_reports, pilot_analysis_links,
+-- legal_document_versions, data_subject_requests, pilot_legal_reviews (hepsi RLS açık).
 -- ============================================================================

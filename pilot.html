@@ -168,6 +168,31 @@
                     </div>
                 </div>
 
+                <!-- Faz 4: Hukuki hazırlık durumu — onay olmadan saha videosu TOPLANMAZ -->
+                <div class="pi-panel" id="plrPanel">
+                    <h2>Hukuki Hazırlık</h2>
+                    <div id="plrWarning" style="display:none;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.08);color:#ef9a9a;border-radius:10px;padding:.75rem 1rem;font-size:.86rem;line-height:1.5;margin-bottom:.9rem;">
+                        ⚠ <b>Saha videosu toplamaya BAŞLAMAYIN.</b> Bu pilotun hukuki hazırlığı henüz onaylanmadı.
+                        KVKK paketi (aydınlatma, açık rıza dayanağı, işveren onayı, saha afişi) yetkili hukuk danışmanı
+                        tarafından incelenip onaylanmadan çalışan görüntüsü içeren video toplanmamalıdır.
+                    </div>
+                    <div id="plrOk" style="display:none;border:1px solid rgba(34,197,94,.35);background:rgba(34,197,94,.08);color:#86d8a5;border-radius:10px;padding:.75rem 1rem;font-size:.86rem;margin-bottom:.9rem;">
+                        ✓ Hukuki hazırlık onaylı olarak işaretlendi — video toplama başlayabilir.
+                    </div>
+                    <div class="pi-link-row" style="margin-bottom:.5rem;">
+                        <select id="plrStatus" style="flex:0 0 auto;min-width:240px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:9px;padding:.5rem .7rem;color:var(--text-primary);font:inherit;font-size:.86rem;">
+                            <option value="not_started">Başlanmadı</option>
+                            <option value="in_progress">Devam Ediyor</option>
+                            <option value="ready_for_review">Hukukçu İncelemesine Hazır</option>
+                            <option value="approved">Hukukçu Onayladı</option>
+                            <option value="not_approved">Onaylanmadı</option>
+                        </select>
+                        <input id="plrReviewer" type="text" placeholder="İnceleyen hukukçu / kurum" style="flex:1;min-width:180px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:9px;padding:.5rem .7rem;color:var(--text-primary);font:inherit;font-size:.86rem;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="plrSaveBtn">Kaydet</button>
+                    </div>
+                    <div class="pi-muted" id="plrMsg">"Hukukçu Onayladı" durumu yalnızca gerçek bir hukuk danışmanı onayıyla işaretlenmelidir — sistem onay üretmez. <a href="legal-readiness.html" style="color:#D4AF37;">Hukuki hazırlık paneli →</a></div>
+                </div>
+
                 <div class="pi-panel">
                     <h2>Onboarding Kontrol Listesi <span class="pi-muted" id="pclProgress"></span></h2>
                     <div id="pdChecklist"></div>

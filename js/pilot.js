@@ -19,6 +19,9 @@
         { key: "kvkk_notice",      label: "KVKK aydınlatma metni hazırlandı" },
         { key: "site_notice",      label: "Saha bilgilendirme afişi asıldı" },
         { key: "employer_approval", label: "İşveren veri işleme onayı alındı" },
+        { key: "worker_notice",    label: "Çalışan bilgilendirme notu hazırlandı" },
+        { key: "cross_border_review", label: "Sınır ötesi aktarım açıklaması gözden geçirildi" },
+        { key: "retention_agreed", label: "Veri saklama süresi müşteriyle anlaşıldı" },
         { key: "video_protocol",   label: "Video çekim protokolü anlatıldı" },
         { key: "site_contact",     label: "Saha sorumlusu atandı" },
         { key: "weekly_schedule",  label: "Haftalık rapor takvimi onaylandı" },
@@ -130,7 +133,43 @@
         loadChecklist();
         loadLinksAndAnalyses();
         loadWeekly();
+        loadLegalReview();
     }
+
+    // ---- Hukuki hazırlık (Faz 4) ----
+    // 'approved' sistem tarafından üretilmez; yalnızca gerçek hukukçu onayı elle işaretlenir.
+    function renderLegalReview(rec) {
+        var status = rec ? rec.status : "not_started";
+        $("plrStatus").value = status;
+        $("plrReviewer").value = (rec && rec.reviewer_name) || "";
+        $("plrWarning").style.display = status === "approved" ? "none" : "block";
+        $("plrOk").style.display = status === "approved" ? "block" : "none";
+    }
+    function loadLegalReview() {
+        supabase.from("pilot_legal_reviews").select("*").eq("pilot_id", current.id).limit(1).then(function (r) {
+            if (r.error) {
+                // Tablo henüz migrate edilmediyse paneli pasifleştir, akışı bozma.
+                console.warn("[MIA] pilot_legal_reviews okunamadı (migration koşuldu mu?):", r.error.message);
+                $("plrMsg").textContent = "Hukuki hazırlık tablosu bulunamadı — supabase/schema.sql çalıştırılmalı.";
+                renderLegalReview(null);
+                return;
+            }
+            renderLegalReview(r.data && r.data[0]);
+        });
+    }
+    $("plrSaveBtn").addEventListener("click", function () {
+        var row = {
+            user_id: user.id, pilot_id: current.id,
+            status: $("plrStatus").value,
+            reviewer_name: $("plrReviewer").value.trim() || null,
+            updated_at: new Date().toISOString()
+        };
+        supabase.from("pilot_legal_reviews").upsert(row, { onConflict: "pilot_id" }).then(function (r) {
+            if (r.error) { $("plrMsg").textContent = "Kaydedilemedi: " + r.error.message; return; }
+            $("plrMsg").textContent = "Hukuki hazırlık durumu kaydedildi.";
+            renderLegalReview(row);
+        });
+    });
 
     function backToList() {
         current = null;

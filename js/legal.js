@@ -20,6 +20,24 @@
         kvkk: "1.0",
         image_processing: "1.0",
         cross_border: "1.0",
+        // Faz 4 ek rıza/onay türleri
+        ai_disclaimer: "1.0",
+        pilot_site_notice: "1.0",
+        data_retention: "1.0",
+    };
+
+    // Faz 4: zengin sürüm kaydı — supabase legal_document_versions tablosu ve
+    // legal-readiness.html bununla senkron tutulur. review_status BİLİNÇLİ olarak
+    // 'pending_legal_review': hukukçu onayı alınmadan 'lawyer_approved' YAZILMAZ.
+    L.DOC_REGISTRY = {
+        terms:             { version: "1.0", effective_date: "2026-06-10", requires_reacceptance: false, label_tr: "Kullanım Şartları" },
+        privacy:           { version: "1.0", effective_date: "2026-06-10", requires_reacceptance: false, label_tr: "Gizlilik Politikası" },
+        kvkk:              { version: "1.0", effective_date: "2026-06-10", requires_reacceptance: false, label_tr: "KVKK Aydınlatma Metni" },
+        image_processing:  { version: "1.0", effective_date: "2026-06-10", requires_reacceptance: false, label_tr: "Görüntü/Video İşleme Açık Rızası" },
+        cross_border:      { version: "1.0", effective_date: "2026-06-10", requires_reacceptance: false, label_tr: "Sınır Ötesi Aktarım Açıklaması" },
+        ai_disclaimer:     { version: "1.0", effective_date: "2026-06-10", requires_reacceptance: false, label_tr: "AI Destekli Analiz Feragatnamesi" },
+        pilot_site_notice: { version: "1.0", effective_date: "2026-06-10", requires_reacceptance: false, label_tr: "Pilot Saha Bilgilendirme Onayı" },
+        data_retention:    { version: "1.0", effective_date: "2026-06-10", requires_reacceptance: false, label_tr: "Veri Saklama Politikası Onayı" },
     };
 
     function lang() { return (typeof currentLang !== "undefined" ? currentLang : (localStorage.getItem("mia_lang") || "tr")); }
@@ -65,11 +83,30 @@
                     user_id: uid, email: email, subject: subject,
                     document_key: k, version: L.VERSIONS[k] || "1.0",
                     user_agent: ua, page: page,
+                    // Faz 4 bağlam kolonları (migration koşulmadıysa fallback aşağıda)
+                    lang: lang(),
+                    pilot_id: opts.pilot_id || null,
+                    metadata: opts.meta || null,
                 };
             });
             if (!client) return true; // DB yoksa en azından localStorage işaretlendi
             return client.from("consents").insert(rows).then(function (res) {
-                if (res.error) console.warn("[MIA] consent kaydı hata:", res.error.message);
+                if (res.error) {
+                    // Geri uyumluluk: yeni kolonlar (lang/pilot_id/metadata) henüz yoksa onlarsız dene.
+                    var m = (res.error.message || "").toLowerCase();
+                    if (m.indexOf("column") !== -1) {
+                        var legacy = rows.map(function (r2) {
+                            return { user_id: r2.user_id, email: r2.email, subject: r2.subject,
+                                     document_key: r2.document_key, version: r2.version,
+                                     user_agent: r2.user_agent, page: r2.page };
+                        });
+                        return client.from("consents").insert(legacy).then(function (res2) {
+                            if (res2.error) console.warn("[MIA] consent kaydı hata:", res2.error.message);
+                            return !res2.error;
+                        });
+                    }
+                    console.warn("[MIA] consent kaydı hata:", res.error.message);
+                }
                 return !res.error;
             });
         }).catch(function (e) { console.warn("[MIA] recordConsent hata:", e); return false; });
@@ -94,10 +131,16 @@
         }).catch(function () { return false; });
     };
 
-    // Görüntü işleme + sınır ötesi aktarım rızası — gerekirse modal göster.
+    // Gerçek görüntü analizi öncesi rıza kapısı (Faz 4 ile genişletildi):
+    // KVKK bilgilendirme + görüntü işleme açık rızası + sınır ötesi aktarım +
+    // AI feragatnamesi. Hepsi geçerli sürümde kabul edilmişse modal GÖSTERİLMEZ.
     L.ensureImageProcessingConsent = function () {
-        return L.hasConsent("image_processing").then(function (ok) {
-            if (ok) return true;
+        return Promise.all([
+            L.hasConsent("image_processing"),
+            L.hasConsent("ai_disclaimer"),
+            L.hasConsent("kvkk"),
+        ]).then(function (oks) {
+            if (oks[0] && oks[1] && oks[2]) return true;
             return showConsentModal();
         });
     };
@@ -123,8 +166,8 @@
                 '<label style="display:flex;gap:.5rem;align-items:flex-start;font-size:13px;color:#ddd;margin-bottom:1rem;cursor:pointer;">' +
                 '<input type="checkbox" id="miaConsentChk" style="margin-top:3px;width:16px;height:16px;accent-color:#D4AF37;">' +
                 "<span>" + (tr
-                    ? "Görüntülerin yukarıdaki amaç ve koşullarla işlenmesini ve sınır ötesi aktarımını <b>açık rıza</b> ile kabul ediyorum."
-                    : "I give my <b>explicit consent</b> to process and transfer the images under the conditions above.") + "</span></label>" +
+                    ? "KVKK aydınlatma metnini okuduğumu, görüntülerin yukarıdaki amaç ve koşullarla işlenmesini ve sınır ötesi aktarımını <b>açık rıza</b> ile kabul ettiğimi, analizin AI destekli bir ön değerlendirme olduğunu anladığımı beyan ederim."
+                    : "I confirm I have read the KVKK notice, give my <b>explicit consent</b> to process and transfer the images under the conditions above, and understand the analysis is an AI-assisted preliminary assessment.") + "</span></label>" +
                 '<div style="display:flex;gap:.6rem;justify-content:flex-end;">' +
                 '<button id="miaConsentCancel" style="padding:.6rem 1rem;border-radius:8px;border:1px solid #444;background:transparent;color:#ddd;cursor:pointer;">' + (tr ? "Vazgeç" : "Cancel") + "</button>" +
                 '<button id="miaConsentOk" style="padding:.6rem 1.1rem;border-radius:8px;border:none;background:#D4AF37;color:#0A0A0A;font-weight:700;cursor:pointer;opacity:.5;" disabled>' + (tr ? "Onayla ve Devam Et" : "Accept & Continue") + "</button>" +
@@ -139,7 +182,7 @@
             card.querySelector("#miaConsentCancel").addEventListener("click", function () { close(false); });
             ok.addEventListener("click", function () {
                 ok.disabled = true;
-                L.recordConsent(["image_processing", "cross_border"]).then(function () { close(true); });
+                L.recordConsent(["image_processing", "cross_border", "kvkk", "ai_disclaimer"]).then(function () { close(true); });
             });
         });
     }

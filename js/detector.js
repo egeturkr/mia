@@ -605,8 +605,9 @@
 
     function runAnalysis() {
         if (!state.file) return;
-        // Faz 2: görüntü işleme + sınır ötesi aktarım açık rızası (gerekirse modal).
-        if (window.MIALegal && window.MIALegal.ensureImageProcessingConsent) {
+        // Faz 2+4: rıza kapısı yalnızca CANLI analizde (gerçek görüntü işlenirken).
+        // Demo modu sentetiktir — video hiçbir sunucuya gönderilmez, kapı gereksiz.
+        if (inferenceMode === "live" && window.MIALegal && window.MIALegal.ensureImageProcessingConsent) {
             window.MIALegal.ensureImageProcessingConsent().then(function(ok) { if (ok) _runAnalysis(); });
             return;
         }
