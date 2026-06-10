@@ -176,13 +176,24 @@
         return raw;
     }
 
+    // Faz 7: yükleme güvenliği — boyut + uzantı + MIME + süre limitleri.
+    var UPLOAD_LIMITS = {
+        maxBytes: 100 * 1024 * 1024,        // 100 MB
+        maxDurationSec: 600,                 // 10 dakika (uzun kaydı bölerek yükleyin)
+        exts: ["mp4", "mov", "avi", "webm"],
+        mimes: ["video/mp4", "video/quicktime", "video/x-msvideo", "video/avi", "video/webm"]
+    };
     function setFile(file) {
         if (!file) return;
-        // 100MB limit
-        if (file.size > 100 * 1024 * 1024) {
-            alert(getLang() === "tr"
-                ? "Dosya çok büyük. Maksimum 100 MB."
-                : "File too large. Max 100 MB.");
+        var tr = getLang() === "tr";
+        if (file.size > UPLOAD_LIMITS.maxBytes) {
+            alert(tr ? "Dosya çok büyük. Maksimum 100 MB — uzun kaydı bölerek yükleyin." : "File too large. Max 100 MB — split long recordings.");
+            return;
+        }
+        var ext = (file.name.split(".").pop() || "").toLowerCase();
+        var mimeOk = !file.type || UPLOAD_LIMITS.mimes.indexOf(file.type.toLowerCase()) !== -1;
+        if (UPLOAD_LIMITS.exts.indexOf(ext) === -1 || !mimeOk) {
+            alert(tr ? "Desteklenmeyen dosya türü. Kabul edilen formatlar: MP4, MOV, AVI, WEBM." : "Unsupported file type. Accepted formats: MP4, MOV, AVI, WEBM.");
             return;
         }
         state.file = file;
@@ -190,6 +201,11 @@
         els.videoPreview.src = url;
         els.videoPreview.onloadedmetadata = function() {
             state.videoDurationSec = els.videoPreview.duration || 0;
+            // Süre limiti: metadata yüklendiğinde kontrol (öncesinde güvenilir okunamaz)
+            if (state.videoDurationSec > UPLOAD_LIMITS.maxDurationSec) {
+                alert(tr ? "Video çok uzun (maks. 10 dakika). Lütfen kaydı bölerek yükleyin." : "Video too long (max 10 minutes). Please split the recording.");
+                resetAll();
+            }
         };
         els.videoName.textContent = file.name;
         els.videoSize.textContent = fmtSize(file.size);
@@ -754,9 +770,10 @@
                 .sort(function(a, b) { return (b.confidence || 0) - (a.confidence || 0); })
                 .slice(0, 10)
                 .map(function(e) { return { type: (getLang() === "tr" ? e.title_tr : e.title_en) || e.type, timestamp: e.timestamp, confidence: e.confidence }; });
+            miaGetToken().then(function(tok) {
             fetch("/api/notify", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: tok ? { "Content-Type": "application/json", "Authorization": "Bearer " + tok } : { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     to: to,
                     lang: (typeof getLang === "function" ? getLang() : "tr"),
@@ -770,6 +787,7 @@
                 if (!r.ok) console.warn("[MIA] Risk uyarısı e-postası gönderilemedi:", r.status);
                 else console.log("[MIA] Risk uyarısı e-postası gönderildi:", to);
             }).catch(function(e) { console.warn("[MIA] Risk uyarısı isteği hata:", e); });
+            });
         } catch (e) { console.warn("[MIA] maybeSendHighRiskAlert hata:", e); }
     }
 

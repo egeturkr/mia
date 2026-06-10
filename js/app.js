@@ -320,6 +320,13 @@ var translations = {
     }
 };
 
+// === GÜVENLİK: HTML kaçış yardımcısı (Faz 7) — kullanıcı verisini innerHTML'e koymadan önce ===
+window.miaEsc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+};
+
 // === LANGUAGE ===
 var currentLang = localStorage.getItem('mia_lang') || 'tr';
 
@@ -974,7 +981,7 @@ function dashRenderList(analyses, isSample) {
     for (var j = 0; j < analyses.length; j++) {
         var x = analyses[j];
         var dt = new Date(x.created_at).toLocaleDateString(tr ? 'tr-TR' : 'en-US');
-        html += '<div class="analysis-card"><div class="analysis-info"><h3>' + (x.video_name || 'Video') + '</h3><p>' + dt + '</p></div><div class="analysis-stats"><div class="analysis-stat"><div class="analysis-stat-value score">' + Math.round(x.safety_score || 0) + '%</div><div class="analysis-stat-label">' + t('label_safety') + '</div></div><div class="analysis-stat"><div class="analysis-stat-value violations">' + (x.violations_count || 0) + '</div><div class="analysis-stat-label">' + t('label_violations') + '</div></div></div><div class="analysis-actions">' + (!isSample ? '<button class="btn btn-secondary btn-sm" onclick="shareA(\'' + x.id + '\')">' + (tr ? 'Paylaş' : 'Share') + '</button>' : '') + (!isSample ? '<button class="btn btn-success btn-sm" onclick="dlPdf(\'' + x.id + '\')">PDF</button>' : '') + (!isSample && (!window.MIAOrg || window.MIAOrg.can('del')) ? '<button class="btn btn-danger btn-sm" onclick="delA(\'' + x.id + '\')">×</button>' : '') + '</div></div>';
+        html += '<div class="analysis-card"><div class="analysis-info"><h3>' + window.miaEsc(x.video_name || 'Video') + '</h3><p>' + dt + '</p></div><div class="analysis-stats"><div class="analysis-stat"><div class="analysis-stat-value score">' + Math.round(x.safety_score || 0) + '%</div><div class="analysis-stat-label">' + t('label_safety') + '</div></div><div class="analysis-stat"><div class="analysis-stat-value violations">' + (x.violations_count || 0) + '</div><div class="analysis-stat-label">' + t('label_violations') + '</div></div></div><div class="analysis-actions">' + (!isSample ? '<button class="btn btn-secondary btn-sm" onclick="shareA(\'' + x.id + '\')">' + (tr ? 'Paylaş' : 'Share') + '</button>' : '') + (!isSample ? '<button class="btn btn-success btn-sm" onclick="dlPdf(\'' + x.id + '\')">PDF</button>' : '') + (!isSample && (!window.MIAOrg || window.MIAOrg.can('del')) ? '<button class="btn btn-danger btn-sm" onclick="delA(\'' + x.id + '\')">×</button>' : '') + '</div></div>';
     }
     listEl.innerHTML = html;
 }
@@ -1143,7 +1150,13 @@ window.shareA = function(id) {
             } else { window.prompt(tr ? 'Paylaşım linki:' : 'Share link:', url); }
         }
         if (r.data.share_token) { finish(r.data.share_token); return; }
-        var newTok = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2, 12));
+        // Faz 7: fallback da kriptografik güçte (Math.random tahmin edilebilirdi)
+        var newTok;
+        if (window.crypto && crypto.randomUUID) newTok = crypto.randomUUID();
+        else if (window.crypto && crypto.getRandomValues) {
+            var arr = new Uint8Array(24); crypto.getRandomValues(arr);
+            newTok = Array.prototype.map.call(arr, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+        } else { newTok = Date.now().toString(36) + Math.random().toString(36).slice(2, 12); }
         supabase.from('analyses').update({ share_token: newTok }).eq('id', id).then(function(u) {
             if (u.error) {
                 var m = (u.error.message || '').toLowerCase();
@@ -1267,8 +1280,18 @@ if (uploadArea) {
 // === DEMO REQUEST FORM ===
 var demoRequestForm = document.getElementById('demoRequestForm');
 if (demoRequestForm) {
+    var _formLoadedAt = Date.now(); // Faz 7: zaman bazlı bot kontrolü
     demoRequestForm.onsubmit = function(e) {
         e.preventDefault();
+        // Faz 7: honeypot — gizli alan dolduysa bot; sessizce "başarılı" göster (botu bilgilendirme)
+        var hp = document.getElementById('reqWebsite');
+        if (hp && hp.value) {
+            demoRequestForm.style.display = 'none';
+            document.getElementById('formSuccess').className = 'demo-form-success show';
+            return;
+        }
+        // 3 saniyeden hızlı gönderim insan değil
+        if (Date.now() - _formLoadedAt < 3000) { return; }
         var btn = document.getElementById('demoSubmitBtn');
         var data = {
             name: document.getElementById('reqName').value,

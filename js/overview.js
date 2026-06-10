@@ -45,7 +45,7 @@
                 ? '<span class="analysis-stat-value score" style="color:#22c55e;">✓</span>'
                 : '<span class="analysis-stat-value violations">' + t.missing + ": " + miss + "</span>";
             html += '<div class="analysis-card"><div class="analysis-info"><h3>' +
-                (s.worker_name || s.worker_code || "—") + '</h3><p>' + dt + "</p></div>" +
+                (window.miaEsc ? window.miaEsc(s.worker_name || s.worker_code || "—") : "—") + '</h3><p>' + dt + "</p></div>" +
                 '<div class="analysis-stats"><div class="analysis-stat">' + badge + "</div></div></div>";
         });
         list.innerHTML = html;

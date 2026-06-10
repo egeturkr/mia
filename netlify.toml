@@ -139,4 +139,10 @@
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    # camera=(self): tarama sayfası QR okumak için kamera kullanır
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=(), payment=()"
+    Cross-Origin-Opener-Policy = "same-origin-allow-popups"
+    # CSP (Faz 7): script self+jsdelivr(supabase/chart/qrcode)+cdnjs(jsPDF)+inline(tema/i18n);
+    # style self+inline+google-fonts; font gstatic; connect self+supabase; img data/blob (QR+kare);
+    # media blob (video önizleme); object none; frame-ancestors self (clickjacking).
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co; img-src 'self' data: blob: https:; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'"
