@@ -416,6 +416,10 @@
             "- Yüksek riskli ihlal: " + (w.high_risk_violations || 0),
             "- Ortalama güvenlik skoru: " + (w.average_safety_score != null ? Math.round(w.average_safety_score) + "%" : "ölçülmedi"),
             "",
+            "AI DOĞRULAMA DURUMU",
+            (window.MIAReport && window.MIAReport.validationLine ? window.MIAReport.validationLine(null, "tr")
+                : "Doğrulama durumu: bilinmiyor."),
+            "",
             "MANUEL İNCELEME NOTLARI",
             (w.manual_review_notes || "—"),
             "",
@@ -428,7 +432,8 @@
             "—",
             "Bu rapor MIA AI destekli güvenlik analizi ile hazırlanmıştır; sertifikalı İSG denetiminin,",
             "yasal uygunluk kontrollerinin veya profesyonel insan değerlendirmesinin yerine geçmez.",
-            "MIA — miaissagligi.com"
+            "MIA — miaissagligi.com",
+            "Pilot ID: " + p.id + " · Rapor: " + (window.MIAReport ? window.MIAReport.newReportId() : "—")
         ].join("\n");
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(txt).then(function () { $("wrMsg").textContent = "Hafta " + w.week_number + " raporu panoya kopyalandı."; });

@@ -127,10 +127,11 @@
 
     function exportCsv() {
         var l = L(), rows = filtered();
-        var head = [l.date, l.video, l.time, l.type, l.ppe, l.risk, l.conf];
+        var mv = "rf-27"; // model sürümü (model_registry.json ile senkron)
+        var head = [l.date, l.video, l.time, l.type, l.ppe, l.risk, l.conf, "Model"];
         var lines = [head.join(",")];
         rows.forEach(function (r) {
-            var cells = [r.date, r.video, r.time, r.typeLabel, r.ppe, r.risk, r.conf != null ? r.conf + "%" : ""];
+            var cells = [r.date, r.video, r.time, r.typeLabel, r.ppe, r.risk, r.conf != null ? r.conf + "%" : "", mv];
             lines.push(cells.map(function (c) { return '"' + String(c == null ? "" : c).replace(/"/g, '""') + '"'; }).join(","));
         });
         var blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
@@ -138,6 +139,7 @@
         a.href = URL.createObjectURL(blob); a.download = "mia-ihlal-raporu-" + Date.now() + ".csv";
         document.body.appendChild(a); a.click();
         setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 200);
+        if (window.MIAReport) window.MIAReport.logExport(null, null, "csv", { source: "events", rows: rows.length });
     }
 
     function exportPdf() {

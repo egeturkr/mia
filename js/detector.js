@@ -1044,6 +1044,8 @@
         doc.setFontSize(9);
         doc.setTextColor(180, 180, 180);
         doc.text(dateStr, pageW - margin, 46, { align: "right" });
+        var _rid = window.MIAReport ? window.MIAReport.newReportId() : null;
+        if (_rid) doc.text((tr ? "Rapor ID: " : "Report ID: ") + _rid, pageW - margin, 62, { align: "right" });
 
         var y = 120;
 
@@ -1178,6 +1180,16 @@
         doc.setDrawColor(220, 220, 220); doc.setLineWidth(0.5); doc.line(margin, y, pageW - margin, y); y += 14;
         doc.setFont("helvetica", "italic"); doc.setFontSize(8); doc.setTextColor(120, 120, 120);
         doc.splitTextToSize(discText, pageW - margin * 2).forEach(function(ln){ doc.text(ln, margin, y); y += 11; });
+        // Faz 9: model + doğrulama durumu (sayı uydurulmaz)
+        y += 4;
+        doc.setFontSize(7.5); doc.setTextColor(140,140,140);
+        doc.text((tr ? "Model: " : "Model: ") + ROBOFLOW.model + " · rf-27 · " +
+            (inferenceMode === "live" ? (tr ? "canlı analiz" : "live analysis") : (tr ? "DEMO (sentetik)" : "DEMO (synthetic)")), margin, y); y += 10;
+        var _vline = (window.MIAReport && window.MIAReport.validationLine)
+            ? window.MIAReport.validationLine(null, tr ? "tr" : "en")
+            : (tr ? "Doğrulama durumu: bilinmiyor." : "Validation status: unknown.");
+        doc.splitTextToSize(_vline, pageW - margin * 2).forEach(function(ln){ doc.text(ln, margin, y); y += 10; });
+        if (_rid) { doc.text((tr ? "Üretim: " : "Generated: ") + dateStr, margin, y); y += 10; }
 
         // Footer on every page
         var pages = doc.internal.getNumberOfPages();
@@ -1196,7 +1208,12 @@
         doc.save("MIA-" + base + "-rapor.pdf");
     }
 
-    els.downloadPdf.addEventListener("click", buildPdf);
+    els.downloadPdf.addEventListener("click", function () {
+        buildPdf();
+        if (window.MIAReport && inferenceMode === "live") {
+            window.MIAReport.logExport(null, null, "pdf", { source: "detector", title: state.file && state.file.name });
+        }
+    });
 
     els.resetBtn.addEventListener("click", resetAll);
 

@@ -946,6 +946,33 @@ create policy "crm admins read demo requests" on public.demo_requests for select
   using (is_crm_admin());
 
 -- ============================================================================
+-- 13) RAPOR DOĞRULANABİLİRLİĞİ & DIŞA AKTARMA GEÇMİŞİ (Faz 9)
+-- ----------------------------------------------------------------------------
+-- Her PDF/CSV/paylaşım olayı kaydedilir; report_id + bütünlük hash'i metadata'da.
+-- Bu tablo hem "rapor kimliği kaydı" hem "export geçmişi"dir (ayrı analysis_reports
+-- tablosu yerine bilinçli sadelik — mevcut analyses akışına dokunulmaz).
+-- ============================================================================
+create table if not exists public.report_exports (
+  id          uuid primary key default gen_random_uuid(),
+  analysis_id uuid references public.analyses(id) on delete set null,
+  report_id   text,                      -- MIA-RPT-YYYYMMDD-XXXXXX
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  org_id      uuid references public.organizations(id) on delete set null,
+  export_type text not null check (export_type in ('pdf','csv','shared_link','json')),
+  exported_at timestamptz default now(),
+  metadata    jsonb                      -- {hash, model_version, validation_status, title...}
+);
+alter table public.report_exports enable row level security;
+drop policy if exists "report_exports read" on public.report_exports;
+create policy "report_exports read" on public.report_exports for select
+  using (user_id = auth.uid() or (org_id is not null and is_org_member(org_id)));
+drop policy if exists "report_exports insert" on public.report_exports;
+create policy "report_exports insert" on public.report_exports for insert
+  with check (user_id = auth.uid());
+create index if not exists report_exports_user_idx on public.report_exports (user_id, exported_at desc);
+create index if not exists report_exports_analysis_idx on public.report_exports (analysis_id);
+
+-- ============================================================================
 -- Done. Tablolar: analyses, demo_requests, chat_messages, workers, equipment,
 -- checkpoints, scans, api_usage, consents, subscriptions, pilot_projects,
 -- pilot_checklists, pilot_weekly_reports, pilot_analysis_links,
@@ -953,5 +980,6 @@ create policy "crm admins read demo requests" on public.demo_requests for select
 -- organizations, organization_memberships, organization_invitations,
 -- organization_sites, billing_customers, payment_records, invoices,
 -- billing_events, customer_accounts, customer_contacts, sales_opportunities,
--- customer_interactions, sales_tasks, case_study_candidates, crm_admins (hepsi RLS açık).
+-- customer_interactions, sales_tasks, case_study_candidates, crm_admins,
+-- report_exports (hepsi RLS açık).
 -- ============================================================================

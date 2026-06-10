@@ -1026,7 +1026,15 @@ if (document.getElementById('totalAnalyses')) {
 
 window.delA = function(id) { if (!confirm('Delete?')) return; supabase.from('analyses').delete().eq('id', id).then(function() { loadDashboard(); }); };
 // Build a branded PDF report from a saved analysis row (uses detections_json if present).
+// Faz 9: rapor ID + model/doğrulama + bütünlük hash'i + öneriler + export logu.
 function miaBuildAnalysisPdf(row) {
+    if (window.MIAReport && window.MIAReport.prepare) {
+        window.MIAReport.prepare(row).then(function (meta) { _miaRenderAnalysisPdf(row, meta); });
+    } else {
+        _miaRenderAnalysisPdf(row, null);
+    }
+}
+function _miaRenderAnalysisPdf(row, RM) {
     if (!window.jspdf || !window.jspdf.jsPDF) { alert('PDF kütüphanesi yüklenemedi. Sayfayı yenileyin.'); return; }
     var tr = currentLang === 'tr';
     var evts = [];
@@ -1042,6 +1050,7 @@ function miaBuildAnalysisPdf(row) {
     doc.text(tr ? 'AI Güvenlik Analiz Raporu' : 'AI Safety Analysis Report', margin, 66);
     doc.setFontSize(9); doc.setTextColor(180,180,180);
     doc.text(new Date(row.created_at || Date.now()).toLocaleString(tr ? 'tr-TR' : 'en-US'), pageW - margin, 46, { align: 'right' });
+    if (RM && RM.reportId) doc.text((tr ? 'Rapor ID: ' : 'Report ID: ') + RM.reportId, pageW - margin, 62, { align: 'right' });
 
     var y = 120;
     doc.setTextColor(dark[0],dark[1],dark[2]); doc.setFont('helvetica','bold'); doc.setFontSize(13);
@@ -1107,6 +1116,45 @@ function miaBuildAnalysisPdf(row) {
         doc.text(tr ? 'Bu analiz için detaylı tespit verisi kaydedilmemiş (özet rapor).' : 'No detailed detection data stored for this analysis (summary only).', margin, y);
     }
 
+    // Faz 9: AI & Metodoloji + doğrulama durumu (sayı uydurulmaz)
+    if (y > pageH - 150) { doc.addPage(); y = margin; }
+    y += 18;
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(dark[0],dark[1],dark[2]);
+    doc.text(tr ? 'AI & Metodoloji' : 'AI & Methodology', margin, y); y += 14;
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(gray[0],gray[1],gray[2]);
+    var _mi = RM && RM.model;
+    var _mLines = [
+        (tr ? 'Model: ' : 'Model: ') + ((_mi && _mi.model) || (tr ? 'bilinmiyor' : 'unknown')) +
+            ' · ' + (tr ? 'Sürüm: ' : 'Version: ') + ((_mi && _mi.version) || (tr ? 'bilinmiyor' : 'unknown')) +
+            ' · ' + (tr ? 'Kaynak: yüklenen video analizi' : 'Source: uploaded video analysis'),
+        (window.MIAReport ? window.MIAReport.validationLine(_mi, tr ? 'tr' : 'en')
+            : (tr ? 'Doğrulama durumu: bilinmiyor.' : 'Validation status: unknown.')),
+        (tr ? 'Sınırlar: analiz örneklenen karelere dayanır; kısa süreli olaylar gözden kaçabilir.'
+            : 'Limitations: analysis is based on sampled frames; brief events may be missed.')
+    ];
+    _mLines.forEach(function (ln) {
+        doc.splitTextToSize(ln, pageW - margin * 2).forEach(function (l2) { doc.text(l2, margin, y); y += 11; });
+    });
+    // Öneriler — pratik, jenerik (saha verisi iddiası içermez)
+    y += 10;
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(dark[0],dark[1],dark[2]);
+    doc.text(tr ? 'Önerilen Aksiyonlar' : 'Recommended Actions', margin, y); y += 14;
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(gray[0],gray[1],gray[2]);
+    var _recs = tr ? [
+        '1. Yüksek riskli tespitlerin zaman damgalarını saha sorumlusuyla birlikte inceleyin.',
+        '2. Tekrarlayan KKD eksikliklerinde ilgili ekibe kısa hatırlatma eğitimi planlayın.',
+        '3. En riskli geçiş noktasında bir saha turu yapın ve fiziki önlemleri gözden geçirin.',
+        '4. Bir sonraki vardiyada aynı noktadan tekrar analiz alarak trendi izleyin.'
+    ] : [
+        '1. Review high-risk detection timestamps with the site supervisor.',
+        '2. Plan a brief refresher training where PPE gaps repeat.',
+        '3. Walk the highest-risk checkpoint and review physical controls.',
+        '4. Re-run the analysis next shift from the same viewpoint to track the trend.'
+    ];
+    _recs.forEach(function (ln) {
+        doc.splitTextToSize(ln, pageW - margin * 2).forEach(function (l2) { doc.text(l2, margin, y); y += 11; });
+    });
+
     // Faz 2: yasal sorumluluk / AI disclaimer bloğu
     var _disc = (window.MIALegal ? window.MIALegal.DISCLAIMERS(tr?'tr':'en') : null);
     var _discText = _disc ? (_disc.report + ' ' + _disc.liability)
@@ -1117,6 +1165,24 @@ function miaBuildAnalysisPdf(row) {
     doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(120,120,120);
     doc.splitTextToSize(_discText, pageW - margin*2).forEach(function(ln){ doc.text(ln, margin, y); y += 11; });
 
+    // Faz 9: Rapor bütünlüğü
+    y += 8;
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(140,140,140);
+    if (RM && RM.reportId) {
+        doc.text((tr ? 'Rapor ID: ' : 'Report ID: ') + RM.reportId +
+            '  ·  ' + (tr ? 'Üretim: ' : 'Generated: ') + new Date(RM.generatedAt).toLocaleString(tr ? 'tr-TR' : 'en-US') +
+            (RM.hash ? '  ·  ' + (tr ? 'Bütünlük Kodu: ' : 'Integrity ID: ') + RM.hash : ''), margin, y);
+        y += 10;
+        if (row.share_token) {
+            doc.text(tr ? 'Bu analiz paylaşım linkine sahiptir — linki bilen herkes raporu görüntüleyebilir.'
+                        : 'This analysis has a share link — anyone with the link can view the report.', margin, y);
+            y += 10;
+        }
+    } else {
+        doc.text(tr ? 'Eski rapor — bütünlük metaverisi mevcut değil.' : 'Legacy report — integrity metadata not available.', margin, y);
+        y += 10;
+    }
+
     var pages = doc.internal.getNumberOfPages();
     for (var p=1; p<=pages; p++){ doc.setPage(p); doc.setFontSize(8); doc.setTextColor(150,150,150);
         doc.text('MIA — miaissagligi.com', margin, pageH-24);
@@ -1125,6 +1191,12 @@ function miaBuildAnalysisPdf(row) {
         doc.text(tr?'Bu rapor MIA yapay zeka analizi ile otomatik oluşturulmuştur; yasal İSG denetiminin yerine geçmez.':'Auto-generated by MIA AI; not a substitute for a legal OHS inspection.', pageW/2, pageH-24, {align:'center'});
     }
     doc.save('MIA-' + ((row.video_name||'rapor').replace(/\.[^.]+$/, '')) + '-rapor.pdf');
+    if (window.MIAReport && RM) {
+        window.MIAReport.logExport(row.id || null, RM.reportId, 'pdf', {
+            hash: RM.hash, model_version: RM.model && RM.model.version,
+            validation_status: RM.model && RM.model.status, title: row.video_name || 'Video'
+        });
+    }
 }
 
 window.dlPdf = function(id) {
@@ -1142,6 +1214,7 @@ window.shareA = function(id) {
         function finish(token) {
             var base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
             var url = base + 'rapor.html?t=' + token;
+            if (window.MIAReport) window.MIAReport.logExport(id, null, 'shared_link', {});
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(url).then(
                     function() { alert((tr ? 'Paylaşım linki kopyalandı:\n\n' : 'Share link copied:\n\n') + url); },
