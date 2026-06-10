@@ -402,8 +402,245 @@ create policy "pilot_legal_reviews private to owner" on public.pilot_legal_revie
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ============================================================================
+-- 10) ORGANİZASYON HESAPLARI + RBAC (Faz 5)
+-- ----------------------------------------------------------------------------
+-- GERİ UYUMLU: user_id sahipliği KORUNUR; mevcut politikalara DOKUNULMAZ.
+-- Org erişimi, mevcut politikaların YANINA eklenen ek (permissive=OR) politikalarla
+-- sağlanır. org_id kolonları NULLABLE — eski satırlar aynen çalışır. Backfill YOK.
+-- Roller: owner > admin > safety_manager > viewer.
+-- ============================================================================
+
+-- 10a) Çekirdek tablolar
+create table if not exists public.organizations (
+  id            uuid primary key default gen_random_uuid(),
+  name          text not null,
+  slug          text unique,
+  owner_user_id uuid not null references auth.users(id) on delete cascade,
+  industry      text,
+  company_size  text,
+  country       text,
+  city          text,
+  billing_email text,
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now()
+);
+
+create table if not exists public.organization_memberships (
+  id         uuid primary key default gen_random_uuid(),
+  org_id     uuid not null references public.organizations(id) on delete cascade,
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  email      text,
+  role       text not null default 'viewer' check (role in ('owner','admin','safety_manager','viewer')),
+  status     text not null default 'active' check (status in ('active','invited','removed')),
+  invited_by uuid references auth.users(id) on delete set null,
+  joined_at  timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  unique (org_id, user_id)
+);
+
+create table if not exists public.organization_invitations (
+  id          uuid primary key default gen_random_uuid(),
+  org_id      uuid not null references public.organizations(id) on delete cascade,
+  email       text not null,
+  role        text not null default 'viewer' check (role in ('admin','safety_manager','viewer')),
+  token       text not null unique default replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''),
+  invited_by  uuid references auth.users(id) on delete set null,
+  status      text not null default 'pending' check (status in ('pending','accepted','expired','revoked')),
+  expires_at  timestamptz not null default now() + interval '14 days',
+  accepted_at timestamptz,
+  created_at  timestamptz default now()
+);
+
+create table if not exists public.organization_sites (
+  id         uuid primary key default gen_random_uuid(),
+  org_id     uuid not null references public.organizations(id) on delete cascade,
+  name       text not null,
+  location   text,
+  status     text not null default 'active' check (status in ('active','archived')),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- 10b) Yardımcı fonksiyonlar (SECURITY DEFINER — RLS özyinelemesini önler)
+create or replace function public.is_org_member(p_org uuid, p_roles text[] default null)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.organization_memberships m
+    where m.org_id = p_org and m.user_id = auth.uid() and m.status = 'active'
+      and (p_roles is null or m.role = any(p_roles))
+  );
+$$;
+
+create or replace function public.is_org_owner_direct(p_org uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.organizations o where o.id = p_org and o.owner_user_id = auth.uid());
+$$;
+
+-- Davet kabulü: token + e-posta + süre doğrulaması TAMAMEN sunucuda.
+create or replace function public.accept_org_invite(p_token text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare inv record; my_email text; org_name text;
+begin
+  if auth.uid() is null then return jsonb_build_object('ok', false, 'error', 'auth_required'); end if;
+  select lower(email) into my_email from auth.users where id = auth.uid();
+  select * into inv from public.organization_invitations where token = p_token limit 1;
+  if inv is null then return jsonb_build_object('ok', false, 'error', 'invalid_token'); end if;
+  if inv.status <> 'pending' then return jsonb_build_object('ok', false, 'error', 'not_pending'); end if;
+  if inv.expires_at < now() then
+    update public.organization_invitations set status = 'expired' where id = inv.id;
+    return jsonb_build_object('ok', false, 'error', 'expired');
+  end if;
+  if lower(inv.email) <> my_email then return jsonb_build_object('ok', false, 'error', 'email_mismatch'); end if;
+  insert into public.organization_memberships (org_id, user_id, email, role, status, invited_by, joined_at)
+  values (inv.org_id, auth.uid(), my_email, inv.role, 'active', inv.invited_by, now())
+  on conflict (org_id, user_id) do update
+    set status = 'active', role = excluded.role, joined_at = now(), updated_at = now();
+  update public.organization_invitations set status = 'accepted', accepted_at = now() where id = inv.id;
+  select name into org_name from public.organizations where id = inv.org_id;
+  return jsonb_build_object('ok', true, 'org_id', inv.org_id, 'org_name', org_name, 'role', inv.role);
+end;
+$$;
+
+-- 10c) Yeni tabloların RLS'i
+alter table public.organizations enable row level security;
+drop policy if exists "org select members" on public.organizations;
+create policy "org select members" on public.organizations for select
+  using (is_org_member(id) or owner_user_id = auth.uid());
+drop policy if exists "org insert self" on public.organizations;
+create policy "org insert self" on public.organizations for insert
+  with check (owner_user_id = auth.uid());
+drop policy if exists "org update admins" on public.organizations;
+create policy "org update admins" on public.organizations for update
+  using (is_org_member(id, array['owner','admin']));
+drop policy if exists "org delete owner" on public.organizations;
+create policy "org delete owner" on public.organizations for delete
+  using (is_org_member(id, array['owner']) or owner_user_id = auth.uid());
+
+alter table public.organization_memberships enable row level security;
+drop policy if exists "memberships select" on public.organization_memberships;
+create policy "memberships select" on public.organization_memberships for select
+  using (user_id = auth.uid() or is_org_member(org_id));
+drop policy if exists "memberships insert" on public.organization_memberships;
+create policy "memberships insert" on public.organization_memberships for insert
+  with check (
+    (user_id = auth.uid() and is_org_owner_direct(org_id))      -- kurucu kendi owner kaydını açar
+    or is_org_member(org_id, array['owner','admin'])            -- yönetici üye ekler
+  );
+drop policy if exists "memberships update" on public.organization_memberships;
+create policy "memberships update" on public.organization_memberships for update
+  using (
+    is_org_member(org_id, array['owner'])
+    or (is_org_member(org_id, array['admin']) and role not in ('owner','admin'))  -- admin, owner/admin'e dokunamaz
+  );
+drop policy if exists "memberships delete owner" on public.organization_memberships;
+create policy "memberships delete owner" on public.organization_memberships for delete
+  using (is_org_member(org_id, array['owner']) and user_id <> auth.uid());
+
+alter table public.organization_invitations enable row level security;
+drop policy if exists "invites select admins" on public.organization_invitations;
+create policy "invites select admins" on public.organization_invitations for select
+  using (is_org_member(org_id, array['owner','admin']));
+drop policy if exists "invites insert" on public.organization_invitations;
+create policy "invites insert" on public.organization_invitations for insert
+  with check (
+    is_org_member(org_id, array['owner'])
+    or (is_org_member(org_id, array['admin']) and role in ('safety_manager','viewer'))  -- admin, admin davet edemez
+  );
+drop policy if exists "invites update admins" on public.organization_invitations;
+create policy "invites update admins" on public.organization_invitations for update
+  using (is_org_member(org_id, array['owner','admin']));
+
+alter table public.organization_sites enable row level security;
+drop policy if exists "sites select members" on public.organization_sites;
+create policy "sites select members" on public.organization_sites for select
+  using (is_org_member(org_id));
+drop policy if exists "sites write admins" on public.organization_sites;
+create policy "sites write admins" on public.organization_sites for all
+  using (is_org_member(org_id, array['owner','admin']))
+  with check (is_org_member(org_id, array['owner','admin']));
+
+-- 10d) Veri tablolarına NULLABLE org_id / site_id (mevcut satırlar etkilenmez)
+alter table public.analyses add column if not exists org_id uuid references public.organizations(id) on delete set null;
+alter table public.analyses add column if not exists site_id uuid references public.organization_sites(id) on delete set null;
+alter table public.workers add column if not exists org_id uuid references public.organizations(id) on delete set null;
+alter table public.equipment add column if not exists org_id uuid references public.organizations(id) on delete set null;
+alter table public.checkpoints add column if not exists org_id uuid references public.organizations(id) on delete set null;
+alter table public.checkpoints add column if not exists site_id uuid references public.organization_sites(id) on delete set null;
+alter table public.scans add column if not exists org_id uuid references public.organizations(id) on delete set null;
+alter table public.scans add column if not exists site_id uuid references public.organization_sites(id) on delete set null;
+alter table public.pilot_projects add column if not exists org_id uuid references public.organizations(id) on delete set null;
+alter table public.pilot_projects add column if not exists site_id uuid references public.organization_sites(id) on delete set null;
+alter table public.pilot_checklists add column if not exists org_id uuid references public.organizations(id) on delete set null;
+alter table public.pilot_weekly_reports add column if not exists org_id uuid references public.organizations(id) on delete set null;
+alter table public.pilot_analysis_links add column if not exists org_id uuid references public.organizations(id) on delete set null;
+
+create index if not exists analyses_org_idx on public.analyses (org_id, created_at desc);
+create index if not exists scans_org_idx on public.scans (org_id, created_at desc);
+create index if not exists pilot_projects_org_idx on public.pilot_projects (org_id);
+create index if not exists memberships_user_idx on public.organization_memberships (user_id, status);
+create index if not exists memberships_org_idx on public.organization_memberships (org_id, status);
+create index if not exists invitations_org_idx on public.organization_invitations (org_id, status);
+
+-- 10e) Veri tablolarına EK org politikaları (mevcut user_id politikaları AYNEN durur; OR birleşir)
+-- Kalıp: okuma=tüm aktif üyeler · yazma=owner/admin/safety_manager · silme=owner/admin.
+drop policy if exists "org members read analyses" on public.analyses;
+create policy "org members read analyses" on public.analyses for select
+  using (org_id is not null and is_org_member(org_id));
+drop policy if exists "org staff insert analyses" on public.analyses;
+create policy "org staff insert analyses" on public.analyses for insert
+  with check (org_id is not null and auth.uid() = user_id and is_org_member(org_id, array['owner','admin','safety_manager']));
+drop policy if exists "org staff update analyses" on public.analyses;
+create policy "org staff update analyses" on public.analyses for update
+  using (org_id is not null and is_org_member(org_id, array['owner','admin','safety_manager']));
+drop policy if exists "org admins delete analyses" on public.analyses;
+create policy "org admins delete analyses" on public.analyses for delete
+  using (org_id is not null and is_org_member(org_id, array['owner','admin']));
+
+drop policy if exists "org members read scans" on public.scans;
+create policy "org members read scans" on public.scans for select
+  using (org_id is not null and is_org_member(org_id));
+drop policy if exists "org staff write scans" on public.scans;
+create policy "org staff write scans" on public.scans for insert
+  with check (org_id is not null and is_org_member(org_id, array['owner','admin','safety_manager']));
+
+drop policy if exists "org members read pilots" on public.pilot_projects;
+create policy "org members read pilots" on public.pilot_projects for select
+  using (org_id is not null and is_org_member(org_id));
+drop policy if exists "org admins write pilots" on public.pilot_projects;
+create policy "org admins write pilots" on public.pilot_projects for all
+  using (org_id is not null and is_org_member(org_id, array['owner','admin']))
+  with check (org_id is not null and auth.uid() = user_id and is_org_member(org_id, array['owner','admin']));
+
+drop policy if exists "org members read pilot checklists" on public.pilot_checklists;
+create policy "org members read pilot checklists" on public.pilot_checklists for select
+  using (org_id is not null and is_org_member(org_id));
+drop policy if exists "org admins write pilot checklists" on public.pilot_checklists;
+create policy "org admins write pilot checklists" on public.pilot_checklists for all
+  using (org_id is not null and is_org_member(org_id, array['owner','admin']))
+  with check (org_id is not null and is_org_member(org_id, array['owner','admin']));
+
+drop policy if exists "org members read weekly reports" on public.pilot_weekly_reports;
+create policy "org members read weekly reports" on public.pilot_weekly_reports for select
+  using (org_id is not null and is_org_member(org_id));
+drop policy if exists "org staff write weekly reports" on public.pilot_weekly_reports;
+create policy "org staff write weekly reports" on public.pilot_weekly_reports for all
+  using (org_id is not null and is_org_member(org_id, array['owner','admin','safety_manager']))
+  with check (org_id is not null and is_org_member(org_id, array['owner','admin','safety_manager']));
+
+drop policy if exists "org members read pilot links" on public.pilot_analysis_links;
+create policy "org members read pilot links" on public.pilot_analysis_links for select
+  using (org_id is not null and is_org_member(org_id));
+drop policy if exists "org staff write pilot links" on public.pilot_analysis_links;
+create policy "org staff write pilot links" on public.pilot_analysis_links for all
+  using (org_id is not null and is_org_member(org_id, array['owner','admin','safety_manager']))
+  with check (org_id is not null and is_org_member(org_id, array['owner','admin','safety_manager']));
+
+-- ============================================================================
 -- Done. Tablolar: analyses, demo_requests, chat_messages, workers, equipment,
 -- checkpoints, scans, api_usage, consents, subscriptions, pilot_projects,
 -- pilot_checklists, pilot_weekly_reports, pilot_analysis_links,
--- legal_document_versions, data_subject_requests, pilot_legal_reviews (hepsi RLS açık).
+-- legal_document_versions, data_subject_requests, pilot_legal_reviews,
+-- organizations, organization_memberships, organization_invitations,
+-- organization_sites (hepsi RLS açık).
 -- ============================================================================

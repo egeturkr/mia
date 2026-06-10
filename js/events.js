@@ -179,12 +179,18 @@
     }
 
     function load() {
-        supabase.from("analyses").select("*").eq("user_id", window._evUser.id)
-            .order("created_at", { ascending: false }).then(function (r) {
+        // Faz 5: org seçiliyse org analizleri + legacy kişisel analizler (OR).
+        var run = function (orgId) {
+            var q = supabase.from("analyses").select("*");
+            q = orgId ? q.or("user_id.eq." + window._evUser.id + ",org_id.eq." + orgId) : q.eq("user_id", window._evUser.id);
+            q.order("created_at", { ascending: false }).then(function (r) {
                 window._evRaw = r.data || [];
                 allRows = flatten(window._evRaw);
                 render();
             });
+        };
+        if (window.MIAOrg && window.MIAOrg.ready) window.MIAOrg.ready.then(function () { run(window.MIAOrg.currentId()); });
+        else run(null);
     }
 
     function init() {

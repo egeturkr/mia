@@ -36,8 +36,12 @@
     function fmtPrice(p, c) { return p != null ? "₺" + Number(p).toLocaleString("tr-TR") : "—"; }
 
     // ---- Liste ----
+    function orgId() { return (window.MIAOrg && window.MIAOrg.currentId()) || null; }
     function loadPilots() {
-        return supabase.from("pilot_projects").select("*").order("created_at", { ascending: false })
+        var oid = orgId();
+        var q = supabase.from("pilot_projects").select("*");
+        if (oid) q = q.or("user_id.eq." + user.id + ",org_id.eq." + oid);
+        return q.order("created_at", { ascending: false })
             .then(function (r) {
                 if (r.error) { console.error("[MIA] Pilot listesi yüklenemedi:", r.error.message); pilots = []; }
                 else pilots = r.data || [];
@@ -89,6 +93,7 @@
         $("pcMsg").textContent = "Kaydediliyor…";
         var row = {
             user_id: user.id,
+            org_id: orgId(),
             company_name: company,
             site_name: $("pcSite").value.trim() || null,
             contact_name: $("pcContact").value.trim() || null,
@@ -104,7 +109,7 @@
             var pilot = r.data;
             // Kontrol listesini tohumla
             var items = CHECKLIST.map(function (c) {
-                return { user_id: user.id, pilot_id: pilot.id, checklist_key: c.key, checklist_label: c.label };
+                return { user_id: user.id, org_id: pilot.org_id || null, pilot_id: pilot.id, checklist_key: c.key, checklist_label: c.label };
             });
             supabase.from("pilot_checklists").insert(items).then(function (r2) {
                 if (r2.error) console.warn("[MIA] Checklist tohumlanamadı:", r2.error.message);
@@ -187,7 +192,7 @@
             var have = {}; items.forEach(function (i) { have[i.checklist_key] = 1; });
             var missing = CHECKLIST.filter(function (c) { return !have[c.key]; });
             if (missing.length) {
-                var rows = missing.map(function (c) { return { user_id: user.id, pilot_id: current.id, checklist_key: c.key, checklist_label: c.label }; });
+                var rows = missing.map(function (c) { return { user_id: user.id, org_id: current.org_id || null, pilot_id: current.id, checklist_key: c.key, checklist_label: c.label }; });
                 supabase.from("pilot_checklists").insert(rows).then(loadChecklist);
                 return;
             }
@@ -316,7 +321,7 @@
         var w = parseInt($("wrWeek").value, 10);
         if (!w || w < 1) { $("wrMsg").textContent = "Geçerli bir hafta numarası gir."; return; }
         var row = {
-            user_id: user.id, pilot_id: current.id, week_number: w,
+            user_id: user.id, org_id: current.org_id || null, pilot_id: current.id, week_number: w,
             report_date: new Date().toISOString().slice(0, 10),
             uploaded_video_count: parseInt($("wrVideos").value, 10) || 0,
             total_violations: parseInt($("wrViolations").value, 10) || 0,
@@ -426,7 +431,7 @@
     $("plLinkBtn").addEventListener("click", function () {
         var aid = $("plAnalysisSelect").value;
         if (!aid) return;
-        supabase.from("pilot_analysis_links").insert({ user_id: user.id, pilot_id: current.id, analysis_id: aid })
+        supabase.from("pilot_analysis_links").insert({ user_id: user.id, org_id: current.org_id || null, pilot_id: current.id, analysis_id: aid })
             .then(function (r) {
                 if (r.error) console.error("[MIA] Analiz bağlanamadı:", r.error.message);
                 loadLinksAndAnalyses();
@@ -439,6 +444,7 @@
     supabase.auth.getSession().then(function (r) {
         if (!r.data.session) { window.location.href = "giris-yap.html?next=pilot.html"; return; }
         user = r.data.session.user;
-        loadPilots();
+        if (window.MIAOrg && window.MIAOrg.ready) window.MIAOrg.ready.then(loadPilots);
+        else loadPilots();
     });
 })();

@@ -974,7 +974,7 @@ function dashRenderList(analyses, isSample) {
     for (var j = 0; j < analyses.length; j++) {
         var x = analyses[j];
         var dt = new Date(x.created_at).toLocaleDateString(tr ? 'tr-TR' : 'en-US');
-        html += '<div class="analysis-card"><div class="analysis-info"><h3>' + (x.video_name || 'Video') + '</h3><p>' + dt + '</p></div><div class="analysis-stats"><div class="analysis-stat"><div class="analysis-stat-value score">' + Math.round(x.safety_score || 0) + '%</div><div class="analysis-stat-label">' + t('label_safety') + '</div></div><div class="analysis-stat"><div class="analysis-stat-value violations">' + (x.violations_count || 0) + '</div><div class="analysis-stat-label">' + t('label_violations') + '</div></div></div><div class="analysis-actions">' + (!isSample ? '<button class="btn btn-secondary btn-sm" onclick="shareA(\'' + x.id + '\')">' + (tr ? 'Paylaş' : 'Share') + '</button>' : '') + (!isSample ? '<button class="btn btn-success btn-sm" onclick="dlPdf(\'' + x.id + '\')">PDF</button>' : '') + (!isSample ? '<button class="btn btn-danger btn-sm" onclick="delA(\'' + x.id + '\')">×</button>' : '') + '</div></div>';
+        html += '<div class="analysis-card"><div class="analysis-info"><h3>' + (x.video_name || 'Video') + '</h3><p>' + dt + '</p></div><div class="analysis-stats"><div class="analysis-stat"><div class="analysis-stat-value score">' + Math.round(x.safety_score || 0) + '%</div><div class="analysis-stat-label">' + t('label_safety') + '</div></div><div class="analysis-stat"><div class="analysis-stat-value violations">' + (x.violations_count || 0) + '</div><div class="analysis-stat-label">' + t('label_violations') + '</div></div></div><div class="analysis-actions">' + (!isSample ? '<button class="btn btn-secondary btn-sm" onclick="shareA(\'' + x.id + '\')">' + (tr ? 'Paylaş' : 'Share') + '</button>' : '') + (!isSample ? '<button class="btn btn-success btn-sm" onclick="dlPdf(\'' + x.id + '\')">PDF</button>' : '') + (!isSample && (!window.MIAOrg || window.MIAOrg.can('del')) ? '<button class="btn btn-danger btn-sm" onclick="delA(\'' + x.id + '\')">×</button>' : '') + '</div></div>';
     }
     listEl.innerHTML = html;
 }
@@ -989,10 +989,17 @@ function dashApplyFilter(period) {
 
 function loadDashboard() {
     if (!currentUser) return;
-    supabase.from('analyses').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).then(function(r) {
-        dashAllAnalyses = r.data || [];
-        dashApplyFilter(dashCurrentPeriod);
-    });
+    // Faz 5: seçili organizasyon varsa org verisi + legacy kişisel veri birlikte (OR — çift sayım yok).
+    var run = function (orgId) {
+        var q = supabase.from('analyses').select('*');
+        q = orgId ? q.or('user_id.eq.' + currentUser.id + ',org_id.eq.' + orgId) : q.eq('user_id', currentUser.id);
+        q.order('created_at', { ascending: false }).then(function(r) {
+            dashAllAnalyses = r.data || [];
+            dashApplyFilter(dashCurrentPeriod);
+        });
+    };
+    if (window.MIAOrg && window.MIAOrg.ready) window.MIAOrg.ready.then(function () { run(window.MIAOrg.currentId()); });
+    else run(null);
 }
 
 if (document.getElementById('totalAnalyses')) {

@@ -787,7 +787,10 @@
             safe_count: s.safe_count,
             frames_processed: s.frames_processed,
             processing_time: s.processing_time,
-            detections_json: JSON.stringify(state.events)
+            detections_json: JSON.stringify(state.events),
+            // Faz 5: seçili organizasyona yaz (yoksa null — legacy davranış)
+            org_id: (window.MIAOrg && window.MIAOrg.currentId()) || null,
+            site_id: null
         };
         try {
             sb.from("analyses").insert(row).then(function(r) {
@@ -796,6 +799,7 @@
                     var msg = (r.error.message || "").toLowerCase();
                     if (msg.indexOf("detections_json") !== -1 || msg.indexOf("column") !== -1) {
                         delete row.detections_json;
+                        delete row.org_id; delete row.site_id; // migration koşulmadıysa onlarsız dene
                         sb.from("analyses").insert(row).then(function(r2) {
                             if (r2.error) console.warn("[MIA] Analiz kaydedilemedi:", r2.error.message);
                             else console.log("[MIA] Analiz kaydedildi (detections_json kolonu yok — sadece özet):", s.video_name);
@@ -843,6 +847,16 @@
     }
 
     els.startBtn.addEventListener("click", runAnalysis);
+
+    // Faz 5: viewer rolü analiz BAŞLATAMAZ (UX kısıtı — gerçek yaptırım RLS'te).
+    if (window.MIAOrg && window.MIAOrg.ready) {
+        window.MIAOrg.ready.then(function () {
+            if (window.MIAOrg.currentId() && !window.MIAOrg.can("upload")) {
+                els.startBtn.disabled = true;
+                els.startBtn.title = "İzleyici rolü analiz başlatamaz — yöneticinizden yetki isteyin.";
+            }
+        });
+    }
 
     // === RESULTS RENDER ===
     function riskClass(risk) {
