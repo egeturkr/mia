@@ -56,6 +56,11 @@
   schedule = "0 3 * * *"
 
 [[redirects]]
+  from = "/pilot"
+  to = "/pilot.html"
+  status = 200
+
+[[redirects]]
   from = "/demo"
   to = "/detector.html"
   status = 302

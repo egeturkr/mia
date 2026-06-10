@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - Pilot Programı</title>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#0A0A0A">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Pilot operasyon sayfası — mevcut tasarım diline uyar, yeni stil dili icat etmez */
+        .pi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+        .pi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.25rem;cursor:pointer;transition:border-color .2s,transform .2s}
+        .pi-card:hover{border-color:rgba(212,175,55,.45);transform:translateY(-2px)}
+        .pi-card h3{font-size:1.02rem;margin:0 0 .2rem}
+        .pi-card .pi-site{color:var(--text-muted);font-size:.85rem;margin-bottom:.7rem}
+        .pi-row{display:flex;justify-content:space-between;font-size:.83rem;color:var(--text-secondary);margin:.25rem 0}
+        .pi-status{display:inline-block;padding:.2rem .65rem;border-radius:99px;font-size:.74rem;font-weight:700}
+        .pi-st-draft{background:rgba(110,110,110,.15);color:#9a9a9a}
+        .pi-st-proposed{background:rgba(96,165,250,.12);color:#60a5fa}
+        .pi-st-active{background:rgba(212,175,55,.14);color:#D4AF37}
+        .pi-st-completed{background:rgba(34,197,94,.13);color:#22c55e}
+        .pi-st-converted{background:rgba(34,197,94,.2);color:#22c55e;box-shadow:inset 0 0 0 1px rgba(34,197,94,.4)}
+        .pi-st-lost{background:rgba(239,68,68,.12);color:#ef4444}
+        .pi-progress{height:6px;border-radius:99px;background:var(--bg-secondary);overflow:hidden;margin:.6rem 0 .3rem}
+        .pi-progress>span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#D4AF37,#e8c96a);transition:width .4s}
+        .pi-next{font-size:.78rem;color:var(--text-muted)}
+        .pi-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.4rem 1.5rem;margin-bottom:1.25rem}
+        .pi-panel h2{font-size:1.02rem;margin:0 0 1rem}
+        .pi-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.8rem}
+        .pi-form label{display:block;font-size:.78rem;color:var(--text-muted);margin-bottom:.3rem}
+        .pi-form input,.pi-form select,.pi-form textarea,.pi-wr-form input,.pi-wr-form textarea{width:100%;background:var(--bg-secondary);border:1px solid var(--border);border-radius:9px;padding:.55rem .7rem;color:var(--text-primary);font:inherit;font-size:.88rem}
+        .pi-form input:focus,.pi-form textarea:focus,.pi-wr-form input:focus,.pi-wr-form textarea:focus,.pi-form select:focus{outline:none;border-color:rgba(212,175,55,.5)}
+        .pi-full{grid-column:1/-1}
+        .pi-check{display:flex;align-items:center;gap:.7rem;padding:.55rem .4rem;border-bottom:1px solid var(--border);cursor:pointer}
+        .pi-check:last-child{border-bottom:none}
+        .pi-check input{accent-color:#D4AF37;width:16px;height:16px;flex-shrink:0}
+        .pi-check span{font-size:.9rem;color:var(--text-secondary)}
+        .pi-check.done span{color:var(--text-muted);text-decoration:line-through}
+        .pi-check .pi-when{margin-left:auto;font-size:.72rem;color:var(--text-muted)}
+        .pi-empty{border:1px dashed var(--border);border-radius:16px;padding:3rem 1.5rem;text-align:center;color:var(--text-muted)}
+        .pi-empty h3{color:var(--text-secondary);margin-bottom:.4rem}
+        .pi-wr-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem;margin-bottom:1rem}
+        .pi-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem}
+        .pi-link-row{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.8rem}
+        .pi-link-row select{flex:1;min-width:220px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:9px;padding:.5rem .7rem;color:var(--text-primary);font:inherit;font-size:.86rem}
+        table.pi-tbl{width:100%;border-collapse:collapse;font-size:.86rem}
+        table.pi-tbl th,table.pi-tbl td{padding:.55rem .7rem;text-align:left;border-bottom:1px solid var(--border)}
+        table.pi-tbl th{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
+        .pi-muted{color:var(--text-muted);font-size:.82rem}
+        .pi-disclaimer{font-size:.76rem;color:var(--text-muted);border:1px solid rgba(212,175,55,.18);border-radius:10px;padding:.7rem .9rem;margin-top:1.25rem;line-height:1.55}
+        @media(max-width:768px){.pi-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html"><img src="images/logo-horizontal-trim.png" alt="MIA" class="logo-img"></a>
+        <nav>
+            <a href="index.html" data-i18n="nav_home">Ana Sayfa</a>
+            <a href="sirket.html" data-i18n="nav_company">Şirket</a>
+            <a href="cozumler.html" data-i18n="nav_pricing">Çözümler</a>
+            <a href="iletisim.html" data-i18n="nav_contact">İletişim</a>
+            <div class="nav-divider"></div>
+            <div id="loggedOutNav">
+                <a href="giris-yap.html" class="btn btn-secondary btn-sm" data-i18n="nav_login">Giriş Yap</a>
+                <a href="kaydol.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Kaydol</a>
+            </div>
+            <div id="loggedInNav" style="display:none;">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="events.html">İhlal Raporu</a>
+                <a href="pilot.html" class="active">Pilot</a>
+                <a href="detector.html" data-i18n="nav_analysis">Analiz</a>
+                <span class="user-email" id="userEmail"></span>
+                <button type="button" id="navLogout" class="btn btn-secondary btn-sm" data-i18n="nav_logout">Çıkış</button>
+            </div>
+            <div class="lang-dropdown">
+                <button type="button" class="lang-dropdown-toggle" id="langDropdownToggle" aria-haspopup="true" aria-expanded="false" aria-label="Dil seçimi / Select language" title="Language">
+                    <span class="lang-current-flag" id="langCurrentFlag">🇹🇷</span>
+                    <svg class="lang-caret" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="lang-dropdown-menu" id="langDropdownMenu" role="menu">
+                    <button type="button" class="lang-option active" data-lang="tr" role="menuitem"><span class="lang-option-flag">🇹🇷</span> Türkçe<svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+                    <button type="button" class="lang-option" data-lang="en" role="menuitem"><span class="lang-option-flag">🇺🇸</span> English<svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+                    <button type="button" class="lang-option" data-lang="es" role="menuitem"><span class="lang-option-flag">🇪🇸</span> Español<svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+                </div>
+            </div>
+            <button type="button" class="theme-toggle" id="themeToggle" aria-label="Tema değiştir / Toggle theme" title="Toggle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+        </nav>
+    </header>
+
+    <main class="page-inner page-dashboard mia-dash-v2">
+        <div class="dashboard-container" style="max-width:1240px;margin:0 auto;">
+            <div class="dashboard-header">
+                <div>
+                    <h1>Pilot Programı</h1>
+                    <p class="dash-sub">Ücretli pilot operasyonları — ₺25.000 / 4 hafta / tek saha</p>
+                </div>
+                <div class="dash-header-actions">
+                    <button type="button" class="btn btn-secondary" id="piBackBtn" style="display:none;">← Pilot Listesi</button>
+                    <button type="button" class="btn btn-primary" id="piNewBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span>Yeni Pilot</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- YENİ PİLOT FORMU -->
+            <div class="pi-panel" id="piCreatePanel" style="display:none;">
+                <h2>Yeni Ücretli Pilot</h2>
+                <div class="pi-form">
+                    <div><label>Firma adı *</label><input id="pcCompany" type="text" placeholder="Örn. Mostar Projeleri İstanbul"></div>
+                    <div><label>Şantiye / saha adı</label><input id="pcSite" type="text" placeholder="Örn. Ataşehir Konut Projesi"></div>
+                    <div><label>İlgili kişi</label><input id="pcContact" type="text"></div>
+                    <div><label>E-posta</label><input id="pcEmail" type="email"></div>
+                    <div><label>Telefon</label><input id="pcPhone" type="tel"></div>
+                    <div><label>Başlangıç</label><input id="pcStart" type="date"></div>
+                    <div><label>Bitiş</label><input id="pcEnd" type="date"></div>
+                    <div><label>Pilot bedeli (₺)</label><input id="pcPrice" type="number" value="25000"></div>
+                    <div class="pi-full"><label>Notlar</label><textarea id="pcNotes" rows="2" placeholder="Karar verici, özel koşullar, saha detayları..."></textarea></div>
+                </div>
+                <div style="margin-top:1rem;display:flex;gap:.6rem;">
+                    <button type="button" class="btn btn-primary" id="pcSaveBtn">Pilotu Oluştur</button>
+                    <button type="button" class="btn btn-secondary" id="pcCancelBtn">Vazgeç</button>
+                </div>
+                <div class="pi-muted" id="pcMsg" style="margin-top:.6rem;"></div>
+            </div>
+
+            <!-- PİLOT LİSTESİ -->
+            <div id="piListView">
+                <div class="pi-empty" id="piEmpty" style="display:none;">
+                    <h3>Henüz pilot projesi yok</h3>
+                    <p>İlk ücretli pilotunu oluştur — sözleşme, KVKK ve saha kurulumu için kontrol listesi otomatik açılır.</p>
+                    <button type="button" class="btn btn-primary" style="margin-top:1rem;" onclick="document.getElementById('piNewBtn').click()">İlk Pilotu Oluştur</button>
+                </div>
+                <div class="pi-grid" id="piGrid"></div>
+            </div>
+
+            <!-- PİLOT DETAY -->
+            <div id="piDetailView" style="display:none;">
+                <div class="pi-panel">
+                    <div class="pi-detail-head">
+                        <div>
+                            <h2 style="margin:0;" id="pdCompany">—</h2>
+                            <div class="pi-muted" id="pdMeta">—</div>
+                        </div>
+                        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
+                            <select id="pdStatus" class="pi-link-row" style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:9px;padding:.5rem .7rem;color:var(--text-primary);font:inherit;font-size:.86rem;">
+                                <option value="draft">Taslak</option>
+                                <option value="proposed">Teklif Verildi</option>
+                                <option value="active">Aktif</option>
+                                <option value="completed">Tamamlandı</option>
+                                <option value="converted">Aboneliğe Dönüştü</option>
+                                <option value="lost">Kaybedildi</option>
+                            </select>
+                            <button type="button" class="btn btn-danger btn-sm" id="pdDeleteBtn">Sil</button>
+                        </div>
+                    </div>
+                    <!-- Başarı metrikleri -->
+                    <div class="dashboard-stats" style="margin-bottom:0;">
+                        <div class="dash-stat-card" style="padding:1rem 1.2rem;"><div class="dash-stat-label">Bağlı Analiz</div><div class="dash-stat-value" id="pmVideos" style="font-size:1.5rem;">0</div></div>
+                        <div class="dash-stat-card" style="padding:1rem 1.2rem;"><div class="dash-stat-label">Toplam İhlal</div><div class="dash-stat-value bad" id="pmViolations" style="font-size:1.5rem;">0</div></div>
+                        <div class="dash-stat-card" style="padding:1rem 1.2rem;"><div class="dash-stat-label">Yüksek Risk</div><div class="dash-stat-value bad" id="pmHigh" style="font-size:1.5rem;">0</div></div>
+                        <div class="dash-stat-card" style="padding:1rem 1.2rem;"><div class="dash-stat-label">Ort. Skor</div><div class="dash-stat-value good" id="pmScore" style="font-size:1.5rem;">—</div></div>
+                    </div>
+                </div>
+
+                <div class="pi-panel">
+                    <h2>Onboarding Kontrol Listesi <span class="pi-muted" id="pclProgress"></span></h2>
+                    <div id="pdChecklist"></div>
+                </div>
+
+                <div class="pi-panel">
+                    <h2>Bağlı Analizler</h2>
+                    <p class="pi-muted" style="margin:-.5rem 0 .8rem;">Detector ile yapılan analizleri bu pilota bağla — metrikler ve haftalık raporlar buradan beslenir.</p>
+                    <div class="pi-link-row">
+                        <select id="plAnalysisSelect"><option value="">Analiz seç…</option></select>
+                        <button type="button" class="btn btn-secondary btn-sm" id="plLinkBtn">Bağla</button>
+                    </div>
+                    <div id="pdLinkedList" class="pi-muted">Bu pilota bağlı analiz yok.</div>
+                </div>
+
+                <div class="pi-panel">
+                    <h2>Haftalık Pilot Raporları</h2>
+                    <div class="pi-wr-form">
+                        <div><label class="pi-muted">Hafta #</label><input id="wrWeek" type="number" min="1" max="12" value="1"></div>
+                        <div><label class="pi-muted">Analiz edilen video</label><input id="wrVideos" type="number" min="0" value="0"></div>
+                        <div><label class="pi-muted">Toplam ihlal</label><input id="wrViolations" type="number" min="0" value="0"></div>
+                        <div><label class="pi-muted">Yüksek risk</label><input id="wrHigh" type="number" min="0" value="0"></div>
+                        <div><label class="pi-muted">Ort. güvenlik skoru</label><input id="wrScore" type="number" min="0" max="100" step="0.1"></div>
+                    </div>
+                    <div class="pi-wr-form" style="grid-template-columns:1fr 1fr 1fr;">
+                        <div><label class="pi-muted">Manuel inceleme notları</label><textarea id="wrReview" rows="2"></textarea></div>
+                        <div><label class="pi-muted">Müşteri geri bildirimi</label><textarea id="wrFeedback" rows="2"></textarea></div>
+                        <div><label class="pi-muted">Sonraki aksiyonlar</label><textarea id="wrNext" rows="2"></textarea></div>
+                    </div>
+                    <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="wrAutofillBtn">Bağlı analizlerden doldur</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="wrSaveBtn">Haftalık Raporu Kaydet</button>
+                    </div>
+                    <div class="pi-muted" id="wrMsg" style="margin:.5rem 0 1rem;"></div>
+                    <div id="pdWeeklyList"></div>
+                </div>
+
+                <div class="pi-disclaimer">
+                    Bu sayfa bir iç operasyon aracıdır. Pilot sözleşmesi, KVKK metinleri ve veri işleme onayları yayına alınmadan önce
+                    bir hukuk danışmanı tarafından incelenmelidir (bkz. docs/PILOT_LEGAL_CHECKLIST.md). MIA, AI destekli güvenlik analizi
+                    ve raporlama desteği sağlar; sertifikalı İSG denetimlerinin, yasal uygunluk kontrollerinin veya profesyonel insan
+                    değerlendirmesinin yerine geçmez.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer><p data-i18n="footer">© 2026 MIA - Tüm hakları saklıdır.</p></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+    <script src="js/pilot.js"></script>
+</body>
+</html>

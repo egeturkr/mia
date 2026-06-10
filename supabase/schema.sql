@@ -236,6 +236,93 @@ create policy "subscriptions select own" on public.subscriptions for select
 create index if not exists subscriptions_user_idx on public.subscriptions (user_id);
 
 -- ============================================================================
+-- 8) ÜCRETLİ PİLOT MODU (Faz 3) — pilot operasyon katmanı
+-- ----------------------------------------------------------------------------
+-- Mevcut analyses tablosuna DOKUNMAZ. Pilotlar mevcut analizlere ayrı bir
+-- bağlantı tablosuyla (pilot_analysis_links) bağlanır → geri uyumlu.
+-- Tüm pilot verisi user_id ile sahibine kilitli (org modeli Faz 5'te gelecek).
+-- ============================================================================
+create table if not exists public.pilot_projects (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null references auth.users(id) on delete cascade,
+  company_name  text not null,
+  site_name     text,
+  contact_name  text,
+  contact_email text,
+  contact_phone text,
+  start_date    date,
+  end_date      date,
+  pilot_price   numeric default 25000,
+  currency      text default 'TRY',
+  status        text not null default 'draft'
+                check (status in ('draft','proposed','active','completed','converted','lost')),
+  package_type  text not null default 'paid_pilot'
+                check (package_type in ('paid_pilot','professional','pro_fusion','enterprise')),
+  notes         text,
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now()
+);
+alter table public.pilot_projects enable row level security;
+drop policy if exists "pilot_projects private to owner" on public.pilot_projects;
+create policy "pilot_projects private to owner" on public.pilot_projects for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create index if not exists pilot_projects_user_idx on public.pilot_projects (user_id, created_at desc);
+
+create table if not exists public.pilot_checklists (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references auth.users(id) on delete cascade,
+  pilot_id        uuid not null references public.pilot_projects(id) on delete cascade,
+  checklist_key   text not null,
+  checklist_label text not null,
+  completed       boolean not null default false,
+  completed_at    timestamptz,
+  notes           text,
+  unique (pilot_id, checklist_key)
+);
+alter table public.pilot_checklists enable row level security;
+drop policy if exists "pilot_checklists private to owner" on public.pilot_checklists;
+create policy "pilot_checklists private to owner" on public.pilot_checklists for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create index if not exists pilot_checklists_pilot_idx on public.pilot_checklists (pilot_id);
+
+create table if not exists public.pilot_weekly_reports (
+  id                   uuid primary key default gen_random_uuid(),
+  user_id              uuid not null references auth.users(id) on delete cascade,
+  pilot_id             uuid not null references public.pilot_projects(id) on delete cascade,
+  week_number          int not null check (week_number between 1 and 12),
+  report_date          date default current_date,
+  uploaded_video_count int default 0,
+  total_violations     int default 0,
+  high_risk_violations int default 0,
+  average_safety_score numeric,
+  manual_review_notes  text,
+  customer_feedback    text,
+  next_actions         text,
+  created_at           timestamptz default now(),
+  unique (pilot_id, week_number)
+);
+alter table public.pilot_weekly_reports enable row level security;
+drop policy if exists "pilot_weekly_reports private to owner" on public.pilot_weekly_reports;
+create policy "pilot_weekly_reports private to owner" on public.pilot_weekly_reports for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create index if not exists pilot_weekly_reports_pilot_idx on public.pilot_weekly_reports (pilot_id, week_number);
+
+create table if not exists public.pilot_analysis_links (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  pilot_id    uuid not null references public.pilot_projects(id) on delete cascade,
+  analysis_id uuid not null references public.analyses(id) on delete cascade,
+  created_at  timestamptz default now(),
+  unique (pilot_id, analysis_id)
+);
+alter table public.pilot_analysis_links enable row level security;
+drop policy if exists "pilot_analysis_links private to owner" on public.pilot_analysis_links;
+create policy "pilot_analysis_links private to owner" on public.pilot_analysis_links for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create index if not exists pilot_analysis_links_pilot_idx on public.pilot_analysis_links (pilot_id);
+
+-- ============================================================================
 -- Done. Tablolar: analyses, demo_requests, chat_messages, workers, equipment,
--- checkpoints, scans, api_usage, consents, subscriptions (hepsi RLS açık).
+-- checkpoints, scans, api_usage, consents, subscriptions, pilot_projects,
+-- pilot_checklists, pilot_weekly_reports, pilot_analysis_links (hepsi RLS açık).
 -- ============================================================================
