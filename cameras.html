@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA - Canlı Kamera AI</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#0A0A0A">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>(function(){var t=localStorage.getItem('mia_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .ca-wrap{max-width:1240px;margin:0 auto;padding:7rem 1.25rem 4rem}
+        .ca-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.3rem 1.4rem;margin-bottom:1.1rem}
+        .ca-panel h2{font-size:1rem;margin:0 0 .9rem}
+        .ca-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem}
+        .ca-cam{background:var(--bg-secondary);border:1px solid var(--border);border-radius:14px;padding:1rem 1.1rem}
+        .ca-cam h3{font-size:.98rem;margin:0 0 .15rem}
+        .ca-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:.35rem}
+        .ca-on{background:#22c55e;box-shadow:0 0 6px #22c55e}
+        .ca-off{background:#ef4444}
+        .ca-unk{background:#9a9a9a}
+        .ca-deg{background:#D4AF37}
+        .ca-meta{font-size:.78rem;color:var(--text-muted);margin:.35rem 0}
+        .ca-badge{display:inline-block;padding:.14rem .55rem;border-radius:99px;font-size:.68rem;font-weight:700;white-space:nowrap}
+        .ca-high{background:rgba(239,68,68,.12);color:#ef4444}
+        .ca-med{background:rgba(212,175,55,.13);color:#D4AF37}
+        .ca-low{background:rgba(34,197,94,.12);color:#22c55e}
+        .ca-row{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;margin-bottom:.6rem}
+        .ca-row input,.ca-row select{flex:1;min-width:140px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:9px;padding:.5rem .65rem;color:var(--text-primary);font:inherit;font-size:.86rem}
+        .ca-row button{flex:0 0 auto}
+        .ca-muted{color:var(--text-muted);font-size:.82rem}
+        .ca-warn{border:1px solid rgba(212,175,55,.35);background:rgba(212,175,55,.08);color:#c9b27a;border-radius:12px;padding:.8rem 1rem;font-size:.88rem;line-height:1.5;margin-bottom:1.1rem}
+        .ca-block{border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.07);color:#ef9a9a;border-radius:12px;padding:1rem 1.2rem;font-size:.9rem;line-height:1.6;margin-bottom:1.1rem}
+        table.ca-tbl{width:100%;border-collapse:collapse;font-size:.84rem}
+        table.ca-tbl th,table.ca-tbl td{padding:.5rem .6rem;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+        table.ca-tbl th{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
+        .ca-empty{border:1px dashed var(--border);border-radius:14px;padding:2.2rem 1.2rem;text-align:center;color:var(--text-muted)}
+    </style>
+</head>
+<body>
+    <header>
+        <a class="logo" href="index.html"><img src="images/logo-horizontal-trim.png" alt="MIA" class="logo-img"></a>
+        <nav>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="events.html">İhlal Raporu</a>
+            <a href="cameras.html" class="active">Canlı Kamera</a>
+            <a href="detector.html">Analiz</a>
+            <span class="user-email" id="userEmail"></span>
+            <button type="button" id="navLogout" class="btn btn-secondary btn-sm">Çıkış</button>
+        </nav>
+    </header>
+
+    <main class="ca-wrap">
+        <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:flex-start;margin-bottom:1rem;">
+            <div>
+                <h1 style="margin:0 0 .25rem;">Canlı Kamera AI <span class="ca-badge ca-med" style="vertical-align:middle;">YENİ MODÜL</span></h1>
+                <p class="ca-muted" style="margin:0;">RTSP/test akışlarında yakın-gerçek-zamanlı KKD tespiti. Yüklenen video analizi (Analiz sayfası) ayrı ve aynen çalışır.</p>
+            </div>
+            <button type="button" class="btn btn-primary" id="caNewBtn" style="display:none;">+ Kamera Ekle</button>
+        </div>
+
+        <!-- Plan kapısı -->
+        <div class="ca-block" id="caPlanBlock" style="display:none;">
+            <b>Bu modül Kamera AI planı gerektirir.</b> Mevcut planınız canlı kamera izlemeyi içermiyor.
+            Plan seçenekleri için <a href="hesap.html" style="color:#D4AF37;">Hesap sayfasına</a> gidin veya satış ekibiyle görüşün.
+            (Test/demo akışı için ekiple iletişime geçin.)
+        </div>
+
+        <!-- Worker durumu — DÜRÜSTLÜK: worker bağlı değilse tespit YOKTUR -->
+        <div class="ca-warn" id="caWorkerWarn" style="display:none;">
+            ⚠ <b>Gerçek zamanlı worker bağlı değil.</b> Kamera kayıtları yönetilebilir ama canlı tespit ÇALIŞMIYOR —
+            worker servisi başlatılana kadar hiçbir olay üretilmez (kurulum: docs/REALTIME_CAMERA_RUNBOOK.md).
+            Son worker sinyali: <span id="caLastHb">hiç</span>
+        </div>
+
+        <!-- Kamera ekleme (owner/admin) -->
+        <div class="ca-panel" id="caAddPanel" style="display:none;">
+            <h2>Kamera Ekle</h2>
+            <div class="ca-row">
+                <input id="cnName" type="text" placeholder="Kamera adı (örn. Saha Girişi) *">
+                <input id="cnLoc" type="text" placeholder="Konum etiketi">
+                <select id="cnType">
+                    <option value="rtsp">RTSP (IP kamera/DVR)</option>
+                    <option value="test_stream">Test akışı (dosya)</option>
+                    <option value="browser_webcam">Webcam (demo)</option>
+                    <option value="onvif">ONVIF</option>
+                </select>
+                <select id="cnSite"><option value="">Saha seç…</option></select>
+            </div>
+            <div class="ca-row">
+                <input id="cnMasked" type="text" placeholder="Maskeli adres (örn. rtsp://***@192.168.1.50) — kimlik bilgisi YAZMA">
+                <button type="button" class="btn btn-primary btn-sm" id="cnSaveBtn">Ekle</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="cnCancelBtn">Vazgeç</button>
+            </div>
+            <div class="ca-muted">Güvenlik: RTSP kullanıcı adı/şifresi buraya GİRİLMEZ ve veritabanında saklanmaz.
+            Gerçek akış adresi yalnız worker sunucusundaki cameras.json dosyasına yazılır (runbook'ta anlatılıyor).
+            <span id="cnMsg"></span></div>
+        </div>
+
+        <!-- Kamera ızgarası -->
+        <div class="ca-panel">
+            <h2>Kameralar <span class="ca-muted" id="caCount"></span></h2>
+            <div class="ca-empty" id="caEmpty" style="display:none;">Henüz kamera yok. Owner/admin "+ Kamera Ekle" ile başlayabilir.</div>
+            <div class="ca-grid" id="caGrid"></div>
+        </div>
+
+        <!-- Canlı olaylar -->
+        <div class="ca-panel">
+            <h2>Canlı İhlal Olayları <button type="button" class="btn btn-secondary btn-sm" id="caCsvBtn" style="margin-left:.5rem;">CSV</button>
+                <span class="ca-muted" style="float:right;">15 sn'de bir yenilenir</span></h2>
+            <div id="caEvents" class="ca-muted">Yükleniyor…</div>
+        </div>
+
+        <p class="ca-muted">Olaylar AI destekli ön değerlendirmedir; sertifikalı İSG denetiminin yerine geçmez.
+        Kaynak etiketi: bu sayfadaki olaylar "Canlı Kamera", Analiz sayfasındakiler "Yüklenen Video" kaynaklıdır.</p>
+    </main>
+
+    <footer><p>© 2026 MIA - Tüm hakları saklıdır.</p></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+    <script src="js/org.js"></script>
+    <script src="js/monitor.js"></script>
+    <script src="js/cameras.js"></script>
+</body>
+</html>

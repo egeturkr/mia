@@ -88,6 +88,11 @@
   status = 200
 
 [[redirects]]
+  from = "/cameras"
+  to = "/cameras.html"
+  status = 200
+
+[[redirects]]
   from = "/demo"
   to = "/detector.html"
   status = 302

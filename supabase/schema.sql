@@ -1041,6 +1041,114 @@ create policy "health admin read" on public.health_checks for select using (is_c
 create index if not exists health_checks_time_idx on public.health_checks (checked_at desc);
 
 -- ============================================================================
+-- 15) GERÇEK ZAMANLI KAMERA AI (Faz 12)
+-- ----------------------------------------------------------------------------
+-- Mimari: RTSP akışını AYRI bir worker servisi işler (Netlify functions uzun
+-- süreli akış tutamaz). Uygulama kamera kayıtlarını yönetir; worker service_role
+-- ile camera_events/heartbeat yazar. RTSP KİMLİK BİLGİLERİ BU TABLOYA GİRMEZ —
+-- yalnız worker host'unun yerel config'inde tutulur (stream_url_masked salt görüntü).
+-- Yüklenen-video analizi (analyses) AYNEN korunur; bu ayrı bir modüldür.
+-- ============================================================================
+create table if not exists public.cameras (
+  id                uuid primary key default gen_random_uuid(),
+  org_id            uuid not null references public.organizations(id) on delete cascade,
+  site_id           uuid references public.organization_sites(id) on delete set null,
+  name              text not null,
+  location_label    text,
+  camera_type       text not null default 'rtsp'
+                    check (camera_type in ('rtsp','onvif','browser_webcam','test_stream')),
+  stream_url_masked text,            -- örn. rtsp://***:***@192.168.1.*** (salt görüntü)
+  status            text not null default 'inactive'
+                    check (status in ('inactive','testing','active','error','paused','archived')),
+  health_status     text not null default 'unknown'
+                    check (health_status in ('unknown','online','offline','degraded')),
+  last_frame_at     timestamptz,
+  last_detection_at timestamptz,
+  sampling_fps      numeric default 0.2,    -- 5 sn'de 1 kare (maliyet varsayılanı)
+  created_by        uuid references auth.users(id) on delete set null,
+  created_at        timestamptz default now(),
+  updated_at        timestamptz default now()
+);
+alter table public.cameras enable row level security;
+drop policy if exists "cameras read members" on public.cameras;
+create policy "cameras read members" on public.cameras for select
+  using (is_org_member(org_id));
+drop policy if exists "cameras manage admins" on public.cameras;
+create policy "cameras manage admins" on public.cameras for all
+  using (is_org_member(org_id, array['owner','admin']))
+  with check (is_org_member(org_id, array['owner','admin']));
+create index if not exists cameras_org_idx on public.cameras (org_id, status);
+
+create table if not exists public.camera_events (
+  id               uuid primary key default gen_random_uuid(),
+  org_id           uuid not null references public.organizations(id) on delete cascade,
+  site_id          uuid,
+  camera_id        uuid not null references public.cameras(id) on delete cascade,
+  event_type       text not null check (event_type in
+                   ('ppe_violation','no_helmet','no_vest','no_mask','restricted_area',
+                    'unsafe_behavior','camera_offline','worker_error')),
+  risk_level       text not null default 'medium' check (risk_level in ('low','medium','high','critical')),
+  confidence       numeric,
+  frame_timestamp  timestamptz not null default now(),
+  snapshot_path    text,
+  detections_json  jsonb,
+  model_name       text,
+  model_version    text,
+  validation_status text,
+  status           text not null default 'open' check (status in ('open','reviewed','dismissed','resolved')),
+  reviewed_by      uuid references auth.users(id) on delete set null,
+  reviewed_at      timestamptz,
+  notes            text,
+  created_at       timestamptz default now()
+);
+alter table public.camera_events enable row level security;
+drop policy if exists "camera_events read members" on public.camera_events;
+create policy "camera_events read members" on public.camera_events for select
+  using (is_org_member(org_id));
+-- İnceleme (review/dismiss): safety_manager ve üstü. INSERT yalnız service_role (worker).
+drop policy if exists "camera_events review staff" on public.camera_events;
+create policy "camera_events review staff" on public.camera_events for update
+  using (is_org_member(org_id, array['owner','admin','safety_manager']));
+create index if not exists camera_events_org_time_idx on public.camera_events (org_id, created_at desc);
+create index if not exists camera_events_cam_idx on public.camera_events (camera_id, created_at desc);
+
+create table if not exists public.camera_health_logs (
+  id         bigint generated always as identity primary key,
+  org_id     uuid not null,
+  camera_id  uuid not null references public.cameras(id) on delete cascade,
+  status     text not null,
+  latency_ms int,
+  message    text,
+  metadata   jsonb,
+  checked_at timestamptz default now()
+);
+alter table public.camera_health_logs enable row level security;
+drop policy if exists "camera_health read members" on public.camera_health_logs;
+create policy "camera_health read members" on public.camera_health_logs for select
+  using (is_org_member(org_id));
+create index if not exists camera_health_cam_idx on public.camera_health_logs (camera_id, checked_at desc);
+
+create table if not exists public.camera_worker_sessions (
+  id                uuid primary key default gen_random_uuid(),
+  org_id            uuid,
+  camera_id         uuid references public.cameras(id) on delete cascade,
+  worker_id         text not null,
+  status            text not null default 'starting'
+                    check (status in ('starting','running','stopped','error')),
+  started_at        timestamptz default now(),
+  stopped_at        timestamptz,
+  last_heartbeat_at timestamptz default now(),
+  error_message     text,
+  metadata          jsonb
+);
+alter table public.camera_worker_sessions enable row level security;
+drop policy if exists "worker_sessions read members" on public.camera_worker_sessions;
+create policy "worker_sessions read members" on public.camera_worker_sessions for select
+  using (org_id is null or is_org_member(org_id));
+-- Yazma yalnız service_role (worker).
+create index if not exists worker_sessions_hb_idx on public.camera_worker_sessions (last_heartbeat_at desc);
+
+-- ============================================================================
 -- Done. Tablolar: analyses, demo_requests, chat_messages, workers, equipment,
 -- checkpoints, scans, api_usage, consents, subscriptions, pilot_projects,
 -- pilot_checklists, pilot_weekly_reports, pilot_analysis_links,
@@ -1049,5 +1157,6 @@ create index if not exists health_checks_time_idx on public.health_checks (check
 -- organization_sites, billing_customers, payment_records, invoices,
 -- billing_events, customer_accounts, customer_contacts, sales_opportunities,
 -- customer_interactions, sales_tasks, case_study_candidates, crm_admins,
--- report_exports, system_events, system_errors, health_checks (hepsi RLS açık).
+-- report_exports, system_events, system_errors, health_checks, cameras,
+-- camera_events, camera_health_logs, camera_worker_sessions (hepsi RLS açık).
 -- ============================================================================

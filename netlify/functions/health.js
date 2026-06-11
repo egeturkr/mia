@@ -33,6 +33,22 @@ exports.handler = async function () {
     var optional = ["MIA_SCAN_TOKEN", "MIA_ALLOWED_ORIGINS"];
     var criticalMissing = missing.filter(function (k) { return optional.indexOf(k) === -1; });
 
+    // Faz 12: realtime worker heartbeat (son 2 dk) + aktif kamera sayısı
+    async function realtimeStatus() {
+        try {
+            var k = process.env.SUPABASE_SERVICE_ROLE_KEY;
+            var H2 = { apikey: k, Authorization: "Bearer " + k };
+            var base = (process.env.SUPABASE_URL || "").replace(/\/$/, "") + "/rest/v1/";
+            var since = new Date(Date.now() - 120000).toISOString();
+            var hb = await fetch(base + "camera_worker_sessions?last_heartbeat_at=gte." + since + "&select=id&limit=1", { headers: H2 });
+            var hbRows = hb.ok ? await hb.json() : [];
+            var cc = await fetch(base + "cameras?status=eq.active&select=id&limit=100", { headers: H2 });
+            var ccRows = cc.ok ? await cc.json() : [];
+            return { worker: hbRows.length ? "connected" : "not_connected", active_cameras: ccRows.length };
+        } catch (e) { return { worker: "unknown", active_cameras: null }; }
+    }
+    var rt = await realtimeStatus();
+
     // Faz 10: canlı kontroller
     var sb = await pingSupabase();
     var checks = {
@@ -41,6 +57,8 @@ exports.handler = async function () {
         ai_config: (required.ROBOFLOW_API_KEY && required.MODAL_URL) ? "configured" : "missing",
         billing: process.env.MIA_BILLING_SECRET ? ((process.env.BILLING_PROVIDER || "manual")) : "not_configured",
         email: required.RESEND_API_KEY ? "configured" : "missing",
+        realtime_worker: rt.worker,
+        active_cameras: rt.active_cameras,
     };
     var overall = !sb.ok ? "down" : (criticalMissing.length === 0 ? "healthy" : "degraded");
     // health_checks tablosuna yaz (başarısızlık yutulur) + Supabase düşükse hata logla
