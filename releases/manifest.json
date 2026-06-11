@@ -1,0 +1,13 @@
+{
+  "product": "MIA AI Safety Intelligence",
+  "version": "0.1.0-pilot",
+  "release_channel": "internal-pilot",
+  "artifacts": [],
+  "security_status": {
+    "signed": false,
+    "notarized": false,
+    "malware_scanned": false,
+    "sha256_generated": false
+  },
+  "notes": "İmzalama ve malware taraması tamamlanmadan hiçbir yükleyici kamuya yayınlanmaz. Bu manifest yalnız GERÇEK dosyaları listeler — scripts/verify-release-artifacts.sh ile güncellenir."
+}

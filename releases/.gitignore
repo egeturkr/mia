@@ -1,0 +1,5 @@
+# Gerçek build artefaktları git'e girmez (boyut + güvenlik) — manifest/checksum girer.
+desktop/**
+mobile/**
+!desktop/**/.gitkeep
+!mobile/**/.gitkeep

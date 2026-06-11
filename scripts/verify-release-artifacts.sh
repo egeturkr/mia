@@ -1,29 +1,55 @@
 #!/usr/bin/env bash
-# MIA — Sürüm Artefakt Doğrulama (Faz 15)
-# releases/ içindeki build dosyaları için SHA256 manifesti üretir.
-# UYARI: Bu script malware taraması YAPMAZ — checksum üretir ve hatırlatır.
-# Hiçbir şey dışarı yüklenmez; sahte tarama sonucu üretilmez.
+# MIA — Sürüm Artefakt Doğrulama (Faz 16)
+# releases/ içindeki GERÇEK dosyalar için SHA256 üretir, manifest.json'u günceller.
+# YAPMAZ: malware taraması, imza, dış yükleme, sahte "güvenli" işareti.
 set -euo pipefail
+cd "$(dirname "$0")/.."
 
-DIR="${1:-releases}"
-if [ ! -d "$DIR" ] || [ -z "$(ls -A "$DIR" 2>/dev/null)" ]; then
-  echo "HATA: '$DIR' yok veya boş. Önce build üretin (docs/DESKTOP_MOBILE_APP_BUILD_GUIDE.md)."
-  exit 1
+DIR="releases"
+MANIFEST="$DIR/manifest.json"
+SUMS="$DIR/checksums.sha256"
+
+if command -v shasum >/dev/null; then HASHER="shasum -a 256"; else HASHER="sha256sum"; fi
+
+# Gerçek artefaktlar (gitkeep/manifest/checksum/README hariç)
+mapfile -t FILES < <(find "$DIR" -type f \
+  ! -name ".gitkeep" ! -name "manifest.json" ! -name "checksums.sha256" \
+  ! -name "README.md" ! -name ".gitignore" | sort)
+
+echo "== MIA sürüm doğrulama — $(date -u +%Y-%m-%dT%H:%M:%SZ) =="
+if [ ${#FILES[@]} -eq 0 ]; then
+  echo "Gerçek artefakt YOK. manifest.json artifacts=[] olarak kalır (dürüst durum)."
+  echo "Build üretimi: releases/README.md"
+  exit 0
 fi
 
-MANIFEST="$DIR/SHA256SUMS.txt"
-echo "# MIA sürüm manifesti — $(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$MANIFEST"
-echo "" && echo "== Dosyalar =="
-ls -lh "$DIR" | grep -v SHA256SUMS || true
+echo "Bulunan artefaktlar:"; printf '  %s\n' "${FILES[@]}"
+: > "$SUMS"
+for f in "${FILES[@]}"; do $HASHER "$f" >> "$SUMS"; done
+echo "" && echo "Checksum yazıldı: $SUMS"
 
-echo "" && echo "== SHA256 =="
-if command -v shasum >/dev/null; then HASHER="shasum -a 256"; else HASHER="sha256sum"; fi
-find "$DIR" -type f ! -name "SHA256SUMS.txt" -exec $HASHER {} \; | tee -a "$MANIFEST"
+# manifest.json güncelle (yalnız gerçek dosyalar + sha256_generated=true)
+python3 - "$MANIFEST" "$SUMS" <<'PYEOF'
+import json, sys, os
+manifest, sums = sys.argv[1], sys.argv[2]
+m = json.load(open(manifest))
+arts = []
+for line in open(sums):
+    h, _, path = line.strip().partition("  ")
+    if path:
+        arts.append({"path": path, "sha256": h, "size_bytes": os.path.getsize(path)})
+m["artifacts"] = arts
+m["security_status"]["sha256_generated"] = True
+# imza/notarization/malware ASLA otomatik true yapılmaz — manuel doğrulama gerekir
+json.dump(m, open(manifest, "w"), indent=2, ensure_ascii=False)
+print(f"manifest.json güncellendi: {len(arts)} artefakt")
+PYEOF
 
 echo ""
-echo "Manifest yazıldı: $MANIFEST"
+echo "GÜVENLİK DURUMU (manuel doğrulama ZORUNLU — bu script otomatik 'güvenli' demez):"
+echo "  signed:          manuel kontrol gerekli (Win Authenticode / mac codesign)"
+echo "  notarized:       manuel kontrol gerekli (xcrun notarytool history)"
+echo "  malware_scanned: manuel kontrol gerekli (VirusTotal vb.)"
 echo ""
-echo "SONRAKİ ZORUNLU ADIMLAR (bu script yapmaz):"
-echo "  1. Her dosyayı antivirüs/malware ile tarayın (örn. VirusTotal'a manuel yükleme)."
-echo "  2. Platform imzası: Windows Authenticode / macOS notarization / Android keystore."
-echo "  3. Tarama + imza TAMAMLANMADAN download sayfasına link KOYMAYIN."
+echo "Checksum üretildi. Kamuya yayın ÖNCESİ malware taraması ve imza manuel yapılmalıdır."
+echo "Tamamlanınca manifest.json security_status alanlarını ELLE true yapın ve sürüm notuna işleyin."

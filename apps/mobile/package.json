@@ -1,6 +1,6 @@
 {
   "name": "mia-mobile",
-  "version": "0.1.0",
+  "version": "0.1.0-pilot",
   "description": "MIA - AI insaat guvenligi platformu (mobil kabuk, Capacitor)",
   "private": true,
   "scripts": {
