@@ -56,6 +56,8 @@
                 var meta = (row && row.metadata) || null;
                 st.inference = meta ? meta.inference !== false : null; // eski worker metadata yazmaz → bilinmiyor
                 st.mode = meta && meta.mode || null;
+                st.model = meta && meta.model || null;                 // Faz 15: model sürümü
+                st.perf = meta && meta.perf_ms || null;                // Faz 15: son çıkarım gecikmesi
                 $("caWorkerWarn").style.display = fresh ? "none" : "block";
                 // Worker bağlı AMA çıkarım kapalıysa dürüst uyarı (sahte "çalışıyor" izlenimi yok)
                 $("caInferWarn").style.display = (fresh && meta && meta.inference === false) ? "block" : "none";
@@ -82,10 +84,15 @@
             step(st.workerFresh, "Worker bağlantısı", st.workerFresh ? (demo ? "DEMO/test akışı modu" : "RTSP modu") : "heartbeat yok — runbook'a bakın") +
             step(st.workerFresh ? st.inference : null, "AI çıkarımı",
                  st.inference === false ? "ROBOFLOW_API_KEY tanımsız — olay üretilemez"
-                 : st.inference === null ? "worker bağlanınca belli olur" : null) +
+                 : st.inference === null ? "worker bağlanınca belli olur"
+                 : (st.model ? "model: " + esc(st.model) : "") +
+                   (st.perf && st.perf.infer_ms != null
+                       ? " · son çıkarım: " + st.perf.infer_ms + " ms (döngü " + st.perf.total_ms + " ms)" : "")) +
             (demo && st.workerFresh
                 ? '<div class="ca-muted" style="margin-top:.4rem;">ℹ Bu akış <b>demo/test modudur</b> (webcam veya örnek video) — gerçek müşteri RTSP kamerası değildir.</div>'
-                : '');
+                : '') +
+            '<div class="ca-muted" style="margin-top:.4rem;">Doğruluk: <b>pilot saha doğrulaması bekliyor</b> — ' +
+            'tüm olaylar validation_status=pending taşır; ölçülmemiş doğruluk oranı iddia edilmez.</div>';
     }
     function checkProfile() {
         if (!orgId()) return;
@@ -212,13 +219,14 @@
         supabase.from("camera_events").select("*, cameras(name)").eq("org_id", oid)
             .order("created_at", { ascending: false }).limit(500).then(function (r) {
                 var rows = r.data || [];
-                var lines = ["Zaman,Kamera,Olay,Eksik KKD,Tespit Edilen KKD,Risk,Güven,Durum,Model,Doğrulama,Kaynak,Kanıt"];
+                var lines = ["Zaman,Kamera,Olay,Eksik KKD,Tespit Edilen KKD,Gerekli KKD,Risk,Güven,Durum,Model Adı,Model Sürümü,Doğrulama,İnceleyen,İnceleme Zamanı,Not,Kaynak,Kanıt"];
                 var eqKeys = function (o) { return o ? Object.keys(o).join("; ") : ""; };
                 rows.forEach(function (e) {
                     lines.push([fmtT(e.frame_timestamp), (e.cameras && e.cameras.name) || "", ET[e.event_type] || e.event_type,
-                        eqKeys(e.missing_equipment), eqKeys(e.detected_equipment),
+                        eqKeys(e.missing_equipment), eqKeys(e.detected_equipment), eqKeys(e.required_equipment),
                         e.risk_level, e.confidence != null ? e.confidence + "%" : "", ST[e.status] || e.status,
-                        e.model_version || "", e.validation_status || "",
+                        e.model_name || "", e.model_version || "", e.validation_status || "",
+                        e.reviewed_by || "", e.reviewed_at ? fmtT(e.reviewed_at) : "", e.notes || "",
                         "Canlı Kamera", e.snapshot_url || "metadata-only"].map(function (c) {
                             return '"' + String(c).replace(/"/g, '""') + '"';
                         }).join(","));

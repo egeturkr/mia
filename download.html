@@ -88,13 +88,17 @@
 
         <div class="dl-note">
             <b>Sürüm durumu (dürüst):</b> Masaüstü ve mobil uygulamalar, canlı web platformunu güvenli bir kabukta açar —
-            web'e gelen her güncelleme uygulamalara anında yansır. Mağaza yükleyicileri henüz yayınlanmadı;
-            kurumsal müşterilere kurulum dosyaları talep üzerine sağlanır.
+            web'e gelen her güncelleme uygulamalara anında yansır. Masaüstü ve mobil uygulamalar, imzalı build'ler
+            yayınlanana kadar <b>kurum içi sürüm adayıdır</b>; yükleyiciler yalnız kod imzalama, SHA256 doğrulama ve
+            kötü amaçlı yazılım taraması tamamlandıktan sonra yayınlanır.
             <br><br>
             <b>Güvenlik:</b> Uygulama kabukları hiçbir kamera şifresi (RTSP), API anahtarı veya gizli bilgi saklamaz.
+            Kaynak kod ve yapılandırma güvenli olacak şekilde tasarlanmıştır; her sürüm dosyası dağıtım öncesi ayrıca
+            imzalanır ve taranır.
             <br>
-            <b>Kurumsal not:</b> Gerçek zamanlı kamera AI'ı, sahanızda veya bulutta çalışan ayrı bir MIA worker servisi
-            gerektirir — kurulum ekibimizce yapılır. Detay için <a href="iletisim.html" style="color:#D4AF37;">iletişime geçin</a>.
+            <b>Kurumsal not:</b> Gerçek zamanlı kamera AI'ı, sahanızda veya bulutta çalışan, müşteri onaylı ayrı bir
+            MIA worker servisi gerektirir — kurulum ekibimizce yapılır. Detay için
+            <a href="iletisim.html" style="color:#D4AF37;">iletişime geçin</a>.
         </div>
     </main>
 

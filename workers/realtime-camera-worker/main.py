@@ -23,7 +23,6 @@ Test akışı: cameras.json'da "stream": "test:./ornek.mp4" (dosya döngüsü) v
 "webcam:0". Gerçek RTSP: "rtsp://kullanici:sifre@ip:554/yol".
 """
 import argparse
-import base64
 import json
 import os
 import re
@@ -39,20 +38,39 @@ try:
 except ImportError:
     sys.exit("opencv gerekli: pip install -r requirements.txt")
 
-# ---- Konfig -----------------------------------------------------------------
+# ---- Konfig (Faz 15: config.example.env alanları + eski adlarla geri uyumlu) --
+def _env(*names, default=""):
+    for n in names:
+        v = os.environ.get(n)
+        if v:
+            return v
+    return default
+
 SB_URL = (os.environ.get("SUPABASE_URL") or "").rstrip("/")
 SB_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or ""
 RF_KEY = os.environ.get("ROBOFLOW_API_KEY") or ""
-RF_MODEL = os.environ.get("RF_MODEL", "construction-site-safety/27")
-MODEL_VERSION = os.environ.get("RF_MODEL_VERSION", "rf-27")
-CONFIDENCE = int(os.environ.get("RF_CONFIDENCE", "40"))
-DEDUP_WINDOW_SEC = int(os.environ.get("DEDUP_WINDOW_SEC", "60"))      # aynı kamera+tip tek olay/pencere
-ALERT_WINDOW_SEC = int(os.environ.get("ALERT_WINDOW_SEC", "300"))     # e-posta: 5 dk/kamera+tip
+RF_MODEL = _env("ROBOFLOW_MODEL_ID", "RF_MODEL", default="construction-site-safety/27")
+MODEL_VERSION = _env("ROBOFLOW_MODEL_VERSION", "RF_MODEL_VERSION", default="rf-27")
+# Güven eşiği: 0..1 (DEFAULT_CONFIDENCE_THRESHOLD) veya eski yüzde (RF_CONFIDENCE)
+if os.environ.get("DEFAULT_CONFIDENCE_THRESHOLD"):
+    CONFIDENCE = float(os.environ["DEFAULT_CONFIDENCE_THRESHOLD"])
+else:
+    CONFIDENCE = int(os.environ.get("RF_CONFIDENCE", "45")) / 100.0
+DEFAULT_SAMPLING_SECONDS = float(_env("DEFAULT_SAMPLING_SECONDS", default="5"))
+DEDUP_WINDOW_SEC = int(_env("EVENT_DEDUP_SECONDS", "DEDUP_WINDOW_SEC", default="60"))
+ALERT_WINDOW_SEC = int(_env("ALERT_THROTTLE_SECONDS", "ALERT_WINDOW_SEC", default="300"))
 ALERT_EMAIL = os.environ.get("ALERT_EMAIL", "")                       # boşsa e-posta alarmı kapalı
 RESEND_KEY = os.environ.get("RESEND_API_KEY", "")
 WORKER_ID = os.environ.get("WORKER_ID", "worker-" + socket.gethostname())
 HEARTBEAT_SEC = 30
 CAMERAS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cameras.json")
+# Snapshot: VARSAYILAN KAPALI. true istense bile v1'de uygulanmadı — sessizce
+# görüntü YÜKLENMEZ; hukuk onayı + saklama politikası + güvenli bucket şart.
+SNAPSHOT_ENABLED = os.environ.get("SNAPSHOT_STORAGE_ENABLED", "false").lower() == "true"
+if SNAPSHOT_ENABLED:
+    print("UYARI: SNAPSHOT_STORAGE_ENABLED=true istendi ama snapshot saklama v1'de"
+          " UYGULANMADI (hukuk onayı + saklama politikası gerekir). Görüntü saklanmayacak.")
+    SNAPSHOT_ENABLED = False
 
 if not (SB_URL and SB_KEY):
     sys.exit("SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY zorunlu.")
@@ -68,11 +86,14 @@ if not INFERENCE_AVAILABLE:
     print("Tespit için: export ROBOFLOW_API_KEY=... ve worker'ı yeniden başlatın.")
     print("=" * 70)
 
-# Faz 13: olay eşlemesi artık org'un KKD profili'nden üretilir (ppe_registry).
+# Faz 13: olay eşlemesi org'un KKD profili'nden üretilir (ppe_registry).
+# Faz 15: çıkarım model adaptör katmanından geçer (normalize tespit şeması).
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 from ppe_registry import build_violation_map, equipment_summary, DEFAULT_REQUIRED  # noqa: E402
+from model_adapter import get_adapter, associate_frame  # noqa: E402
 
-MIN_BOX_AREA = 0.0008  # js/postprocess.js ile aynı gürültü eşiği
+ADAPTER = get_adapter("roboflow", api_key=RF_KEY, model_id=RF_MODEL,
+                      confidence_threshold=CONFIDENCE) if INFERENCE_AVAILABLE else None
 
 def mask(url):
     """Loglar için kimlik bilgisi maskeleme."""
@@ -110,29 +131,13 @@ def sb_get(path, params):
 def now_iso():
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
-# ---- Roboflow çıkarımı --------------------------------------------------------
+# ---- Çıkarım (Faz 15: adaptör katmanı — model şekline sıkı bağ yok) ----------
 def infer(frame):
-    """BGR kare → Roboflow tahminleri (normalize kutularla)."""
+    """BGR kare → normalize tespit listesi (detection_schema biçimi)."""
     ok, jpg = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
     if not ok:
         return []
-    b64 = base64.b64encode(jpg.tobytes())
-    url = f"https://serverless.roboflow.com/{RF_MODEL}?api_key={RF_KEY}&confidence={CONFIDENCE}&overlap=30"
-    req = urllib.request.Request(url, data=b64, method="POST",
-                                 headers={"Content-Type": "application/x-www-form-urlencoded"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        j = json.loads(r.read())
-    W = (j.get("image") or {}).get("width") or 1
-    H = (j.get("image") or {}).get("height") or 1
-    out = []
-    for p in j.get("predictions", []):
-        w, h = p["width"] / W, p["height"] / H
-        if w * h < MIN_BOX_AREA:
-            continue
-        out.append({"class": p["class"], "confidence": round(p.get("confidence", 0) * 100),
-                    "box": [round((p["x"] - p["width"] / 2) / W, 3), round((p["y"] - p["height"] / 2) / H, 3),
-                            round(w, 3), round(h, 3)]})
-    return out
+    return ADAPTER.infer_jpeg(jpg.tobytes())
 
 # ---- Kamera döngüsü -----------------------------------------------------------
 class CameraLoop(threading.Thread):
@@ -147,6 +152,9 @@ class CameraLoop(threading.Thread):
         # Faz 13: org KKD profili → yalnız ETKİN ekipman ihlali üretilir.
         self.required = (profile or {}).get("required_equipment") or DEFAULT_REQUIRED
         self.vmap = build_violation_map(self.required, (profile or {}).get("risk_rules"))
+        # Faz 15: performans ölçümü + mod etiketi
+        self.perf = None  # {"capture_ms","infer_ms","total_ms"} — son döngü
+        self.mode = "demo" if (stream.startswith("test:") or stream.startswith("webcam:")) else "rtsp"
 
     def open_capture(self):
         s = self.stream
@@ -166,7 +174,10 @@ class CameraLoop(threading.Thread):
             "status": status, "message": msg, "latency_ms": latency})
 
     def heartbeat(self, status="running", err=None):
-        body = {"status": status, "last_heartbeat_at": now_iso(), "error_message": err}
+        body = {"status": status, "last_heartbeat_at": now_iso(), "error_message": err,
+                "metadata": {"inference": INFERENCE_AVAILABLE, "mode": self.mode,
+                             "model": MODEL_VERSION if INFERENCE_AVAILABLE else None,
+                             "perf_ms": self.perf or None}}
         if self.session_id:
             sb_req("PATCH", "camera_worker_sessions", body, f"?id=eq.{self.session_id}")
 
@@ -181,7 +192,10 @@ class CameraLoop(threading.Thread):
             "org_id": self.cam["org_id"], "site_id": self.cam.get("site_id"),
             "camera_id": self.cam["id"], "event_type": etype, "risk_level": risk,
             "confidence": det.get("confidence"), "frame_timestamp": now_iso(),
-            "detections_json": det.get("all"), "model_name": RF_MODEL,
+            # Faz 15: normalize tespitler + kare bağlamı + performans (görüntü YOK — metadata-only)
+            "detections_json": {"detections": det.get("all"), "context": det.get("context"),
+                                "perf_ms": self.perf, "evidence": "metadata-only"},
+            "model_name": RF_MODEL,
             "model_version": MODEL_VERSION, "validation_status": "pending",
             "required_equipment": eq["required"], "detected_equipment": eq["detected"],
             "missing_equipment": eq["missing"]})
@@ -219,7 +233,7 @@ class CameraLoop(threading.Thread):
         # Worker oturumu aç
         res = None
         # Demo/test akışları DÜRÜSTÇE etiketlenir — gerçek RTSP kamerası gibi gösterilmez.
-        mode = "demo" if (self.stream.startswith("test:") or self.stream.startswith("webcam:")) else "rtsp"
+        mode = self.mode
         try:
             req = urllib.request.Request(f"{SB_URL}/rest/v1/camera_worker_sessions", method="POST",
                 data=json.dumps({"org_id": self.cam["org_id"], "camera_id": self.cam["id"],
@@ -234,7 +248,8 @@ class CameraLoop(threading.Thread):
             log(f"  ! oturum açılamadı: {e}")
         self.session_id = res[0]["id"] if isinstance(res, list) and res else None
 
-        interval = max(1.0, 1.0 / float(self.cam.get("sampling_fps") or 0.2))
+        fps = float(self.cam.get("sampling_fps") or 0)
+        interval = max(1.0, 1.0 / fps) if fps > 0 else DEFAULT_SAMPLING_SECONDS
         backoff, last_hb = 5, 0
         log(f"▶ başladı: {cam_label} (her {interval:.0f} sn'de 1 kare)")
         self.set_cam({"status": "active", "health_status": "online"})
@@ -255,6 +270,7 @@ class CameraLoop(threading.Thread):
             while not self.stop_flag:
                 t0 = time.time()
                 ok, frame = cap.read()
+                t_cap = time.time()
                 if not ok:
                     if self.stream.startswith("test:"):
                         cap.release(); break               # dosya bitti → döngüye al
@@ -264,11 +280,19 @@ class CameraLoop(threading.Thread):
                 self.set_cam({"last_frame_at": now_iso()})
                 if INFERENCE_AVAILABLE:
                     try:
-                        preds = infer(frame)
+                        preds = infer(frame)               # normalize tespitler (adaptör)
+                        t_inf = time.time()
+                        ctx = associate_frame(preds)       # kare bağlamı (dürüst, tracking yok)
                         for p in preds:
-                            m = self.vmap.get(p["class"])   # profil-farkında: kapalı ekipman olay üretmez
+                            m = self.vmap.get(p["raw_class_name"])  # profil-farkında: kapalı ekipman olay üretmez
                             if m:
-                                self.emit_event(m[0], m[1], {"confidence": p["confidence"], "all": preds})
+                                self.emit_event(m[0], m[1], {
+                                    "confidence": round(p["confidence"] * 100),
+                                    "all": preds, "context": ctx})
+                        # Faz 15: performans ölçümü (heartbeat metadata'sına gider)
+                        self.perf = {"capture_ms": round((t_cap - t0) * 1000),
+                                     "infer_ms": round((t_inf - t_cap) * 1000),
+                                     "total_ms": round((time.time() - t0) * 1000)}
                     except Exception as e:
                         log(f"  ! inference hatası: {e}")
                         self.health("degraded", f"inference: {type(e).__name__}")

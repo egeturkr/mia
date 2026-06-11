@@ -58,7 +58,8 @@ def build_violation_map(required_equipment, risk_rules=None):
 def equipment_summary(required_equipment, predictions):
     """Olay kaydı için detected/missing/required ekipman özetleri (sınıf adlarından)."""
     req = required_equipment if isinstance(required_equipment, dict) else DEFAULT_REQUIRED
-    classes = {p.get("class") for p in (predictions or [])}
+    # Eski biçim ("class") ve Faz 15 normalize biçim ("raw_class_name") desteklenir
+    classes = {p.get("class") or p.get("raw_class_name") for p in (predictions or [])}
     detected, missing = {}, {}
     for key, enabled in req.items():
         item = REGISTRY.get(key)
