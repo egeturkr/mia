@@ -643,6 +643,7 @@
 
         // === LIVE MODE: gerçek Roboflow inference ===
         if (inferenceMode === "live") {
+            if (window.MIAMonitor) window.MIAMonitor.event("analysis_started", { mode: "live" });
             els.progressStep.textContent = lang === "tr" ? "Video hazırlanıyor..." : "Preparing video...";
             els.progressPct.textContent = "10%";
             els.progressFill.style.width = "10%";
@@ -673,10 +674,12 @@
                     }
                     els.progressPct.textContent = "100%";
                     els.progressFill.style.width = "100%";
+                    if (window.MIAMonitor) window.MIAMonitor.event("analysis_completed", { detections: events.length });
                     finishAnalysis();
                 })
                 .catch(function(err) {
                     console.error("[MIA] Live analysis failed:", err);
+                    if (window.MIAMonitor) window.MIAMonitor.error("analysis_failed: " + (err && err.message), err && err.stack, "analysis_failed");
                     // Inline error in progress bar (not just alert)
                     var friendly = friendlyError(err);
                     els.progressStep.textContent = (lang === "tr" ? "❌ " : "❌ ") + friendly;

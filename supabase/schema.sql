@@ -973,6 +973,74 @@ create index if not exists report_exports_user_idx on public.report_exports (use
 create index if not exists report_exports_analysis_idx on public.report_exports (analysis_id);
 
 -- ============================================================================
+-- 14) İZLEME / HATA TAKİBİ / SAĞLIK (Faz 10)
+-- ----------------------------------------------------------------------------
+-- Loglara KAMU erişimi yok. Okuma: yalnız crm_admins (iç ekip). Yazma: service_role
+-- (+ system_events'e kimlikli kullanıcı yalnızca KENDİ frontend olayını yazabilir).
+-- Sır/token/ham video İÇERMEZ — yalnız özet + ID'ler.
+-- ============================================================================
+create table if not exists public.system_events (
+  id            bigint generated always as identity primary key,
+  event_type    text not null,
+  severity      text not null default 'info' check (severity in ('info','warning','error','critical')),
+  source        text not null default 'frontend' check (source in
+                ('frontend','api','ai_pipeline','billing','report','auth','security','cron')),
+  user_id       uuid references auth.users(id) on delete set null,
+  org_id        uuid,
+  route         text,
+  function_name text,
+  message       text,
+  metadata      jsonb,
+  created_at    timestamptz default now()
+);
+alter table public.system_events enable row level security;
+drop policy if exists "events admin read" on public.system_events;
+create policy "events admin read" on public.system_events for select using (is_crm_admin());
+drop policy if exists "events self insert" on public.system_events;
+create policy "events self insert" on public.system_events for insert
+  with check (auth.uid() = user_id and source = 'frontend' and severity = 'info');
+create index if not exists system_events_time_idx on public.system_events (created_at desc);
+create index if not exists system_events_type_idx on public.system_events (event_type, created_at desc);
+
+create table if not exists public.system_errors (
+  id            bigint generated always as identity primary key,
+  source        text not null default 'api',
+  severity      text not null default 'error' check (severity in ('warning','error','critical')),
+  error_code    text,
+  message       text,
+  stack_hash    text,
+  user_id       uuid references auth.users(id) on delete set null,
+  org_id        uuid,
+  route         text,
+  function_name text,
+  request_id    text,
+  metadata      jsonb,
+  resolved      boolean default false,
+  resolved_at   timestamptz,
+  created_at    timestamptz default now()
+);
+alter table public.system_errors enable row level security;
+drop policy if exists "errors admin read" on public.system_errors;
+create policy "errors admin read" on public.system_errors for select using (is_crm_admin());
+drop policy if exists "errors admin resolve" on public.system_errors;
+create policy "errors admin resolve" on public.system_errors for update using (is_crm_admin());
+create index if not exists system_errors_time_idx on public.system_errors (created_at desc);
+
+create table if not exists public.health_checks (
+  id         bigint generated always as identity primary key,
+  check_name text not null,
+  status     text not null check (status in ('healthy','degraded','down','unknown')),
+  latency_ms int,
+  message    text,
+  metadata   jsonb,
+  checked_at timestamptz default now()
+);
+alter table public.health_checks enable row level security;
+drop policy if exists "health admin read" on public.health_checks;
+create policy "health admin read" on public.health_checks for select using (is_crm_admin());
+create index if not exists health_checks_time_idx on public.health_checks (checked_at desc);
+
+-- ============================================================================
 -- Done. Tablolar: analyses, demo_requests, chat_messages, workers, equipment,
 -- checkpoints, scans, api_usage, consents, subscriptions, pilot_projects,
 -- pilot_checklists, pilot_weekly_reports, pilot_analysis_links,
@@ -981,5 +1049,5 @@ create index if not exists report_exports_analysis_idx on public.report_exports 
 -- organization_sites, billing_customers, payment_records, invoices,
 -- billing_events, customer_accounts, customer_contacts, sales_opportunities,
 -- customer_interactions, sales_tasks, case_study_candidates, crm_admins,
--- report_exports (hepsi RLS açık).
+-- report_exports, system_events, system_errors, health_checks (hepsi RLS açık).
 -- ============================================================================

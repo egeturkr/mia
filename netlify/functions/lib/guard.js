@@ -296,6 +296,11 @@ async function enforce(event, opts) {
     return { ok: false, response: resp(503, { error: "quota check unavailable" }, origin) };
   }
   if (used >= limit) {
+    try {
+      require("./log").logEvent({ type: "quota_exceeded", severity: "warning", source: "api",
+        userId: user ? user.id : null, orgId: orgCtx ? orgCtx.orgId : null,
+        fn: opts.endpoint, meta: { plan: plan, limit: limit } });
+    } catch (e) { /* loglama isteği düşürmesin */ }
     return { ok: false, response: resp(402, { error: "quota exceeded", plan: plan, limit: limit, window: windowLabel }, origin) };
   }
 

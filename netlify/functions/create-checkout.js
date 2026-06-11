@@ -8,6 +8,7 @@
 //      IYZICO_API_KEY, IYZICO_SECRET_KEY, IYZICO_BASE_URL (sandbox: https://sandbox-api.iyzipay.com)
 
 const guard = require("./lib/guard");
+const log = require("./lib/log");
 
 const PLAN_PRICES = { giris: 4000, kamera_ai: 12000, pro: 25000 }; // kurumsal: özel teklif
 
@@ -70,6 +71,8 @@ exports.handler = async function (event) {
         const res = await r.json();
         if (!r.ok) return guard.resp(502, { error: "intent failed", detail: res }, origin);
         const rec = Array.isArray(res) ? res[0] : res;
+        log.logEvent({ type: "billing_checkout_created", source: "billing", userId: user.id,
+            orgId: orgCtx ? orgCtx.orgId : null, fn: "create-checkout", meta: { plan: planKey } });
         return guard.resp(200, {
             ok: true, provider: "manual", payment_record_id: rec.id,
             plan: planKey, amount: row.amount, currency: "TRY",

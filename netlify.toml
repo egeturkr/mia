@@ -53,6 +53,12 @@
   to = "/.netlify/functions/create-checkout"
   status = 200
 
+# İstemci hata logu — Faz 10 (JWT + rate-limit korumalı).
+[[redirects]]
+  from = "/api/log-client-error"
+  to = "/.netlify/functions/log-client-error"
+  status = 200
+
 # Haftalık güvenlik özeti — her Pazartesi 07:00 UTC.
 [functions."weekly-digest"]
   schedule = "0 7 * * 1"
@@ -74,6 +80,11 @@
 [[redirects]]
   from = "/customers"
   to = "/customers.html"
+  status = 200
+
+[[redirects]]
+  from = "/ops"
+  to = "/ops.html"
   status = 200
 
 [[redirects]]

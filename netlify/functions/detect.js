@@ -5,6 +5,7 @@
 // SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, (ops.) MIA_ALLOWED_ORIGINS.
 
 const guard = require("./lib/guard");
+const log = require("./lib/log");
 
 exports.handler = async function (event) {
     // 1) Güvenlik: origin + kimlik (login zorunlu) + rate-limit + kota
@@ -41,6 +42,8 @@ exports.handler = async function (event) {
         return { statusCode: rf.status, headers: guard.corsHeaders(g.origin), body: text };
     } catch (err) {
         await guard.logUsage(g.subject, g.subjectType, "detect", 502, g.orgId);
-        return guard.resp(502, { error: "Roboflow upstream failed: " + (err && err.message || err) }, g.origin);
+        await log.logError({ source: "ai_pipeline", code: "roboflow_upstream", message: String(err && err.message || err),
+            userId: g.user && g.user.id, orgId: g.orgId, route: "/api/detect", fn: "detect" });
+        return guard.resp(502, { error: "AI service temporarily unavailable" }, g.origin);
     }
 };

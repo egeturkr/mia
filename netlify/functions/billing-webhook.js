@@ -22,6 +22,7 @@ function H(extra) {
     return Object.assign({ apikey: k, Authorization: "Bearer " + k, "Content-Type": "application/json" }, extra || {});
 }
 function out(code, obj) { return { statusCode: code, headers: { "Content-Type": "application/json" }, body: JSON.stringify(obj) }; }
+const log = require("./lib/log");
 
 exports.handler = async function (event) {
     if (event.httpMethod !== "POST") return out(405, { error: "POST only" });
@@ -30,8 +31,11 @@ exports.handler = async function (event) {
         return out(500, { error: "billing env not configured" }); // fail-closed: eksik env'de hiçbir şey yazılmaz
 
     const hdr = event.headers || {};
-    if ((hdr["x-billing-secret"] || hdr["X-Billing-Secret"] || "") !== SECRET)
+    if ((hdr["x-billing-secret"] || hdr["X-Billing-Secret"] || "") !== SECRET) {
+        log.logEvent({ type: "billing_webhook_invalid_secret", severity: "warning", source: "security", fn: "billing-webhook" });
         return out(401, { error: "invalid billing secret" });
+    }
+    log.logEvent({ type: "billing_webhook_received", source: "billing", fn: "billing-webhook" });
 
     let p;
     try { p = JSON.parse(event.body || "{}"); } catch (e) { return out(400, { error: "invalid JSON" }); }
