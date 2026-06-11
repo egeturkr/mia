@@ -56,12 +56,10 @@ CAMERAS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cameras
 if not (SB_URL and SB_KEY and RF_KEY):
     sys.exit("SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY ve ROBOFLOW_API_KEY zorunlu.")
 
-# Roboflow sınıf → olay eşlemesi (js/detector.js ROBOFLOW_CLASS_MAP ile uyumlu)
-VIOLATION_MAP = {
-    "NO-Hardhat": ("no_helmet", "high"),
-    "NO-Safety Vest": ("no_vest", "high"),
-    "NO-Mask": ("no_mask", "medium"),
-}
+# Faz 13: olay eşlemesi artık org'un KKD profili'nden üretilir (ppe_registry).
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
+from ppe_registry import build_violation_map, equipment_summary, DEFAULT_REQUIRED  # noqa: E402
+
 MIN_BOX_AREA = 0.0008  # js/postprocess.js ile aynı gürültü eşiği
 
 def mask(url):
@@ -126,7 +124,7 @@ def infer(frame):
 
 # ---- Kamera döngüsü -----------------------------------------------------------
 class CameraLoop(threading.Thread):
-    def __init__(self, cam, stream):
+    def __init__(self, cam, stream, profile=None):
         super().__init__(daemon=True)
         self.cam = cam                  # Supabase cameras satırı
         self.stream = stream            # cameras.json'daki kaynak
@@ -134,6 +132,9 @@ class CameraLoop(threading.Thread):
         self.last_event = {}            # event_type → ts (dedup)
         self.last_alert = {}            # event_type → ts (e-posta)
         self.session_id = None
+        # Faz 13: org KKD profili → yalnız ETKİN ekipman ihlali üretilir.
+        self.required = (profile or {}).get("required_equipment") or DEFAULT_REQUIRED
+        self.vmap = build_violation_map(self.required, (profile or {}).get("risk_rules"))
 
     def open_capture(self):
         s = self.stream
@@ -163,12 +164,15 @@ class CameraLoop(threading.Thread):
         if now - self.last_event.get(etype, 0) < DEDUP_WINDOW_SEC:
             return
         self.last_event[etype] = now
+        eq = equipment_summary(self.required, det.get("all"))  # Faz 13: ekipman özeti
         sb_req("POST", "camera_events", {
             "org_id": self.cam["org_id"], "site_id": self.cam.get("site_id"),
             "camera_id": self.cam["id"], "event_type": etype, "risk_level": risk,
             "confidence": det.get("confidence"), "frame_timestamp": now_iso(),
             "detections_json": det.get("all"), "model_name": RF_MODEL,
-            "model_version": MODEL_VERSION, "validation_status": "pending"})
+            "model_version": MODEL_VERSION, "validation_status": "pending",
+            "required_equipment": eq["required"], "detected_equipment": eq["detected"],
+            "missing_equipment": eq["missing"]})
         self.set_cam({"last_detection_at": now_iso()})
         log(f"  ⚠ {self.cam['name']}: {etype} ({risk}, %{det.get('confidence')})")
         if risk in ("high", "critical"):
@@ -245,7 +249,7 @@ class CameraLoop(threading.Thread):
                 try:
                     preds = infer(frame)
                     for p in preds:
-                        m = VIOLATION_MAP.get(p["class"])
+                        m = self.vmap.get(p["class"])   # profil-farkında: kapalı ekipman olay üretmez
                         if m:
                             self.emit_event(m[0], m[1], {"confidence": p["confidence"], "all": preds})
                 except Exception as e:
@@ -271,13 +275,24 @@ def main():
         stream_map = json.load(f)   # { "<camera_uuid>": "rtsp://..." }
 
     cams = sb_get("cameras", "?status=in.(active,testing,inactive)&select=*") or []
+
+    # Faz 13: KKD profilleri (saha profili > org varsayılanı > yerleşik varsayılan)
+    profiles = sb_get("ppe_detection_profiles", "?select=*") or []
+    by_site = {p["site_id"]: p for p in profiles if p.get("site_id")}
+    by_org = {p["org_id"]: p for p in profiles if p.get("is_default") and not p.get("site_id")}
+
     loops = []
     for cam in cams:
         stream = stream_map.get(cam["id"])
         if not stream:
             log(f"– atlandı (cameras.json'da eşleme yok): {cam['name']} [{cam['id']}]")
             continue
-        loops.append(CameraLoop(cam, stream))
+        profile = by_site.get(cam.get("site_id")) or by_org.get(cam["org_id"])
+        loop = CameraLoop(cam, stream, profile)
+        enabled = sorted(k for k, v in loop.required.items() if v)
+        log(f"  profil [{cam['name']}]: {', '.join(enabled) or 'yok'}"
+            + ("" if profile else " (varsayılan — uygulamadan profil kaydedilmemiş)"))
+        loops.append(loop)
     if not loops:
         sys.exit("Eşlenmiş aktif kamera yok. Önce uygulamadan kamera ekleyin ve cameras.json'a id→stream yazın.")
 

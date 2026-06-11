@@ -1,0 +1,10 @@
+{
+  "appId": "com.miaissagligi.app",
+  "appName": "MIA",
+  "webDir": "www",
+  "server": {
+    "url": "https://miaissagligi.com",
+    "allowNavigation": ["miaissagligi.com", "www.miaissagligi.com", "*.supabase.co"]
+  },
+  "backgroundColor": "#050505"
+}

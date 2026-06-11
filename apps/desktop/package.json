@@ -1,0 +1,27 @@
+{
+  "name": "mia-desktop",
+  "productName": "MIA AI Safety Intelligence",
+  "version": "0.1.0",
+  "description": "MIA - AI insaat guvenligi platformu (masaustu kabuk)",
+  "main": "main.js",
+  "author": "MIA",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis",
+    "dist:mac": "electron-builder --mac dmg",
+    "dist:linux": "electron-builder --linux AppImage deb"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.miaissagligi.desktop",
+    "productName": "MIA AI Safety Intelligence",
+    "icon": "icon.png",
+    "win": { "target": "nsis" },
+    "mac": { "target": "dmg", "category": "public.app-category.business" },
+    "linux": { "target": ["AppImage", "deb"], "category": "Office" }
+  }
+}

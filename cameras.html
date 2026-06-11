@@ -99,6 +99,19 @@
             <span id="cnMsg"></span></div>
         </div>
 
+        <!-- KKD Tarama Profili (Faz 13): firma ne taransın seçer -->
+        <div class="ca-panel">
+            <h2>KKD Tarama Profili
+                <button type="button" class="btn btn-primary btn-sm" id="ppSaveBtn" style="display:none;margin-left:.5rem;">Kaydet</button>
+                <span class="ca-muted" id="ppMsg"></span></h2>
+            <p class="ca-muted" style="margin:0 0 .7rem;">Etkin ekipmanlar canlı kameralarda taranır; kapalı olanlar ihlal üretmez.
+            "Model eğitimi gerekir" işaretli ekipmanlar mevcut AI modeli (rf-27) tarafından tespit <b>edilemez</b> ve etkinleştirilemez — yol haritamızdadır.</p>
+            <div style="overflow-x:auto;"><table class="ca-tbl">
+                <thead><tr><th>Tara</th><th>Ekipman</th><th>Tespit Durumu</th><th>Risk (eksikse)</th></tr></thead>
+                <tbody id="ppList"><tr><td colspan="4" class="ca-muted">Yükleniyor…</td></tr></tbody>
+            </table></div>
+        </div>
+
         <!-- Kamera ızgarası -->
         <div class="ca-panel">
             <h2>Kameralar <span class="ca-muted" id="caCount"></span></h2>
@@ -123,6 +136,8 @@
     <script src="js/app.js"></script>
     <script src="js/org.js"></script>
     <script src="js/monitor.js"></script>
+    <script src="js/ppe-registry.js"></script>
+    <script src="js/ppe-profiles.js"></script>
     <script src="js/cameras.js"></script>
 </body>
 </html>

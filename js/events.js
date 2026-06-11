@@ -125,13 +125,47 @@
         return rows;
     }
 
+    // Faz 13: canlı kamera olayları — kaynak etiketiyle aynı rapora eklenir.
+    // Yüklenen-video satırları DEĞİŞMEZ; kamera satırları source:"camera" taşır.
+    var CAM_LABEL = { no_helmet: { tr: "Baretsiz çalışan", en: "No helmet" },
+                      no_vest: { tr: "Yeleksiz çalışan", en: "No vest" },
+                      no_mask: { tr: "Maskesiz çalışan", en: "No mask" } };
+    function flattenCams(camEvents) {
+        var rows = [];
+        (camEvents || []).forEach(function (e) {
+            if (!VIOLATION[e.event_type]) return;   // yalnız KKD ihlalleri rapora girer
+            if (e.status === "dismissed") return;   // yok sayılanlar rapora girmez
+            var d = new Date(e.frame_timestamp || e.created_at);
+            var lbl = CAM_LABEL[e.event_type];
+            rows.push({
+                date: d.toLocaleDateString(tr() ? "tr-TR" : "en-US"),
+                created_at: e.created_at,
+                video: ((e.cameras && e.cameras.name) || "Kamera") + (tr() ? " · Canlı Kamera" : " · Live Camera"),
+                time: d.toLocaleTimeString(tr() ? "tr-TR" : "en-US"), timeSec: 0,
+                typeKey: e.event_type,
+                typeLabel: (lbl ? (tr() ? lbl.tr : lbl.en) : e.event_type),
+                ppe: VIOLATION[e.event_type],
+                risk: (e.risk_level === "high" || e.risk_level === "critical") ? "Yüksek"
+                    : e.risk_level === "low" ? "Düşük" : "Orta",
+                conf: e.confidence, source: "camera"
+            });
+        });
+        return rows;
+    }
+    function mergedRows() {
+        var rows = flatten(window._evRaw || []).concat(flattenCams(window._evCamRaw || []));
+        rows.sort(function (x, y) { return new Date(y.created_at) - new Date(x.created_at) || y.timeSec - x.timeSec; });
+        return rows;
+    }
+
     function exportCsv() {
         var l = L(), rows = filtered();
         var mv = "rf-27"; // model sürümü (model_registry.json ile senkron)
-        var head = [l.date, l.video, l.time, l.type, l.ppe, l.risk, l.conf, "Model"];
+        var head = [l.date, l.video, l.time, l.type, l.ppe, l.risk, l.conf, "Model", tr() ? "Kaynak" : "Source"];
         var lines = [head.join(",")];
         rows.forEach(function (r) {
-            var cells = [r.date, r.video, r.time, r.typeLabel, r.ppe, r.risk, r.conf != null ? r.conf + "%" : "", mv];
+            var src = r.source === "camera" ? (tr() ? "Canlı Kamera" : "Live Camera") : (tr() ? "Yüklenen Video" : "Uploaded Video");
+            var cells = [r.date, r.video, r.time, r.typeLabel, r.ppe, r.risk, r.conf != null ? r.conf + "%" : "", mv, src];
             lines.push(cells.map(function (c) { return '"' + String(c == null ? "" : c).replace(/"/g, '""') + '"'; }).join(","));
         });
         var blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
@@ -187,8 +221,17 @@
             q = orgId ? q.or("user_id.eq." + window._evUser.id + ",org_id.eq." + orgId) : q.eq("user_id", window._evUser.id);
             q.order("created_at", { ascending: false }).then(function (r) {
                 window._evRaw = r.data || [];
-                allRows = flatten(window._evRaw);
+                allRows = mergedRows();
                 render();
+                // Faz 13: canlı kamera olayları (tablo yoksa/org yoksa sessizce atlanır)
+                if (!orgId) return;
+                supabase.from("camera_events").select("*, cameras(name)").eq("org_id", orgId)
+                    .order("created_at", { ascending: false }).limit(500).then(function (c) {
+                        if (c.error || !c.data || !c.data.length) return;
+                        window._evCamRaw = c.data;
+                        allRows = mergedRows();
+                        render();
+                    });
             });
         };
         if (window.MIAOrg && window.MIAOrg.ready) window.MIAOrg.ready.then(function () { run(window.MIAOrg.currentId()); });
@@ -208,7 +251,7 @@
         });
         // dil değişince yeniden çiz
         var prev = tr();
-        setInterval(function () { if (tr() !== prev) { prev = tr(); applyI18n(); allRows = flatten(window._evRaw || []); render(); } }, 600);
+        setInterval(function () { if (tr() !== prev) { prev = tr(); applyI18n(); allRows = mergedRows(); render(); } }, 600);
     }
 
     init();

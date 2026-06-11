@@ -1149,6 +1149,49 @@ create policy "worker_sessions read members" on public.camera_worker_sessions fo
 create index if not exists worker_sessions_hb_idx on public.camera_worker_sessions (last_heartbeat_at desc);
 
 -- ============================================================================
+-- 16) KKD TESPİT PROFİLLERİ + KAMERA OLAYI EKİPMAN ALANLARI (Faz 13)
+-- ----------------------------------------------------------------------------
+-- Firmalar hangi ekipmanın taranacağını seçer (baret/yelek/maske vb.).
+-- Worker yalnız profilde ETKİN ekipman ihlali üretir. Yalnız model tarafından
+-- gerçekten desteklenen sınıflar etkinleştirilebilir (js/ppe-registry.js).
+-- camera_events'e ekipman alanları ADDITIVE eklenir — mevcut veri bozulmaz.
+-- ============================================================================
+create table if not exists public.ppe_detection_profiles (
+  id                 uuid primary key default gen_random_uuid(),
+  org_id             uuid not null references public.organizations(id) on delete cascade,
+  site_id            uuid references public.organization_sites(id) on delete set null,
+  name               text not null default 'Varsayılan profil',
+  description        text,
+  is_default         boolean not null default false,
+  required_equipment jsonb not null default '{"helmet":true,"safety_vest":true,"mask":false}'::jsonb,
+  enabled_classes    jsonb,             -- model sınıf listesi (registry'den türetilir)
+  risk_rules         jsonb,             -- { "helmet":"high", "safety_vest":"high", ... }
+  created_by         uuid references auth.users(id) on delete set null,
+  created_at         timestamptz default now(),
+  updated_at         timestamptz default now()
+);
+alter table public.ppe_detection_profiles enable row level security;
+drop policy if exists "ppe_profiles read members" on public.ppe_detection_profiles;
+create policy "ppe_profiles read members" on public.ppe_detection_profiles for select
+  using (is_org_member(org_id));
+-- Yapılandırma: owner/admin/safety_manager (İSG uzmanı tarama kapsamını belirleyebilir).
+drop policy if exists "ppe_profiles manage staff" on public.ppe_detection_profiles;
+create policy "ppe_profiles manage staff" on public.ppe_detection_profiles for all
+  using (is_org_member(org_id, array['owner','admin','safety_manager']))
+  with check (is_org_member(org_id, array['owner','admin','safety_manager']));
+-- Org başına tek varsayılan profil (site'siz):
+create unique index if not exists ppe_profiles_default_idx
+  on public.ppe_detection_profiles (org_id) where (is_default and site_id is null);
+create index if not exists ppe_profiles_org_idx on public.ppe_detection_profiles (org_id);
+
+-- camera_events ekipman alanları (additive — eski satırlarda null kalır):
+alter table public.camera_events add column if not exists person_track_id    text;
+alter table public.camera_events add column if not exists missing_equipment  jsonb;
+alter table public.camera_events add column if not exists detected_equipment jsonb;
+alter table public.camera_events add column if not exists required_equipment jsonb;
+alter table public.camera_events add column if not exists snapshot_url       text;
+
+-- ============================================================================
 -- Done. Tablolar: analyses, demo_requests, chat_messages, workers, equipment,
 -- checkpoints, scans, api_usage, consents, subscriptions, pilot_projects,
 -- pilot_checklists, pilot_weekly_reports, pilot_analysis_links,
@@ -1158,5 +1201,6 @@ create index if not exists worker_sessions_hb_idx on public.camera_worker_sessio
 -- billing_events, customer_accounts, customer_contacts, sales_opportunities,
 -- customer_interactions, sales_tasks, case_study_candidates, crm_admins,
 -- report_exports, system_events, system_errors, health_checks, cameras,
--- camera_events, camera_health_logs, camera_worker_sessions (hepsi RLS açık).
+-- camera_events, camera_health_logs, camera_worker_sessions,
+-- ppe_detection_profiles (hepsi RLS açık).
 -- ============================================================================
