@@ -1,6 +1,5 @@
 **/node_modules/
 **/dist/
-desktop/icon.png
 mobile/android/
 mobile/ios/
 **/package-lock.json

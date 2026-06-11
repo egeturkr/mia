@@ -44,15 +44,53 @@
         });
     }
 
-    // ---- Worker durumu (dürüst): son 2 dk içinde heartbeat var mı ----
+    // ---- Worker durumu (dürüst): son 2 dk içinde heartbeat var mı + çıkarım hazır mı ----
+    var st = { workerFresh: false, inference: null, mode: null, profileSaved: null }; // hazırlık paneli durumu
     function checkWorker() {
-        supabase.from("camera_worker_sessions").select("last_heartbeat_at,status")
+        supabase.from("camera_worker_sessions").select("last_heartbeat_at,status,metadata")
             .order("last_heartbeat_at", { ascending: false }).limit(1).then(function (r) {
-                var hb = r.data && r.data[0] && r.data[0].last_heartbeat_at;
-                var fresh = hb && (Date.now() - new Date(hb).getTime()) < 120000;
+                var row = r.data && r.data[0];
+                var hb = row && row.last_heartbeat_at;
+                var fresh = !!(hb && (Date.now() - new Date(hb).getTime()) < 120000);
+                st.workerFresh = fresh;
+                var meta = (row && row.metadata) || null;
+                st.inference = meta ? meta.inference !== false : null; // eski worker metadata yazmaz → bilinmiyor
+                st.mode = meta && meta.mode || null;
                 $("caWorkerWarn").style.display = fresh ? "none" : "block";
+                // Worker bağlı AMA çıkarım kapalıysa dürüst uyarı (sahte "çalışıyor" izlenimi yok)
+                $("caInferWarn").style.display = (fresh && meta && meta.inference === false) ? "block" : "none";
                 $("caLastHb").textContent = hb ? fmtT(hb) + " (" + ago(hb) + ")" : "hiç";
+                renderReady();
             });
+    }
+
+    // ---- Uçtan uca hazırlık paneli (Faz 14) — gerçek durumlar, sahte adım yok ----
+    function step(ok, label, detail) {
+        var mark = ok === true ? '<span style="color:#22c55e;">✓</span>'
+                 : ok === false ? '<span style="color:#ef4444;">✖</span>'
+                 : '<span style="color:#9a9a9a;">?</span>';
+        return '<div style="padding:.22rem 0;">' + mark + ' <b>' + label + '</b>' +
+               (detail ? ' <span class="ca-muted">— ' + detail + '</span>' : '') + '</div>';
+    }
+    function renderReady() {
+        var el = $("caReady"); if (!el) return;
+        var demo = st.mode === "demo";
+        el.innerHTML =
+            step(!!orgId(), "Organizasyon", orgId() ? null : "organizasyon seçili değil") +
+            step(cams.length > 0, "Kamera kaydı", cams.length ? cams.length + " kamera" : "henüz kamera eklenmedi") +
+            step(st.profileSaved, "KKD profili", st.profileSaved === false ? "kaydedilmedi — varsayılan (baret+yelek) kullanılır" : null) +
+            step(st.workerFresh, "Worker bağlantısı", st.workerFresh ? (demo ? "DEMO/test akışı modu" : "RTSP modu") : "heartbeat yok — runbook'a bakın") +
+            step(st.workerFresh ? st.inference : null, "AI çıkarımı",
+                 st.inference === false ? "ROBOFLOW_API_KEY tanımsız — olay üretilemez"
+                 : st.inference === null ? "worker bağlanınca belli olur" : null) +
+            (demo && st.workerFresh
+                ? '<div class="ca-muted" style="margin-top:.4rem;">ℹ Bu akış <b>demo/test modudur</b> (webcam veya örnek video) — gerçek müşteri RTSP kamerası değildir.</div>'
+                : '');
+    }
+    function checkProfile() {
+        if (!orgId()) return;
+        supabase.from("ppe_detection_profiles").select("id").eq("org_id", orgId()).limit(1)
+            .then(function (r) { st.profileSaved = !r.error && !!(r.data && r.data.length); renderReady(); });
     }
 
     // ---- Kameralar ----
@@ -64,6 +102,7 @@
                 if (r.error) { $("caEmpty").style.display = "block"; $("caEmpty").textContent = "Kamera tabloları yok — supabase/schema.sql çalıştırılmalı."; return; }
                 cams = r.data || [];
                 $("caCount").textContent = "— " + cams.length + " kamera";
+                renderReady();
                 if (!cams.length) { $("caEmpty").style.display = "block"; $("caGrid").innerHTML = ""; return; }
                 $("caEmpty").style.display = "none";
                 $("caGrid").innerHTML = cams.map(function (c) {
@@ -173,11 +212,14 @@
         supabase.from("camera_events").select("*, cameras(name)").eq("org_id", oid)
             .order("created_at", { ascending: false }).limit(500).then(function (r) {
                 var rows = r.data || [];
-                var lines = ["Zaman,Kamera,Olay,Risk,Güven,Durum,Model,Kaynak"];
+                var lines = ["Zaman,Kamera,Olay,Eksik KKD,Tespit Edilen KKD,Risk,Güven,Durum,Model,Doğrulama,Kaynak,Kanıt"];
+                var eqKeys = function (o) { return o ? Object.keys(o).join("; ") : ""; };
                 rows.forEach(function (e) {
                     lines.push([fmtT(e.frame_timestamp), (e.cameras && e.cameras.name) || "", ET[e.event_type] || e.event_type,
+                        eqKeys(e.missing_equipment), eqKeys(e.detected_equipment),
                         e.risk_level, e.confidence != null ? e.confidence + "%" : "", ST[e.status] || e.status,
-                        e.model_version || "", "Canlı Kamera"].map(function (c) {
+                        e.model_version || "", e.validation_status || "",
+                        "Canlı Kamera", e.snapshot_url || "metadata-only"].map(function (c) {
                             return '"' + String(c).replace(/"/g, '""') + '"';
                         }).join(","));
                 });
@@ -203,7 +245,7 @@
                         $("cnSite").innerHTML = '<option value="">Saha seç…</option>' + ((s.data || []).map(function (x) {
                             return '<option value="' + x.id + '">' + esc(x.name) + '</option>'; }).join(""));
                     });
-                checkWorker(); loadCams(); loadEvents();
+                checkWorker(); loadCams(); loadEvents(); checkProfile();
                 setInterval(function () { checkWorker(); loadCams(); loadEvents(); }, 15000);
             });
         };

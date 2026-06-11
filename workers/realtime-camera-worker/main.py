@@ -22,6 +22,7 @@ KULLANIM:
 Test akışı: cameras.json'da "stream": "test:./ornek.mp4" (dosya döngüsü) veya
 "webcam:0". Gerçek RTSP: "rtsp://kullanici:sifre@ip:554/yol".
 """
+import argparse
 import base64
 import json
 import os
@@ -53,8 +54,19 @@ WORKER_ID = os.environ.get("WORKER_ID", "worker-" + socket.gethostname())
 HEARTBEAT_SEC = 30
 CAMERAS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cameras.json")
 
-if not (SB_URL and SB_KEY and RF_KEY):
-    sys.exit("SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY ve ROBOFLOW_API_KEY zorunlu.")
+if not (SB_URL and SB_KEY):
+    sys.exit("SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY zorunlu.")
+
+# Faz 14 — DÜRÜSTLÜK: ROBOFLOW_API_KEY yoksa worker yine çalışır (heartbeat/sağlık),
+# ama ÇIKARIM YAPILAMAZ ve HİÇBİR OLAY ÜRETİLMEZ — sahte tespit yoktur.
+# Panel bunu session metadata'sından okuyup "çıkarım kullanılamıyor" uyarısı gösterir.
+INFERENCE_AVAILABLE = bool(RF_KEY)
+if not INFERENCE_AVAILABLE:
+    print("=" * 70)
+    print("UYARI: ROBOFLOW_API_KEY tanımlı değil — ÇIKARIM KAPALI.")
+    print("Worker heartbeat/sağlık gönderir ama KKD tespiti YAPMAZ, olay ÜRETMEZ.")
+    print("Tespit için: export ROBOFLOW_API_KEY=... ve worker'ı yeniden başlatın.")
+    print("=" * 70)
 
 # Faz 13: olay eşlemesi artık org'un KKD profili'nden üretilir (ppe_registry).
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
@@ -206,10 +218,14 @@ class CameraLoop(threading.Thread):
         cam_label = f"{self.cam['name']} [{mask(self.stream)}]"
         # Worker oturumu aç
         res = None
+        # Demo/test akışları DÜRÜSTÇE etiketlenir — gerçek RTSP kamerası gibi gösterilmez.
+        mode = "demo" if (self.stream.startswith("test:") or self.stream.startswith("webcam:")) else "rtsp"
         try:
             req = urllib.request.Request(f"{SB_URL}/rest/v1/camera_worker_sessions", method="POST",
                 data=json.dumps({"org_id": self.cam["org_id"], "camera_id": self.cam["id"],
-                                 "worker_id": WORKER_ID, "status": "running"}).encode(),
+                                 "worker_id": WORKER_ID, "status": "running",
+                                 "metadata": {"inference": INFERENCE_AVAILABLE, "mode": mode,
+                                              "model": MODEL_VERSION if INFERENCE_AVAILABLE else None}}).encode(),
                 headers={"apikey": SB_KEY, "Authorization": f"Bearer {SB_KEY}",
                          "Content-Type": "application/json", "Prefer": "return=representation"})
             with urllib.request.urlopen(req, timeout=15) as r:
@@ -246,15 +262,17 @@ class CameraLoop(threading.Thread):
                     self.set_cam({"health_status": "degraded"})
                     cap.release(); break                   # yeniden bağlan
                 self.set_cam({"last_frame_at": now_iso()})
-                try:
-                    preds = infer(frame)
-                    for p in preds:
-                        m = self.vmap.get(p["class"])   # profil-farkında: kapalı ekipman olay üretmez
-                        if m:
-                            self.emit_event(m[0], m[1], {"confidence": p["confidence"], "all": preds})
-                except Exception as e:
-                    log(f"  ! inference hatası: {e}")
-                    self.health("degraded", f"inference: {type(e).__name__}")
+                if INFERENCE_AVAILABLE:
+                    try:
+                        preds = infer(frame)
+                        for p in preds:
+                            m = self.vmap.get(p["class"])   # profil-farkında: kapalı ekipman olay üretmez
+                            if m:
+                                self.emit_event(m[0], m[1], {"confidence": p["confidence"], "all": preds})
+                    except Exception as e:
+                        log(f"  ! inference hatası: {e}")
+                        self.health("degraded", f"inference: {type(e).__name__}")
+                # ÇIKARIM YOKSA: kare okunur, sağlık/heartbeat akar, olay ÜRETİLMEZ (sahte tespit yok)
                 if time.time() - last_hb > HEARTBEAT_SEC:
                     self.heartbeat(); last_hb = time.time()
                 # örnekleme aralığı kadar bekle (akıştaki ara kareleri tüket)
@@ -269,9 +287,14 @@ class CameraLoop(threading.Thread):
 
 # ---- Ana ----------------------------------------------------------------------
 def main():
-    if not os.path.exists(CAMERAS_FILE):
-        sys.exit(f"{CAMERAS_FILE} yok — cameras.example.json'u kopyalayıp doldurun.")
-    with open(CAMERAS_FILE) as f:
+    ap = argparse.ArgumentParser(description="MIA Gerçek Zamanlı Kamera Worker")
+    ap.add_argument("--config", default=CAMERAS_FILE,
+                    help="kamera id → akış eşleme dosyası (vars. cameras.json)")
+    args = ap.parse_args()
+    cfg = args.config
+    if not os.path.exists(cfg):
+        sys.exit(f"{cfg} yok — cameras.example.json'u kopyalayıp doldurun.")
+    with open(cfg) as f:
         stream_map = json.load(f)   # { "<camera_uuid>": "rtsp://..." }
 
     cams = sb_get("cameras", "?status=in.(active,testing,inactive)&select=*") or []

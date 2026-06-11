@@ -1192,6 +1192,58 @@ alter table public.camera_events add column if not exists required_equipment jso
 alter table public.camera_events add column if not exists snapshot_url       text;
 
 -- ============================================================================
+-- 17) SUNUCU TARAFI KAMERA LİMİTİ (Faz 14 — QA bulgusu kapatma)
+-- ----------------------------------------------------------------------------
+-- Faz 13 QA: kamera ADET limiti yalnız client-side idi. Bu trigger limiti
+-- veritabanında zorlar — frontend atlansa bile plan limiti aşılamaz.
+-- Plan kaynağı: subscriptions (org aboneliği, aktif durumlar); yoksa 'free'.
+-- Limitler js/plans.js cameras alanıyla SENKRON: free=1(demo), giris=0,
+-- kamera_ai=10, pro=30, kurumsal=sınırsız. Mevcut satırlara dokunmaz (yalnız INSERT).
+-- ============================================================================
+create or replace function public.mia_camera_plan_limit(p_org uuid)
+returns integer language sql stable security definer set search_path = public as $$
+  select case coalesce(
+    (select s.plan from public.subscriptions s
+      where s.org_id = p_org
+        and s.status in ('active','trialing','manual_active','pilot_active')
+      order by s.updated_at desc nulls last limit 1), 'free')
+    when 'free'      then 1
+    when 'giris'     then 0
+    when 'kamera_ai' then 10
+    when 'pro'       then 30
+    when 'kurumsal'  then null   -- sınırsız
+    else 0                       -- bilinmeyen plan: muhafazakâr (kapalı)
+  end;
+$$;
+
+create or replace function public.mia_enforce_camera_limit()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  v_limit integer;
+  v_count integer;
+begin
+  v_limit := public.mia_camera_plan_limit(new.org_id);
+  if v_limit is null then
+    return new;                  -- kurumsal: sınırsız
+  end if;
+  select count(*) into v_count from public.cameras
+    where org_id = new.org_id and status <> 'archived';
+  if v_count >= v_limit then
+    raise exception 'camera_limit_reached: plan en çok % kamera izin veriyor', v_limit
+      using errcode = 'P0001';
+  end if;
+  return new;
+end;
+$$;
+
+do $$
+begin
+  execute 'drop trigger if exists trg_mia_camera_limit on public.cameras';
+  execute 'create trigger trg_mia_camera_limit before insert on public.cameras '
+       || 'for each row execute function public.mia_enforce_camera_limit()';
+end $$;
+
+-- ============================================================================
 -- Done. Tablolar: analyses, demo_requests, chat_messages, workers, equipment,
 -- checkpoints, scans, api_usage, consents, subscriptions, pilot_projects,
 -- pilot_checklists, pilot_weekly_reports, pilot_analysis_links,

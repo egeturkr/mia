@@ -75,6 +75,19 @@
             Son worker sinyali: <span id="caLastHb">hiç</span>
         </div>
 
+        <!-- Çıkarım durumu — DÜRÜSTLÜK: API anahtarı yoksa tespit yapılamaz -->
+        <div class="ca-warn" id="caInferWarn" style="display:none;">
+            ⚠ <b>AI çıkarımı kullanılamıyor.</b> Worker bağlı ama ROBOFLOW_API_KEY tanımlı değil —
+            kare örnekleniyor fakat KKD tespiti YAPILMIYOR, hiçbir olay üretilmiyor.
+            Worker sunucusunda anahtarı tanımlayıp yeniden başlatın.
+        </div>
+
+        <!-- Uçtan uca hazırlık (Faz 14) — gerçek pipeline durumunu gösterir, sahte adım yok -->
+        <div class="ca-panel">
+            <h2>Uçtan Uca Hazırlık <span class="ca-muted">— canlı tespit zincirinin gerçek durumu</span></h2>
+            <div id="caReady" class="ca-muted">Yükleniyor…</div>
+        </div>
+
         <!-- Kamera ekleme (owner/admin) -->
         <div class="ca-panel" id="caAddPanel" style="display:none;">
             <h2>Kamera Ekle</h2>
@@ -127,7 +140,9 @@
         </div>
 
         <p class="ca-muted">Olaylar AI destekli ön değerlendirmedir; sertifikalı İSG denetiminin yerine geçmez.
-        Kaynak etiketi: bu sayfadaki olaylar "Canlı Kamera", Analiz sayfasındakiler "Yüklenen Video" kaynaklıdır.</p>
+        Kaynak etiketi: bu sayfadaki olaylar "Canlı Kamera", Analiz sayfasındakiler "Yüklenen Video" kaynaklıdır.
+        <br>Kanıt politikası: görüntü kareleri <b>saklanmaz</b> — olaylar yalnız metadata içerir (zaman, kamera, tespit, güven, model).
+        Snapshot saklama; müşteri onayı, KVKK dayanağı ve saklama politikası olmadan açılmaz.</p>
     </main>
 
     <footer><p>© 2026 MIA - Tüm hakları saklıdır.</p></footer>
