@@ -1,7 +1,7 @@
 // === TRANSLATIONS ===
 var translations = {
     tr: {
-        nav_home: "Ana Sayfa", nav_company: "Şirket", nav_contact: "İletişim", nav_login: "Giriş Yap", nav_signup: "Kaydol", nav_analysis: "Analiz", nav_logout: "Çıkış",
+        nav_home: "Ana Sayfa", nav_company: "Şirket", nav_contact: "İletişim", nav_download: "İndir", nav_login: "Giriş Yap", nav_signup: "Kaydol", nav_analysis: "Analiz", nav_logout: "Çıkış",
         home_badge: "YAPAY ZEKA DESTEKLİ GÜVENLİK", home_title: "İnşaat Güvenliğinin<br>Geleceği", home_title_1: "İnşaat Güvenliğinin", home_title_2: "Geleceği", home_subtitle: "MIA, yüklenen şantiye videolarını yapay zeka ile analiz ederek KKD ihlallerini tespit etmenize ve iş kazalarını önlemenize yardımcı olur.", home_cta: "Hemen Başla", home_learn: "Daha Fazla",
         hero_b1: "Kurulumu Kolay", hero_b2: "Hızlı Başlangıç", hero_b3: "Öncelikli Destek",
         stat1_val: "1,800+", stat1_label: "Yıllık ölümlü iş kazası", stat1_sub: "Türkiye, 2023",
@@ -115,7 +115,7 @@ var translations = {
         no_analyses: "Henüz analiz yok", no_analyses_desc: "Yeni Analiz butonuna tıklayın", no_violations: "İhlal Yok", passwords_not_match: "Şifreler eşleşmiyor", reading_video: "Video okunuyor...", sending_gpu: "GPU'ya gönderiliyor...", error: "Hata"
     },
     en: {
-        nav_home: "Home", nav_company: "Company", nav_contact: "Contact", nav_login: "Login", nav_signup: "Sign Up", nav_analysis: "Analysis", nav_logout: "Logout",
+        nav_home: "Home", nav_company: "Company", nav_contact: "Contact", nav_download: "Download", nav_login: "Login", nav_signup: "Sign Up", nav_analysis: "Analysis", nav_logout: "Logout",
         home_badge: "AI-POWERED SAFETY", home_title: "The Future of<br>Construction Safety", home_title_1: "The Future of", home_title_2: "Construction Safety", home_subtitle: "MIA analyzes uploaded construction site videos with AI to help identify PPE violations and prevent workplace accidents.", home_cta: "Get Started", home_learn: "Learn More",
         hero_b1: "Easy Setup", hero_b2: "Fast Onboarding", hero_b3: "Priority Support",
         stat1_val: "1,800+", stat1_label: "Annual fatal accidents", stat1_sub: "Turkey, 2023",
@@ -218,7 +218,7 @@ var translations = {
         no_analyses: "No analyses yet", no_analyses_desc: "Click New Analysis to start", no_violations: "No Violations", passwords_not_match: "Passwords do not match", reading_video: "Reading video...", sending_gpu: "Sending to GPU...", error: "Error"
     },
     es: {
-        nav_home: "Inicio", nav_company: "Empresa", nav_contact: "Contacto", nav_login: "Iniciar sesión", nav_signup: "Registrarse", nav_analysis: "Análisis", nav_logout: "Cerrar sesión",
+        nav_home: "Inicio", nav_company: "Empresa", nav_contact: "Contacto", nav_download: "Descargar", nav_login: "Iniciar sesión", nav_signup: "Registrarse", nav_analysis: "Análisis", nav_logout: "Cerrar sesión",
         home_badge: "SEGURIDAD CON IA", home_title: "El Futuro de la<br>Seguridad en Construcción", home_title_1: "El Futuro de la", home_title_2: "Seguridad en Construcción", home_subtitle: "MIA analiza con IA los videos de obra subidos para ayudar a identificar infracciones de EPP y prevenir accidentes laborales.", home_cta: "Comenzar", home_learn: "Saber más",
         hero_b1: "Configuración Fácil", hero_b2: "Incorporación Rápida", hero_b3: "Soporte Prioritario",
         stat1_val: "1,800+", stat1_label: "Accidentes mortales anuales", stat1_sub: "Turquía, 2023",
