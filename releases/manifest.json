@@ -13,7 +13,8 @@
       "signed": false,
       "notarized": false,
       "malware_scanned": false,
-      "distribution": "internal-pilot"
+      "distribution": "internal-pilot",
+      "hosted_url": "https://github.com/egeturkr/mia/releases/download/v0.1.0-pilot/MIA.AI.Safety.Intelligence-0.1.0-pilot-arm64.dmg"
     }
   ],
   "security_status": {
