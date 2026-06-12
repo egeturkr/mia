@@ -36,6 +36,7 @@
                 if (det) det.innerHTML = !fresh ? '<span class="ca-muted">worker bağlanınca görünür</span>'
                     : "<b style='color:#ECECEC;'>" + esc(m.model_id || "—") + "</b>" +
                       " <span class='ca-muted'>· adaptör: " + esc(m.adapter || "—") +
+                      (m.confidence_threshold != null ? " · güven eşiği: " + Math.round(m.confidence_threshold * 100) + "%" : "") +
                       " · son sinyal: " + new Date(row.last_heartbeat_at).toLocaleString("tr-TR") + "</span>" +
                       "<div class='ca-muted' style='margin-top:.3rem;'>Model env ile değiştirilebilir: ROBOFLOW_MODEL_ID / ROBOFLOW_MODEL_VERSION (worker restart gerekir).</div>";
             });

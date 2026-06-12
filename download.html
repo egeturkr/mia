@@ -89,6 +89,14 @@
         </div>
 
         <div class="dl-note">
+            <b>İndirmeyi doğrulama (önerilir):</b> 1) DMG'yi yalnız bu sayfadaki resmi bağlantıdan indirin.
+            2) Terminal'de çalıştırın: <code style="font-size:.78rem;">shasum -a 256 ~/Downloads/MIA*.dmg</code>
+            3) Çıkan değeri yukarıdaki SHA256 ile karşılaştırın — birebir aynı olmalı.
+            4) Eşleşmiyorsa dosyayı KURMAYIN ve info@miaissagligi.com'a bildirin.
+            E-posta ekiyle gelen "MIA yükleyicisi" dosyalarına itibar etmeyin — biz e-postayla yükleyici göndermeyiz.
+        </div>
+
+        <div class="dl-note">
             <b>Sürüm durumu (dürüst):</b> Masaüstü ve mobil uygulamalar, canlı web platformunu güvenli bir kabukta açar —
             web'e gelen her güncelleme uygulamalara anında yansır. Masaüstü ve mobil uygulamalar, imzalı build'ler
             yayınlanana kadar <b>kurum içi sürüm adayıdır</b>; yükleyiciler yalnız kod imzalama, SHA256 doğrulama ve
@@ -126,7 +134,9 @@
                 meta.style.display = 'block';
                 meta.innerHTML = 'SHA256: <code style="font-size:.64rem;word-break:break-all;">' + a.sha256 + '</code>' +
                     '<br>' + (a.size_bytes ? (a.size_bytes / 1048576).toFixed(0) + ' MB · ' : '') +
-                    (a.malware_scanned ? 'malware taraması: ✓' : 'malware taraması: yapılmadı');
+                    (a.malware_scanned ? 'Malware taraması: ✓' : 'Malware taraması: yapılmadı') +
+                    '<br>' + (a.signed ? 'İmza: ✓' : 'İmzasız — macOS Gatekeeper uyarısı verebilir (sağ tık → Aç)') +
+                    '<br>' + (a.notarized ? 'Notarization: ✓' : 'Apple notarization tamamlanmadı');
                 if (a.hosted_url) {
                     btn.textContent = 'İndir (.dmg)';
                     btn.href = a.hosted_url;

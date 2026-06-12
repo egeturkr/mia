@@ -12,8 +12,12 @@ const APP_URL = process.env.MIA_APP_URL || "https://miaissagligi.com/app/login";
 const ALLOWED_HOSTS = ["miaissagligi.com", "www.miaissagligi.com"];
 
 function isAllowed(url) {
-    try { return ALLOWED_HOSTS.includes(new URL(url).hostname); }
-    catch (e) { return false; }
+    // GÜVENLİK: yalnız https + izinli MIA alan adları. http'ye düşürme (downgrade)
+    // ve bilinmeyen alanlara gezinme engellenir; dışarısı sistem tarayıcısına gider.
+    try {
+        const u = new URL(url);
+        return u.protocol === "https:" && ALLOWED_HOSTS.includes(u.hostname);
+    } catch (e) { return false; }
 }
 
 function createWindow() {
@@ -48,6 +52,13 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+    // GÜVENLİK: izin istekleri (kamera/mikrofon/konum/bildirim...) varsayılan RET.
+    // MIA masaüstü kabuğu cihaz donanımına erişmez — RTSP işleme worker'dadır.
+    // İleride webcam demo'su kabukta istenirse yalnız 'media' izni bilinçli açılır.
+    const { session } = require("electron");
+    session.defaultSession.setPermissionRequestHandler((wc, permission, callback) => {
+        callback(false); // hiçbir izin otomatik verilmez
+    });
     createWindow();
     if (Notification.isSupported()) {
         // Bildirim altyapısı hazır — web tarafı Notification API kullanırsa çalışır.

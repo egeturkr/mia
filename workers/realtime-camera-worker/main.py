@@ -179,6 +179,7 @@ class CameraLoop(threading.Thread):
                              "model": MODEL_VERSION if INFERENCE_AVAILABLE else None,
                              "model_id": RF_MODEL if INFERENCE_AVAILABLE else None,
                              "adapter": "roboflow" if INFERENCE_AVAILABLE else None,
+                             "confidence_threshold": CONFIDENCE if INFERENCE_AVAILABLE else None,
                              "perf_ms": self.perf or None}}
         if self.session_id:
             sb_req("PATCH", "camera_worker_sessions", body, f"?id=eq.{self.session_id}")
