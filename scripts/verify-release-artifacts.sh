@@ -1,32 +1,45 @@
 #!/usr/bin/env bash
-# MIA — Sürüm Artefakt Doğrulama (Faz 16)
+# MIA — Sürüm Artefakt Doğrulama (Faz 16, macOS Bash 3.2 uyumlu)
 # releases/ içindeki GERÇEK dosyalar için SHA256 üretir, manifest.json'u günceller.
 # YAPMAZ: malware taraması, imza, dış yükleme, sahte "güvenli" işareti.
-set -euo pipefail
+# Not: mapfile/array kullanılmaz (macOS default Bash 3.2); boşluklu dosya adları desteklenir.
+set -eu
 cd "$(dirname "$0")/.."
 
 DIR="releases"
 MANIFEST="$DIR/manifest.json"
 SUMS="$DIR/checksums.sha256"
 
-if command -v shasum >/dev/null; then HASHER="shasum -a 256"; else HASHER="sha256sum"; fi
+if command -v shasum >/dev/null 2>&1; then HASHER="shasum -a 256"; else HASHER="sha256sum"; fi
 
-# Gerçek artefaktlar (gitkeep/manifest/checksum/README hariç)
-mapfile -t FILES < <(find "$DIR" -type f \
+# Gerçek artefakt listesi (metadata dosyaları hariç) — geçici dosyada, boşluk güvenli
+LIST="$(mktemp)"
+trap 'rm -f "$LIST"' EXIT
+find "$DIR" -type f \
   ! -name ".gitkeep" ! -name "manifest.json" ! -name "checksums.sha256" \
-  ! -name "README.md" ! -name ".gitignore" | sort)
+  ! -name "README.md" ! -name ".gitignore" ! -name ".DS_Store" \
+  | sort > "$LIST"
+
+COUNT=$(grep -c . "$LIST" || true)
 
 echo "== MIA sürüm doğrulama — $(date -u +%Y-%m-%dT%H:%M:%SZ) =="
-if [ ${#FILES[@]} -eq 0 ]; then
+if [ "$COUNT" -eq 0 ]; then
   echo "Gerçek artefakt YOK. manifest.json artifacts=[] olarak kalır (dürüst durum)."
   echo "Build üretimi: releases/README.md"
   exit 0
 fi
 
-echo "Bulunan artefaktlar:"; printf '  %s\n' "${FILES[@]}"
+echo "Bulunan artefaktlar ($COUNT):"
+while IFS= read -r f; do
+  [ -n "$f" ] && echo "  $f"
+done < "$LIST"
+
 : > "$SUMS"
-for f in "${FILES[@]}"; do $HASHER "$f" >> "$SUMS"; done
-echo "" && echo "Checksum yazıldı: $SUMS"
+while IFS= read -r f; do
+  [ -n "$f" ] && $HASHER "$f" >> "$SUMS"
+done < "$LIST"
+echo ""
+echo "Checksum yazıldı: $SUMS"
 
 # manifest.json güncelle (yalnız gerçek dosyalar + sha256_generated=true)
 python3 - "$MANIFEST" "$SUMS" <<'PYEOF'
@@ -35,8 +48,12 @@ manifest, sums = sys.argv[1], sys.argv[2]
 m = json.load(open(manifest))
 arts = []
 for line in open(sums):
-    h, _, path = line.strip().partition("  ")
-    if path:
+    line = line.rstrip("\n")
+    if not line:
+        continue
+    h, _, path = line.partition("  ")          # shasum biçimi: "<hash>  <yol>"
+    path = path.lstrip("*")                     # binary modu işareti olabilir
+    if path and os.path.isfile(path):
         arts.append({"path": path, "sha256": h, "size_bytes": os.path.getsize(path)})
 m["artifacts"] = arts
 m["security_status"]["sha256_generated"] = True

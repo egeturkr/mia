@@ -2,12 +2,18 @@
   "product": "MIA AI Safety Intelligence",
   "version": "0.1.0-pilot",
   "release_channel": "internal-pilot",
-  "artifacts": [],
+  "artifacts": [
+    {
+      "path": "releases/desktop/macos/MIA AI Safety Intelligence-0.1.0-pilot-arm64.dmg",
+      "sha256": "8659f7adebd7c798702cc7b1111b52580be58e66f1cedd93cc92ca0327a78811",
+      "size_bytes": 101032808
+    }
+  ],
   "security_status": {
     "signed": false,
     "notarized": false,
     "malware_scanned": false,
-    "sha256_generated": false
+    "sha256_generated": true
   },
   "notes": "İmzalama ve malware taraması tamamlanmadan hiçbir yükleyici kamuya yayınlanmaz. Bu manifest yalnız GERÇEK dosyaları listeler — scripts/verify-release-artifacts.sh ile güncellenir."
 }
