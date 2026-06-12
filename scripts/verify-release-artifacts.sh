@@ -46,6 +46,17 @@ python3 - "$MANIFEST" "$SUMS" <<'PYEOF'
 import json, sys, os
 manifest, sums = sys.argv[1], sys.argv[2]
 m = json.load(open(manifest))
+# Mevcut hosted_url'leri koru (elle eklenir; script SİLMEZ)
+old_urls = {a.get("path"): a.get("hosted_url") for a in m.get("artifacts", []) if a.get("hosted_url")}
+
+def platform_of(p):
+    if "/macos/" in p: return ("macOS", "arm64" if "arm64" in p else "x64")
+    if "/windows/" in p: return ("Windows", "x64")
+    if "/linux/" in p: return ("Linux", "x64")
+    if "/android/" in p: return ("Android", "universal")
+    if "/ios/" in p: return ("iOS", "universal")
+    return ("unknown", "unknown")
+
 arts = []
 for line in open(sums):
     line = line.rstrip("\n")
@@ -54,7 +65,15 @@ for line in open(sums):
     h, _, path = line.partition("  ")          # shasum biçimi: "<hash>  <yol>"
     path = path.lstrip("*")                     # binary modu işareti olabilir
     if path and os.path.isfile(path):
-        arts.append({"path": path, "sha256": h, "size_bytes": os.path.getsize(path)})
+        plat, arch = platform_of(path)
+        art = {"platform": plat, "architecture": arch,
+               "file_name": os.path.basename(path), "path": path,
+               "sha256": h, "size_bytes": os.path.getsize(path),
+               "signed": False, "notarized": False, "malware_scanned": False,
+               "distribution": "internal-pilot"}
+        if old_urls.get(path):                  # barındırılan link varsa korunur
+            art["hosted_url"] = old_urls[path]
+        arts.append(art)
 m["artifacts"] = arts
 m["security_status"]["sha256_generated"] = True
 # imza/notarization/malware ASLA otomatik true yapılmaz — manuel doğrulama gerekir

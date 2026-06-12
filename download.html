@@ -63,9 +63,10 @@
             </div>
             <div class="dl-card">
                 <span class="plat">macOS</span><h3>MIA AI Safety Intelligence</h3>
-                <span class="dl-status dl-soon">KURUM İÇİ SÜRÜM</span>
-                <p>Build'e hazır; dağıtım imzası (Apple Developer) süreci devam ediyor. Talep üzerine sağlanır.</p>
-                <a class="btn btn-secondary btn-sm" href="iletisim.html">Talep Et</a>
+                <span class="dl-status dl-soon" id="dlMacBadge">KURUM İÇİ SÜRÜM</span>
+                <p id="dlMacDesc">Build'e hazır; dağıtım imzası (Apple Developer) süreci devam ediyor. Talep üzerine sağlanır.</p>
+                <div id="dlMacMeta" style="display:none;font-size:.7rem;color:var(--text-muted);line-height:1.6;margin-bottom:.6rem;"></div>
+                <a class="btn btn-secondary btn-sm" id="dlMacBtn" href="iletisim.html">Talep Et</a>
             </div>
             <div class="dl-card">
                 <span class="plat">Linux</span><h3>MIA AI Safety Intelligence</h3>
@@ -102,6 +103,43 @@
             <a href="iletisim.html" style="color:#D4AF37;">iletişime geçin</a>.
         </div>
     </main>
+
+    <script>
+    // Sürüm-farkında macOS kartı (Faz 19): releases/manifest.json TEK gerçek kaynak.
+    // KURAL: hosted_url yoksa İNDİRME LİNKİ GÖSTERİLMEZ (binary git/Netlify'da değil —
+    // kırık link yerine dürüst "talep et"). hosted_url eklenince buton otomatik İndir olur.
+    (function () {
+        fetch('/releases/manifest.json').then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (m) {
+                if (!m || !m.artifacts) return;
+                var a = m.artifacts.filter(function (x) { return x.platform === 'macOS' || /\.dmg$/.test(x.path || ''); })[0];
+                if (!a) return; // artefakt yok → varsayılan "Talep Et" kalır
+                var badge = document.getElementById('dlMacBadge'),
+                    desc = document.getElementById('dlMacDesc'),
+                    meta = document.getElementById('dlMacMeta'),
+                    btn = document.getElementById('dlMacBtn');
+                var unsigned = !(a.signed && a.notarized);
+                badge.textContent = 'PİLOT BUILD HAZIR';
+                desc.innerHTML = 'Apple Silicon (' + (a.architecture || 'arm64') + ') · ' + (m.version || '') +
+                    ' · ' + (m.release_channel === 'internal-pilot' ? 'kurum içi pilot sürümü' : m.release_channel) +
+                    (unsigned ? ' · <b>imzasız / notarize edilmemiş</b>' : '');
+                meta.style.display = 'block';
+                meta.innerHTML = 'SHA256: <code style="font-size:.64rem;word-break:break-all;">' + a.sha256 + '</code>' +
+                    '<br>' + (a.size_bytes ? (a.size_bytes / 1048576).toFixed(0) + ' MB · ' : '') +
+                    (a.malware_scanned ? 'malware taraması: ✓' : 'malware taraması: yapılmadı');
+                if (a.hosted_url) {
+                    btn.textContent = 'İndir (.dmg)';
+                    btn.href = a.hosted_url;
+                    btn.className = 'btn btn-primary btn-sm';
+                } else {
+                    btn.textContent = 'Pilot Build Talep Et';
+                    // dosya kamuya barındırılmıyor — link YOK, dürüst talep akışı
+                }
+                if (unsigned) desc.innerHTML += '<br><span style="font-size:.7rem;">Bu sürüm kurum içi pilot içindir; ' +
+                    'code signing/notarization ve malware taraması tamamlanmadan kamuya açık dağıtım önerilmez.</span>';
+            }).catch(function () { /* manifest okunamadı → varsayılan dürüst durum kalır */ });
+    })();
+    </script>
 
     <footer style="text-align:center;">
         <img src="images/logo-mono.webp" alt="MIA" style="height:34px;opacity:.7;" onerror="this.src='images/logo-mono.png'">

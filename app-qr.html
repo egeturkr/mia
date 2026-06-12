@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA Uygulaması — QR Doğrulama</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#050505">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="mia-app" data-app-page="qr">
+    <div id="appShell"></div>
+
+    <div id="appContent" style="display:none;">
+        <h1 class="app-h1">QR Saha Doğrulama Katmanı</h1>
+        <p class="app-sub">Kamera AI'ını <b>tamamlayan</b> saha katmanı (Mostar Projects geri bildirimi):
+        AI görüntüden KKD ihlalini tespit eder; QR katmanı kişi/ekipman/süreç kayıtlarını saha operasyonuna bağlar.
+        QR, kamera AI'ının yerine geçmez.</p>
+
+        <div class="stat-row">
+            <div class="stat"><div class="v gold" id="qrWorkers">—</div><div class="l">Kayıtlı çalışan rozeti</div></div>
+            <div class="stat"><div class="v" id="qrEquip">—</div><div class="l">QR etiketli KKD ekipmanı</div></div>
+            <div class="stat"><div class="v" id="qrCheckpoints">—</div><div class="l">Geçiş noktası</div></div>
+            <div class="stat"><div class="v" id="qrScans">—</div><div class="l">Tarama (son 7 gün)</div></div>
+            <div class="stat"><div class="v bad" id="qrNoncomp">—</div><div class="l">Uyumsuz geçiş (son 7 gün)</div></div>
+        </div>
+
+        <div class="app-grid" style="grid-template-columns:repeat(auto-fit,minmax(290px,1fr));">
+            <div class="app-card">
+                <h2>Çalışan QR Rozeti <span class="b b-ok">AKTİF</span></h2>
+                <p class="mut" style="margin:0 0 .8rem;">Her çalışana QR rozet; geçiş noktasında okutulur, saha
+                varlığı ve KKD uyum kaydı oluşur. Rol/ekip bilgisi İSG ekibine açık.</p>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+                    <a class="btn btn-primary btn-sm" href="/qr-uret.html" target="_blank" rel="noopener">QR Rozet Üret</a>
+                    <a class="btn btn-secondary btn-sm" href="/tarama.html" target="_blank" rel="noopener">Tarama Ekranı</a>
+                </div>
+            </div>
+            <div class="app-card">
+                <h2>Saha Giriş/Çıkış <span class="b b-ok">AKTİF</span></h2>
+                <p class="mut" style="margin:0 0 .8rem;">Geçiş noktalarında QR/RFID taraması: kim girdi, KKD
+                eksiği var mıydı (baret/yelek beyanı), uyumlu muydu — denetim izi olarak kaydedilir.</p>
+                <div id="qrRecentScans" class="ca-muted">Yükleniyor…</div>
+            </div>
+            <div class="app-card">
+                <h2>KKD Ekipman QR Etiketi <span class="b b-ok">AKTİF</span></h2>
+                <p class="mut" style="margin:0 0 .8rem;">Baret/yelek gibi ekipmanlara QR etiket; zimmet ve denetim
+                izi desteklenir. Ekipman kaydı QR üretim aracından yapılır.</p>
+                <a class="btn btn-secondary btn-sm" href="/qr-uret.html" target="_blank" rel="noopener">Ekipman Etiketi Üret</a>
+            </div>
+            <div class="app-card">
+                <h2>AI Olay Takibi <span class="b b-warn">PİLOT</span></h2>
+                <p class="mut" style="margin:0;">Kamera AI "baretsiz çalışan" tespit ettiğinde İSG uzmanı olayı
+                inceler; QR geçiş kayıtlarından o saat sahada kimlerin olduğuna ve KKD beyanlarına bakarak
+                süreci yönetir. <b>Otomatik kamera-kişi eşleştirme YAPILMAZ</b> (yüz tanıma yok) — eşleştirme
+                İSG uzmanının kararıdır.</p>
+                <p style="margin:.7rem 0 0;"><a href="/app/events" style="color:#E9C766;font-size:.82rem;">Olaylara git →</a></p>
+            </div>
+            <div class="app-card" style="opacity:.75;">
+                <h2>Eğitim / Oryantasyon Onayı <span class="b b-mut">PLANLANDI</span></h2>
+                <p class="mut" style="margin:0;">Çalışan oryantasyonu tamamlandığında QR ile eğitim kaydı onayı.
+                Henüz uygulanmadı — pilot geri bildirimiyle önceliklendirilecek. Sahte kayıt gösterilmez.</p>
+            </div>
+        </div>
+
+        <div class="app-card" style="margin-top:1rem;">
+            <h2>Katmanlı Tespit Yaklaşımı <span class="ca-muted">— Mostar Projects görüşmesinden</span></h2>
+            <div style="overflow-x:auto;"><table class="t">
+                <thead><tr><th>Katman</th><th>Ne yapar</th><th>Durum</th></tr></thead>
+                <tbody>
+                    <tr><td><b>QR/RFID geçiş</b></td><td>Kimlik + KKD beyanı + giriş/çıkış denetim izi</td><td><span class="b b-ok">Aktif</span></td></tr>
+                    <tr><td><b>Kamera AI</b></td><td>Görüntüden baret/yelek ihlali tespiti (yakın gerçek zamanlı)</td><td><span class="b b-ok">Pilot</span></td></tr>
+                    <tr><td><b>Termal katman</b></td><td>Düşük görüşte ek doğrulama</td><td><span class="b b-mut">Yol haritası (PoC mevcut)</span></td></tr>
+                </tbody>
+            </table></div>
+            <p class="ca-muted" style="margin:.7rem 0 0;">KVKK: QR kayıtları kişisel veri içerir — saha bildirimi ve
+            çalışan aydınlatması zorunludur; kamera-QR otomatik kimlik eşleştirmesi ve yüz tanıma YAPILMAZ.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/app-core.js"></script>
+    <script src="/js/org.js"></script>
+    <script src="/js/app-shell.js"></script>
+    <script src="/js/app-qr.js"></script>
+</body>
+</html>
