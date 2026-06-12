@@ -31,6 +31,13 @@
                 $("adInfer").className = "v " + (!fresh ? "" : m.inference === false ? "bad" : "ok");
                 $("adModel").textContent = (fresh && m.model) || "—";
                 $("adLatency").textContent = (fresh && m.perf_ms && m.perf_ms.infer_ms != null) ? m.perf_ms.infer_ms + " ms" : "—";
+                // Model/adaptör detayı (env'den yapılandırılabilir: ROBOFLOW_MODEL_ID/VERSION)
+                var det = $("adModelDetail");
+                if (det) det.innerHTML = !fresh ? '<span class="ca-muted">worker bağlanınca görünür</span>'
+                    : "<b style='color:#ECECEC;'>" + esc(m.model_id || "—") + "</b>" +
+                      " <span class='ca-muted'>· adaptör: " + esc(m.adapter || "—") +
+                      " · son sinyal: " + new Date(row.last_heartbeat_at).toLocaleString("tr-TR") + "</span>" +
+                      "<div class='ca-muted' style='margin-top:.3rem;'>Model env ile değiştirilebilir: ROBOFLOW_MODEL_ID / ROBOFLOW_MODEL_VERSION (worker restart gerekir).</div>";
             });
 
         // Aktif profil

@@ -53,10 +53,12 @@
     }
 
     function currentFilters() {
+        var src = document.getElementById("fSource"); // opsiyonel (yalnız app sayfasında var)
         return {
             period: document.getElementById("fPeriod").value,
             risk: document.getElementById("fRisk").value,
-            ppe: document.getElementById("fPpe").value
+            ppe: document.getElementById("fPpe").value,
+            source: src ? src.value : "all"
         };
     }
 
@@ -66,6 +68,8 @@
             if (cut && new Date(r.created_at).getTime() < cut) return false;
             if (f.risk !== "all" && r.risk !== f.risk) return false;
             if (f.ppe !== "all" && r.ppe !== f.ppe) return false;
+            if (f.source === "camera" && r.source !== "camera") return false;
+            if (f.source === "video" && r.source === "camera") return false;
             return true;
         });
     }
@@ -243,6 +247,8 @@
         ["fPeriod", "fRisk", "fPpe"].forEach(function (id) {
             document.getElementById(id).addEventListener("change", render);
         });
+        var fs = document.getElementById("fSource"); // opsiyonel kaynak filtresi (app)
+        if (fs) fs.addEventListener("change", render);
         document.getElementById("btnCsv").addEventListener("click", exportCsv);
         document.getElementById("btnPdf").addEventListener("click", exportPdf);
         supabase.auth.getSession().then(function (r) {

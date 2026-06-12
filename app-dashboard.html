@@ -18,11 +18,27 @@
         <p class="app-sub">Operasyonel güvenlik özeti — tüm veriler gerçek kayıtlardan, sahte gösterge yok.</p>
 
         <div class="stat-row" id="dbStats">
-            <div class="stat"><div class="v" id="dsCams">—</div><div class="l">Kamera (aktif/toplam)</div></div>
+            <div class="stat"><div class="v" id="dsCams">—</div><div class="l">Kamera (çevrimiçi/toplam)</div></div>
             <div class="stat"><div class="v" id="dsWorker">—</div><div class="l">Canlı izleme worker'ı</div></div>
             <div class="stat"><div class="v gold" id="dsOpen">—</div><div class="l">Açık ihlal olayı</div></div>
             <div class="stat"><div class="v" id="dsAnalyses">—</div><div class="l">Video analizi (toplam)</div></div>
             <div class="stat"><div class="v" id="dsScore">—</div><div class="l">Ortalama güvenlik skoru</div></div>
+            <div class="stat"><div class="v" id="dsLatency">—</div><div class="l">Son çıkarım gecikmesi</div></div>
+        </div>
+
+        <!-- ÇEKİRDEK: Canlı kamera izleme -->
+        <div class="app-card" style="margin-bottom:1rem;">
+            <h2>Canlı Kamera İzleme <span class="ca-muted" id="dsCamNote"></span>
+                <a href="/app/cameras" class="btn btn-secondary btn-sm" style="float:right;">Tümünü Yönet →</a></h2>
+            <div class="ca-grid" id="dsCamGrid"></div>
+            <div class="empty" id="dsCamEmpty" style="display:none;">
+                <p style="margin:.2rem 0 .9rem;color:#b9b9b9;"><b>Henüz kamera eklenmedi.</b><br>
+                Canlı KKD tespiti için ilk kameranızı ekleyin.</p>
+                <a class="btn btn-primary btn-sm" href="/app/cameras">+ Kamera Ekle</a>
+            </div>
+            <div class="ca-warn" id="dsWorkerWarn" style="display:none;margin:.9rem 0 0;">
+                ⚠ <b>Worker bağlı değil</b> — canlı AI olayı üretilmez. Kurulum: docs/REALTIME_CAMERA_RUNBOOK.md
+            </div>
         </div>
 
         <div class="app-grid" style="grid-template-columns:2fr 1fr;align-items:start;">
@@ -38,21 +54,27 @@
             </div>
         </div>
 
-        <div class="app-grid" style="grid-template-columns:1fr 1fr;align-items:start;margin-top:1rem;">
+        <div class="app-grid" style="grid-template-columns:1.4fr 1fr;align-items:start;margin-top:1rem;">
             <div class="app-card">
-                <h2>Kamera Durumu</h2>
-                <div id="dsCamList" class="ca-muted">Yükleniyor…</div>
-                <p style="margin:.8rem 0 0;"><a href="/app/cameras" style="color:#E9C766;font-size:.82rem;">Canlı kameralara git →</a></p>
+                <h2>Olay Akışı <span class="ca-muted">— kaynak etiketli, son 14 gün</span></h2>
+                <div id="dsFlow" class="ca-muted">Yükleniyor…</div>
             </div>
             <div class="app-card">
-                <h2>Hızlı İşlemler</h2>
-                <div style="display:flex;flex-direction:column;gap:.55rem;">
-                    <a class="btn btn-secondary btn-sm" href="/app/cameras">+ Kamera ekle / KKD profili</a>
-                    <a class="btn btn-secondary btn-sm" href="/app/events">İhlal olaylarını incele</a>
-                    <a class="btn btn-secondary btn-sm" href="/app/reports">Rapor merkezi (CSV/PDF)</a>
-                    <a class="btn btn-secondary btn-sm" href="/detector.html" target="_blank" rel="noopener">Video analizi yükle (web)</a>
-                </div>
-                <div id="dsAiBox" style="margin-top:1rem;" class="ca-muted">AI durumu yükleniyor…</div>
+                <h2>AI Tespit Durumu</h2>
+                <div id="dsAiBox" class="ca-muted">AI durumu yükleniyor…</div>
+                <div id="dsClasses" style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.8rem;"></div>
+                <p class="ca-muted" style="margin:.7rem 0 0;">Doğruluk: pilot saha doğrulaması bekliyor —
+                <a href="/app/detections" style="color:#E9C766;">detaylar →</a></p>
+            </div>
+        </div>
+
+        <div class="app-card" style="margin-top:1rem;">
+            <h2>Raporlar ve Hızlı İşlemler</h2>
+            <div style="display:flex;gap:.55rem;flex-wrap:wrap;">
+                <a class="btn btn-secondary btn-sm" href="/app/reports">📄 Günlük / Haftalık / Aylık Özet</a>
+                <a class="btn btn-secondary btn-sm" href="/app/events">İhlal Raporu (CSV/PDF)</a>
+                <a class="btn btn-secondary btn-sm" href="/app/cameras">+ Kamera ekle / KKD profili</a>
+                <a class="btn btn-secondary btn-sm" href="/detector.html" target="_blank" rel="noopener">Video analizi yükle (web)</a>
             </div>
         </div>
     </div>
@@ -63,6 +85,7 @@
     <script src="/js/org.js"></script>
     <script src="/js/monitor.js"></script>
     <script src="/js/app-shell.js"></script>
+    <script src="/js/ppe-registry.js"></script>
     <script src="/js/app-dashboard.js"></script>
 </body>
 </html>

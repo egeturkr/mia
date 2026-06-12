@@ -20,25 +20,25 @@
         var user = ev.detail.user;
         var oid = window.MIAOrg && window.MIAOrg.currentId();
 
-        // --- Kameralar ---
+        // --- Canlı kamera izleme (çekirdek alan: kart ızgarası) ---
         if (oid) supabase.from("cameras").select("*").eq("org_id", oid).neq("status", "archived")
             .then(function (r) {
                 var cams = r.data || [];
                 var on = cams.filter(function (c) { return c.health_status === "online"; }).length;
                 $("dsCams").textContent = cams.length ? on + " / " + cams.length : "0";
                 $("dsCams").className = "v " + (cams.length && on === cams.length ? "ok" : on ? "warn" : "");
-                $("dsCamList").innerHTML = !cams.length
-                    ? '<div class="empty">Henüz kamera yok — <a href="app-cameras.html" style="color:#E9C766;">eklemek için Canlı Kameralar</a></div>'
-                    : '<table class="t"><thead><tr><th>Kamera</th><th>Konum</th><th>Durum</th><th>Son kare</th><th>Son tespit</th></tr></thead><tbody>' +
-                      cams.slice(0, 8).map(function (c) {
-                          var dot = c.health_status === "online" ? "on" : c.health_status === "offline" ? "off"
-                                  : c.health_status === "degraded" ? "deg" : "unk";
-                          return "<tr><td><span class='dot " + dot + "'></span><b>" + esc(c.name) + "</b></td><td>" +
-                              esc(c.location_label || "—") + "</td><td>" + esc(c.status) + "</td><td>" +
-                              ago(c.last_frame_at) + "</td><td>" + ago(c.last_detection_at) + "</td></tr>";
-                      }).join("") + "</tbody></table>";
+                $("dsCamNote").textContent = cams.length ? "— " + cams.length + " kamera" : "";
+                $("dsCamEmpty").style.display = cams.length ? "none" : "block";
+                $("dsCamGrid").innerHTML = cams.slice(0, 8).map(function (c) {
+                    var dot = c.health_status === "online" ? "ca-on" : c.health_status === "offline" ? "ca-off"
+                            : c.health_status === "degraded" ? "ca-deg" : "ca-unk";
+                    return '<div class="ca-cam"><h3><span class="ca-dot ' + dot + '"></span>' + esc(c.name) + "</h3>" +
+                        '<div class="ca-meta">' + esc(c.location_label || "—") + " · " + esc(c.camera_type) + "</div>" +
+                        '<div class="ca-meta">Durum: <b>' + esc(c.status) + "</b> / " + esc(c.health_status) +
+                        "<br>Son kare: " + ago(c.last_frame_at) + " · Son tespit: " + ago(c.last_detection_at) + "</div></div>";
+                }).join("");
             });
-        else { $("dsCams").textContent = "0"; $("dsCamList").innerHTML = '<div class="empty">Organizasyon bulunamadı.</div>'; }
+        else { $("dsCams").textContent = "0"; $("dsCamEmpty").style.display = "block"; }
 
         // --- Worker + AI durumu (dürüst) ---
         supabase.from("camera_worker_sessions").select("last_heartbeat_at,metadata")
@@ -47,14 +47,20 @@
                 var fresh = row && row.last_heartbeat_at && (Date.now() - new Date(row.last_heartbeat_at).getTime()) < 120000;
                 $("dsWorker").textContent = fresh ? "Bağlı" : "Bağlı değil";
                 $("dsWorker").className = "v " + (fresh ? "ok" : "bad");
+                $("dsWorkerWarn").style.display = fresh ? "none" : "block";
                 var m = (row && row.metadata) || {};
-                $("dsAiBox").innerHTML = "<b style='color:#ECECEC;'>AI durumu:</b> " +
-                    (!fresh ? "worker bağlı değil — canlı tespit çalışmıyor."
-                     : m.inference === false ? "çıkarım kapalı (API anahtarı tanımsız) — olay üretilmiyor."
-                     : "aktif" + (m.model ? " · model " + esc(m.model) : "") +
-                       (m.perf_ms ? " · son çıkarım " + m.perf_ms.infer_ms + " ms" : "")) +
-                    (m.mode === "demo" && fresh ? " · <b>DEMO modu</b>" : "") +
-                    "<br>Doğruluk: pilot saha doğrulaması bekliyor.";
+                $("dsLatency").textContent = (fresh && m.perf_ms && m.perf_ms.infer_ms != null) ? m.perf_ms.infer_ms + " ms" : "—";
+                $("dsAiBox").innerHTML =
+                    (!fresh ? '<span class="b b-bad">Worker bağlı değil</span> <span class="ca-muted">canlı tespit çalışmıyor</span>'
+                     : m.inference === false ? '<span class="b b-bad">Çıkarım kapalı</span> <span class="ca-muted">API anahtarı tanımsız — olay üretilmiyor</span>'
+                     : '<span class="b b-ok">Aktif</span>' + (m.model ? ' <span class="ca-muted">model ' + esc(m.model) + "</span>" : "")) +
+                    (m.mode === "demo" && fresh ? ' <span class="b b-warn">DEMO modu</span>' : "");
+                // KKD sınıf rozetleri (gerçek model yetenekleri — registry)
+                if (window.MIAPpeRegistry) $("dsClasses").innerHTML = window.MIAPpeRegistry.all().map(function (it) {
+                    var cls = it.status === "supported" ? "b-ok" : it.status === "experimental" ? "b-warn" : "b-mut";
+                    var lbl = it.status === "requires_training" ? it.label_tr + " 🔒" : it.label_tr;
+                    return '<span class="b ' + cls + '" title="' + esc(window.MIAPpeRegistry.statusLabel(it.status)) + '">' + esc(lbl) + "</span>";
+                }).join("");
             });
 
         // --- Olaylar + trend ---
@@ -63,7 +69,8 @@
             ? supabase.from("camera_events").select("event_type,risk_level,status,frame_timestamp,created_at,cameras(name)")
                 .eq("org_id", oid).gte("created_at", since).order("created_at", { ascending: false }).limit(500)
             : Promise.resolve({ data: [] });
-        var anaQ = supabase.from("analyses").select("created_at,violations_count,safety_score");
+        var anaQ = supabase.from("analyses").select("created_at,violations_count,safety_score")
+            .order("created_at", { ascending: false });
         anaQ = oid ? anaQ.or("user_id.eq." + user.id + ",org_id.eq." + oid) : anaQ.eq("user_id", user.id);
 
         Promise.all([camEvP, anaQ]).then(function (res) {
@@ -93,6 +100,32 @@
                         (e.risk_level === "critical" ? "KRİTİK" : "Yüksek") + "</span>" +
                         "<div class='ca-muted'>" + ago(e.frame_timestamp || e.created_at) + "</div></div></div>";
                 }).join("");
+
+            // Olay akışı — kaynak etiketli (Canlı Kamera / Yüklenen Video), durum rozetli
+            var ST = { open: ["Açık", "b-warn"], reviewed: ["İncelendi", "b-ok"],
+                       dismissed: ["Yok sayıldı", "b-mut"], resolved: ["Çözüldü", "b-ok"] };
+            var flow = evs.slice(0, 7).map(function (e) {
+                var st = ST[e.status] || [e.status, "b-mut"];
+                var rk = e.risk_level === "high" || e.risk_level === "critical" ? "b-bad"
+                       : e.risk_level === "low" ? "b-ok" : "b-warn";
+                return '<tr><td>' + ago(e.frame_timestamp || e.created_at) + "</td>" +
+                    "<td><b>" + (ET[e.event_type] || e.event_type) + "</b><div class='ca-muted'>" +
+                    esc(e.cameras && e.cameras.name || "—") + "</div></td>" +
+                    '<td><span class="b b-warn">Canlı Kamera</span></td>' +
+                    '<td><span class="b ' + rk + '">' + esc(e.risk_level) + "</span></td>" +
+                    '<td><span class="b ' + st[1] + '">' + st[0] + "</span></td></tr>";
+            });
+            var anaFlow = anas.filter(function (a) { return (a.violations_count || 0) > 0; }).slice(0, 3).map(function (a) {
+                return "<tr><td>" + ago(a.created_at) + "</td><td><b>İhlal ×" + a.violations_count + "</b>" +
+                    "<div class='ca-muted'>video analizi</div></td>" +
+                    '<td><span class="b b-mut">Yüklenen Video</span></td><td class="ca-muted">—</td><td class="ca-muted">—</td></tr>';
+            });
+            var allFlow = flow.concat(anaFlow);
+            $("dsFlow").innerHTML = !allFlow.length
+                ? '<div class="empty">Henüz olay yok — worker bağlandığında ve analiz yüklendiğinde burada görünür.</div>'
+                : '<table class="t"><thead><tr><th>Zaman</th><th>Olay</th><th>Kaynak</th><th>Risk</th><th>Durum</th></tr></thead><tbody>' +
+                  allFlow.join("") + "</tbody></table>" +
+                  '<p style="margin:.7rem 0 0;"><a href="/app/events" style="color:#E9C766;font-size:.82rem;">Tüm olaylar ve inceleme →</a></p>';
 
             // 14 günlük trend: kamera ihlalleri + video analiz ihlal sayıları
             var days = [], counts = {};
