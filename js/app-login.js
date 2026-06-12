@@ -9,8 +9,8 @@
 
     function next() {
         var m = (location.search.match(/[?&]next=([^&]+)/) || [])[1];
-        var n = m ? decodeURIComponent(m) : "app-dashboard.html";
-        return /^app-[a-z-]+\.html$/.test(n) ? n : "app-dashboard.html"; // yalnız app sayfaları
+        var n = m ? decodeURIComponent(m) : "/app/dashboard";
+        return /^\/app\/[a-z]+$/.test(n) ? n : "/app/dashboard"; // yalnız app rotaları (open redirect yok)
     }
     function msg(t, ok) { $("lgMsg").textContent = t; $("lgMsg").style.color = ok ? "#22c55e" : "#ef4444"; }
 

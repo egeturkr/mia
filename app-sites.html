@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIA Uygulaması — Sahalar</title>
-    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
     <meta name="robots" content="noindex">
     <meta name="theme-color" content="#050505">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="/css/app.css">
 </head>
 <body class="mia-app" data-app-page="sites">
     <div id="appShell"></div>
@@ -21,15 +20,15 @@
             <h2>Saha Listesi</h2>
             <div id="stList" class="ca-muted">Yükleniyor…</div>
             <p class="ca-muted" style="margin:.8rem 0 0;">Saha ekleme/düzenleme web organizasyon sayfasından yapılır
-            (<a href="organization.html" target="_blank" rel="noopener" style="color:#E9C766;">Organizasyon →</a>).
+            (<a href="/organization.html" target="_blank" rel="noopener" style="color:#E9C766;">Organizasyon →</a>).
             KKD profili sahaya özel tanımlanabilir; tanımsızsa org varsayılanı geçerlidir.</p>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/app.js"></script>
-    <script src="js/org.js"></script>
-    <script src="js/app-shell.js"></script>
-    <script src="js/app-sites.js"></script>
+    <script src="/js/app-core.js"></script>
+    <script src="/js/org.js"></script>
+    <script src="/js/app-shell.js"></script>
+    <script src="/js/app-sites.js"></script>
 </body>
 </html>

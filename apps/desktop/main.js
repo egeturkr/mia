@@ -8,7 +8,7 @@ const { app, BrowserWindow, shell, Notification } = require("electron");
 
 // Faz 17: masaüstü uygulaması ARTIK pazarlama sitesine değil, özel müşteri
 // uygulaması girişine açılır (oturum varsa app-login otomatik panele yönlendirir).
-const APP_URL = process.env.MIA_APP_URL || "https://miaissagligi.com/app-login.html";
+const APP_URL = process.env.MIA_APP_URL || "https://miaissagligi.com/app/login";
 const ALLOWED_HOSTS = ["miaissagligi.com", "www.miaissagligi.com"];
 
 function isAllowed(url) {

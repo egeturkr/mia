@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIA Uygulaması — Raporlar</title>
-    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
     <meta name="robots" content="noindex">
     <meta name="theme-color" content="#050505">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="/css/app.css">
 </head>
 <body class="mia-app" data-app-page="reports">
     <div id="appShell"></div>
@@ -22,17 +21,17 @@
             <div class="app-card">
                 <h2>İhlal Raporu</h2>
                 <p class="mut" style="margin:0 0 .9rem;">Yüklenen video + canlı kamera olayları; dönem/risk/KKD filtreleri, CSV ve kurumsal PDF.</p>
-                <a class="btn btn-primary btn-sm" href="app-events.html">Raporu Aç</a>
+                <a class="btn btn-primary btn-sm" href="/app/events">Raporu Aç</a>
             </div>
             <div class="app-card">
                 <h2>Canlı Kamera CSV</h2>
                 <p class="mut" style="margin:0 0 .9rem;">17 kolonlu kamera olay dökümü: eksik/tespit edilen/gerekli KKD, model, doğrulama, inceleme alanları.</p>
-                <a class="btn btn-primary btn-sm" href="app-cameras.html">Kameralardan İndir</a>
+                <a class="btn btn-primary btn-sm" href="/app/cameras">Kameralardan İndir</a>
             </div>
             <div class="app-card">
                 <h2>Video Analiz Raporu</h2>
                 <p class="mut" style="margin:0 0 .9rem;">Yüklenen video başına detaylı AI analizi ve PDF raporu (web modülü).</p>
-                <a class="btn btn-secondary btn-sm" href="detector.html" target="_blank" rel="noopener">Analiz Modülünü Aç</a>
+                <a class="btn btn-secondary btn-sm" href="/detector.html" target="_blank" rel="noopener">Analiz Modülünü Aç</a>
             </div>
         </div>
 
@@ -56,10 +55,10 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/app.js"></script>
-    <script src="js/org.js"></script>
-    <script src="js/report-meta.js"></script>
-    <script src="js/app-shell.js"></script>
-    <script src="js/app-reports.js"></script>
+    <script src="/js/app-core.js"></script>
+    <script src="/js/org.js"></script>
+    <script src="/js/report-meta.js"></script>
+    <script src="/js/app-shell.js"></script>
+    <script src="/js/app-reports.js"></script>
 </body>
 </html>
