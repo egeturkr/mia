@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA Uygulaması — Olaylar</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#050505">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="mia-app" data-app-page="events">
+    <div id="appShell"></div>
+
+    <!-- İşlevsel çekirdek events.js ile AYNI (ID-uyumlu): yüklenen video + canlı kamera olayları tek raporda -->
+    <div id="appContent" style="display:none;">
+        <h1 class="app-h1" id="evTitle">İhlal Olayları</h1>
+        <p class="app-sub" id="evSub">Yüklenen video analizleri + canlı kamera olayları — kaynak etiketli</p>
+
+        <div class="stat-row">
+            <div class="stat"><div class="v gold" id="evTotal">—</div><div class="l" id="lblTotal">Toplam İhlal</div></div>
+            <div class="stat"><div class="v bad" id="evHigh">—</div><div class="l" id="lblHigh">Yüksek Risk</div></div>
+            <div class="stat"><div class="v" id="evHardhat">—</div><div class="l" id="lblHardhat">Baret İhlali</div></div>
+            <div class="stat"><div class="v" id="evVest">—</div><div class="l" id="lblVest">Yelek İhlali</div></div>
+        </div>
+
+        <div class="app-card">
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;">
+                <select class="inp" id="fPeriod" style="width:auto;">
+                    <option value="all">Tüm Zamanlar</option>
+                    <option value="month">Bu Ay</option>
+                    <option value="week">Bu Hafta</option>
+                </select>
+                <select class="inp" id="fRisk" style="width:auto;">
+                    <option value="all">Tüm Riskler</option>
+                    <option value="Yüksek">Yüksek</option>
+                    <option value="Orta">Orta</option>
+                    <option value="Düşük">Düşük</option>
+                </select>
+                <select class="inp" id="fPpe" style="width:auto;">
+                    <option value="all">Tüm KKD</option>
+                    <option value="Baret">Baret</option>
+                    <option value="Yelek">Yelek</option>
+                    <option value="Maske">Maske</option>
+                </select>
+                <div style="flex:1;"></div>
+                <button type="button" class="btn btn-secondary btn-sm" id="btnCsv">CSV</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btnPdf">PDF</button>
+            </div>
+
+            <div class="ca-warn" id="evNote" style="display:none;"></div>
+
+            <div style="overflow-x:auto;"><table class="t">
+                <thead><tr>
+                    <th id="thDate">Tarih</th><th id="thVideo">Analiz</th><th id="thTime">Zaman</th>
+                    <th id="thType">İhlal</th><th id="thPpe">KKD</th><th id="thRisk">Risk</th><th id="thConf">Güven</th>
+                </tr></thead>
+                <tbody id="evBody"><tr><td colspan="7" class="ev-empty">Yükleniyor…</td></tr></tbody>
+            </table></div>
+        </div>
+
+        <p class="ca-muted">Kaynak etiketi: "· Canlı Kamera" satırları gerçek zamanlı kamera olaylarıdır; diğerleri
+        yüklenen video analizidir. Olaylar AI destekli ön değerlendirmedir (validation_status=pending).</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/org.js"></script>
+    <script src="js/report-meta.js"></script>
+    <script src="js/monitor.js"></script>
+    <script src="js/app-shell.js"></script>
+    <script src="js/events.js"></script>
+</body>
+</html>

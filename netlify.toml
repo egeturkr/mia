@@ -98,6 +98,61 @@
   status = 200
 
 [[redirects]]
+  from = "/app/login"
+  to = "/app-login.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/register"
+  to = "/app-login.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/dashboard"
+  to = "/app-dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/cameras"
+  to = "/app-cameras.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/detections"
+  to = "/app-detections.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/events"
+  to = "/app-events.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/reports"
+  to = "/app-reports.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/sites"
+  to = "/app-sites.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/team"
+  to = "/app-team.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/settings"
+  to = "/app-settings.html"
+  status = 200
+
+[[redirects]]
+  from = "/app"
+  to = "/app-login.html"
+  status = 200
+
+[[redirects]]
   from = "/demo"
   to = "/detector.html"
   status = 302

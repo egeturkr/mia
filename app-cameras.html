@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA Uygulaması — Canlı Kameralar</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#050505">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="mia-app" data-app-page="cameras">
+    <div id="appShell"></div>
+
+    <!-- İşlevsel çekirdek cameras.js/ppe-profiles.js ile AYNI (ID-uyumlu) — kanıtlanmış mantık yeniden kullanılır -->
+    <div id="appContent" style="display:none;">
+        <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:flex-start;">
+            <div>
+                <h1 class="app-h1">Canlı Kameralar</h1>
+                <p class="app-sub">Yakın gerçek zamanlı KKD izleme — yüklenen video analizi ayrı modüldür ve aynen çalışır.</p>
+            </div>
+            <button type="button" class="btn btn-primary" id="caNewBtn" style="display:none;">+ Kamera Ekle</button>
+        </div>
+
+        <div class="ca-block" id="caPlanBlock" style="display:none;">
+            <b>Bu modül Kamera AI planı gerektirir.</b> Mevcut planınız canlı kamera izlemeyi içermiyor.
+            Plan seçenekleri için satış ekibiyle görüşün veya web hesap sayfanızı kullanın.
+        </div>
+
+        <div class="ca-warn" id="caWorkerWarn" style="display:none;">
+            ⚠ <b>Gerçek zamanlı worker bağlı değil.</b> Kamera kayıtları yönetilebilir ama canlı tespit ÇALIŞMIYOR —
+            worker servisi başlatılana kadar hiçbir olay üretilmez.
+            Son worker sinyali: <span id="caLastHb">hiç</span>
+        </div>
+
+        <div class="ca-warn" id="caInferWarn" style="display:none;">
+            ⚠ <b>AI çıkarımı kullanılamıyor.</b> Worker bağlı ama ROBOFLOW_API_KEY tanımlı değil —
+            kare örnekleniyor fakat KKD tespiti YAPILMIYOR, hiçbir olay üretilmiyor.
+        </div>
+
+        <div class="ca-panel">
+            <h2>Uçtan Uca Hazırlık <span class="ca-muted">— canlı tespit zincirinin gerçek durumu</span></h2>
+            <div id="caReady" class="ca-muted">Yükleniyor…</div>
+        </div>
+
+        <div class="ca-panel" id="caAddPanel" style="display:none;">
+            <h2>Kamera Ekle</h2>
+            <div class="ca-row">
+                <input id="cnName" type="text" placeholder="Kamera adı (örn. Saha Girişi) *">
+                <input id="cnLoc" type="text" placeholder="Konum etiketi">
+                <select id="cnType">
+                    <option value="rtsp">RTSP (IP kamera/DVR)</option>
+                    <option value="test_stream">Test akışı (dosya)</option>
+                    <option value="browser_webcam">Webcam (demo)</option>
+                    <option value="onvif">ONVIF</option>
+                </select>
+                <select id="cnSite"><option value="">Saha seç…</option></select>
+            </div>
+            <div class="ca-row">
+                <input id="cnMasked" type="text" placeholder="Maskeli adres (örn. rtsp://***@192.168.1.50) — kimlik bilgisi YAZMA">
+                <button type="button" class="btn btn-primary btn-sm" id="cnSaveBtn">Ekle</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="cnCancelBtn">Vazgeç</button>
+            </div>
+            <div class="ca-muted">Güvenlik: RTSP kullanıcı adı/şifresi buraya GİRİLMEZ ve veritabanında saklanmaz.
+            Gerçek akış adresi yalnız worker sunucusundaki cameras.json dosyasına yazılır.
+            <span id="cnMsg"></span></div>
+        </div>
+
+        <div class="ca-panel">
+            <h2>KKD Tarama Profili
+                <button type="button" class="btn btn-primary btn-sm" id="ppSaveBtn" style="display:none;margin-left:.5rem;">Kaydet</button>
+                <span class="ca-muted" id="ppMsg"></span></h2>
+            <p class="ca-muted" style="margin:0 0 .7rem;">Etkin ekipmanlar canlı kameralarda taranır; kapalı olanlar ihlal üretmez.
+            "Model eğitimi gerekir" işaretli ekipmanlar mevcut AI modeli (rf-27) tarafından tespit <b>edilemez</b> ve etkinleştirilemez.</p>
+            <div style="overflow-x:auto;"><table class="ca-tbl">
+                <thead><tr><th>Tara</th><th>Ekipman</th><th>Tespit Durumu</th><th>Risk (eksikse)</th></tr></thead>
+                <tbody id="ppList"><tr><td colspan="4" class="ca-muted">Yükleniyor…</td></tr></tbody>
+            </table></div>
+        </div>
+
+        <div class="ca-panel">
+            <h2>Kameralar <span class="ca-muted" id="caCount"></span></h2>
+            <div class="ca-empty" id="caEmpty" style="display:none;">Henüz kamera yok. Owner/admin "+ Kamera Ekle" ile başlayabilir.</div>
+            <div class="ca-grid" id="caGrid"></div>
+        </div>
+
+        <div class="ca-panel">
+            <h2>Canlı İhlal Olayları <button type="button" class="btn btn-secondary btn-sm" id="caCsvBtn" style="margin-left:.5rem;">CSV</button>
+                <span class="ca-muted" style="float:right;">15 sn'de bir yenilenir</span></h2>
+            <div id="caEvents" class="ca-muted">Yükleniyor…</div>
+        </div>
+
+        <p class="ca-muted">Olaylar AI destekli ön değerlendirmedir; sertifikalı İSG denetiminin yerine geçmez.
+        Kanıt politikası: görüntü kareleri <b>saklanmaz</b> — olaylar yalnız metadata içerir.</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+    <script src="js/org.js"></script>
+    <script src="js/monitor.js"></script>
+    <script src="js/app-shell.js"></script>
+    <script src="js/plans.js"></script>
+    <script src="js/ppe-registry.js"></script>
+    <script src="js/ppe-profiles.js"></script>
+    <script src="js/cameras.js"></script>
+</body>
+</html>

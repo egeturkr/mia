@@ -1,0 +1,123 @@
+/* === MIA Müşteri Uygulaması (Faz 17) ===
+   Premium kurumsal koyu tema — web sitesinden AYRI uygulama deneyimi.
+   styles.css'ten sonra yüklenir; yalnız .mia-app gövdesinde etkilidir. */
+
+body.mia-app{background:#050505;color:#ECECEC;font-family:'Inter',sans-serif;margin:0;min-height:100vh;display:flex}
+.mia-app a{color:inherit;text-decoration:none}
+.mia-app ::selection{background:rgba(212,175,55,.3)}
+
+/* ---- Sol menü ---- */
+.app-side{width:228px;min-width:228px;background:#0A0A0A;border-right:1px solid #1d1d1d;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.app-side .brand{display:flex;align-items:center;gap:.6rem;padding:1.15rem 1.2rem .9rem}
+.app-side .brand img{height:34px}
+.app-side .brand small{display:block;font-size:.56rem;letter-spacing:.18em;color:#8a8a8a;text-transform:uppercase}
+.app-nav{flex:1;padding:.4rem .7rem;overflow-y:auto}
+.app-nav a{display:flex;align-items:center;gap:.65rem;padding:.62rem .8rem;border-radius:10px;font-size:.86rem;color:#b9b9b9;margin-bottom:.15rem;border:1px solid transparent;transition:all .15s}
+.app-nav a:hover{background:#141414;color:#ECECEC}
+.app-nav a.on{background:rgba(212,175,55,.1);border-color:rgba(212,175,55,.35);color:#E9C766;font-weight:600}
+.app-nav a svg{width:17px;height:17px;flex:0 0 17px}
+.app-nav .sec{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:#6e6e6e;padding:.9rem .8rem .35rem}
+.app-side .foot{padding:.9rem 1.2rem;border-top:1px solid #1d1d1d;font-size:.7rem;color:#7a7a7a}
+
+/* ---- Üst bar ---- */
+.app-body{flex:1;display:flex;flex-direction:column;min-width:0}
+.app-top{display:flex;align-items:center;gap:1rem;padding:.7rem 1.4rem;border-bottom:1px solid #1d1d1d;background:#0A0A0A;position:sticky;top:0;z-index:50}
+.app-top .orgbox b{font-size:.92rem}
+.app-top .orgbox span{display:block;font-size:.64rem;letter-spacing:.1em;color:#8a8a8a;text-transform:uppercase}
+.app-top select.orgsel{background:#141414;border:1px solid #2a2a2a;border-radius:8px;color:#ECECEC;font:inherit;font-size:.8rem;padding:.3rem .5rem;max-width:220px}
+.app-top .grow{flex:1}
+.app-top .sys{display:flex;align-items:center;gap:.4rem;font-size:.76rem;color:#b9b9b9;background:#141414;border:1px solid #2a2a2a;border-radius:99px;padding:.28rem .8rem}
+.app-top .clock{font-size:.85rem;font-weight:600;text-align:right}
+.app-top .clock small{display:block;font-weight:400;font-size:.66rem;color:#8a8a8a}
+.app-top .uemail{font-size:.74rem;color:#8a8a8a;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---- İçerik ---- */
+.app-main{flex:1;padding:1.4rem 1.6rem 2.5rem;overflow-x:hidden;max-width:1640px;width:100%;margin:0 auto;box-sizing:border-box}
+.app-h1{margin:0 0 .2rem;font-size:1.45rem}
+.app-sub{margin:0 0 1.2rem;font-size:.84rem;color:#9a9a9a}
+.app-grid{display:grid;gap:1rem}
+.app-card{background:#0E0E0E;border:1px solid #1f1f1f;border-radius:16px;padding:1.15rem 1.3rem}
+.app-card h2{margin:0 0 .9rem;font-size:.95rem}
+.app-card h2 .mut{font-weight:400}
+
+/* Stat kartları */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin-bottom:1.1rem}
+.stat{background:#0E0E0E;border:1px solid #1f1f1f;border-radius:16px;padding:1rem 1.2rem}
+.stat .v{font-size:1.8rem;font-weight:800;line-height:1.15}
+.stat .l{font-size:.72rem;color:#9a9a9a;margin-top:.2rem}
+.stat .v.gold{color:#E9C766}.stat .v.ok{color:#22c55e}.stat .v.bad{color:#ef4444}.stat .v.warn{color:#D4AF37}
+
+/* Rozetler / durum */
+.b{display:inline-block;padding:.16rem .6rem;border-radius:99px;font-size:.68rem;font-weight:700;white-space:nowrap}
+.b-ok{background:rgba(34,197,94,.12);color:#22c55e}
+.b-bad{background:rgba(239,68,68,.12);color:#ef4444}
+.b-warn{background:rgba(212,175,55,.14);color:#D4AF37}
+.b-mut{background:#1c1c1c;color:#9a9a9a}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:.35rem}
+.dot.on{background:#22c55e;box-shadow:0 0 6px #22c55e}.dot.off{background:#ef4444}.dot.unk{background:#777}.dot.deg{background:#D4AF37}
+
+/* Tablolar */
+.mia-app table.t{width:100%;border-collapse:collapse;font-size:.83rem}
+.mia-app table.t th,.mia-app table.t td{padding:.5rem .6rem;text-align:left;border-bottom:1px solid #1d1d1d;vertical-align:top}
+.mia-app table.t th{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:#8a8a8a}
+.mia-app table.t tbody tr:hover{background:rgba(212,175,55,.04)}
+
+/* Form */
+.mia-app .inp,.mia-app select.inp,.mia-app textarea.inp{background:#141414;border:1px solid #2a2a2a;border-radius:9px;padding:.55rem .7rem;color:#ECECEC;font:inherit;font-size:.86rem;width:100%;box-sizing:border-box}
+.mia-app .inp:focus{outline:none;border-color:rgba(212,175,55,.5)}
+.mia-app .empty{border:1px dashed #2a2a2a;border-radius:14px;padding:2rem 1.2rem;text-align:center;color:#8a8a8a;font-size:.86rem}
+.mia-app .mut{color:#9a9a9a;font-size:.8rem}
+
+/* === Mevcut modül sınıfları (cameras.js / events.js yeniden kullanımı) === */
+.mia-app .ca-panel{background:#0E0E0E;border:1px solid #1f1f1f;border-radius:16px;padding:1.15rem 1.3rem;margin-bottom:1.1rem}
+.mia-app .ca-panel h2{font-size:.95rem;margin:0 0 .9rem}
+.mia-app .ca-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+.mia-app .ca-cam{background:#141414;border:1px solid #242424;border-radius:14px;padding:1rem 1.1rem}
+.mia-app .ca-cam h3{font-size:.95rem;margin:0 0 .15rem}
+.mia-app .ca-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:.35rem}
+.mia-app .ca-on{background:#22c55e;box-shadow:0 0 6px #22c55e}
+.mia-app .ca-off{background:#ef4444}.mia-app .ca-unk{background:#777}.mia-app .ca-deg{background:#D4AF37}
+.mia-app .ca-meta{font-size:.76rem;color:#9a9a9a;margin:.35rem 0}
+.mia-app .ca-badge{display:inline-block;padding:.14rem .55rem;border-radius:99px;font-size:.66rem;font-weight:700;white-space:nowrap}
+.mia-app .ca-high{background:rgba(239,68,68,.12);color:#ef4444}
+.mia-app .ca-med{background:rgba(212,175,55,.14);color:#D4AF37}
+.mia-app .ca-low{background:rgba(34,197,94,.12);color:#22c55e}
+.mia-app .ca-row{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;margin-bottom:.6rem}
+.mia-app .ca-row input,.mia-app .ca-row select{flex:1;min-width:140px;background:#141414;border:1px solid #2a2a2a;border-radius:9px;padding:.5rem .65rem;color:#ECECEC;font:inherit;font-size:.85rem}
+.mia-app .ca-row button{flex:0 0 auto}
+.mia-app .ca-muted{color:#9a9a9a;font-size:.8rem}
+.mia-app .ca-warn{border:1px solid rgba(212,175,55,.35);background:rgba(212,175,55,.07);color:#c9b27a;border-radius:12px;padding:.8rem 1rem;font-size:.86rem;line-height:1.5;margin-bottom:1.1rem}
+.mia-app .ca-block{border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#ef9a9a;border-radius:12px;padding:1rem 1.2rem;font-size:.88rem;line-height:1.6;margin-bottom:1.1rem}
+.mia-app table.ca-tbl{width:100%;border-collapse:collapse;font-size:.82rem}
+.mia-app table.ca-tbl th,.mia-app table.ca-tbl td{padding:.5rem .6rem;text-align:left;border-bottom:1px solid #1d1d1d;vertical-align:top}
+.mia-app table.ca-tbl th{font-size:.66rem;text-transform:uppercase;letter-spacing:.05em;color:#8a8a8a}
+.mia-app .ca-empty{border:1px dashed #2a2a2a;border-radius:14px;padding:2rem 1.2rem;text-align:center;color:#8a8a8a}
+.mia-app .ev-badge{display:inline-block;padding:.16rem .6rem;border-radius:99px;font-size:.68rem;font-weight:700}
+.mia-app .ev-high{background:rgba(239,68,68,.12);color:#ef4444}
+.mia-app .ev-med{background:rgba(212,175,55,.14);color:#D4AF37}
+.mia-app .ev-low{background:rgba(34,197,94,.12);color:#22c55e}
+.mia-app .ev-empty{text-align:center;color:#8a8a8a;padding:1.4rem}
+
+/* === Giriş ekranı === */
+body.mia-login{display:grid;place-items:center;background:
+  radial-gradient(1100px 600px at 80% -10%, rgba(212,175,55,.07), transparent 60%),
+  radial-gradient(800px 500px at -10% 110%, rgba(212,175,55,.05), transparent 60%), #050505;
+  min-height:100vh;margin:0;font-family:'Inter',sans-serif;color:#ECECEC}
+.login-card{width:380px;max-width:92vw;background:#0C0C0C;border:1px solid #222;border-radius:20px;padding:2.1rem 2rem 1.6rem;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.login-card .lg{text-align:center;margin-bottom:1.2rem}
+.login-card .lg img{height:46px}
+.login-card .lg small{display:block;margin-top:.3rem;font-size:.58rem;letter-spacing:.22em;color:#8a8a8a;text-transform:uppercase}
+.login-tabs{display:flex;gap:1.4rem;border-bottom:1px solid #222;margin-bottom:1.2rem}
+.login-tabs button{background:none;border:none;color:#8a8a8a;font:inherit;font-size:.92rem;font-weight:600;padding:.5rem 0;cursor:pointer;border-bottom:2px solid transparent}
+.login-tabs button.on{color:#ECECEC;border-bottom-color:#D4AF37}
+.login-card label{display:block;font-size:.72rem;color:#9a9a9a;margin:.7rem 0 .25rem}
+.login-card .row2{display:flex;justify-content:space-between;align-items:center;font-size:.76rem;color:#9a9a9a;margin:.7rem 0}
+.login-card .row2 a{color:#c9b27a}
+.btn-gold{width:100%;background:linear-gradient(180deg,#E9C766,#D4AF37);color:#141414;border:none;border-radius:10px;padding:.7rem;font:inherit;font-weight:700;font-size:.92rem;cursor:pointer;margin-top:.4rem}
+.btn-gold:hover{filter:brightness(1.06)}
+.btn-gold:disabled{opacity:.55;cursor:default}
+.login-note{font-size:.74rem;color:#8a8a8a;text-align:center;margin-top:1rem;line-height:1.55}
+.login-msg{font-size:.78rem;min-height:1.1rem;margin-top:.6rem;text-align:center}
+.login-foot{margin-top:1.1rem;text-align:center;font-size:.66rem;color:#6e6e6e}
+
+@media (max-width:900px){.app-side{display:none}.app-main{padding:1rem}}

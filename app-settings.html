@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIA Uygulaması — Ayarlar</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#050505">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="mia-app" data-app-page="settings">
+    <div id="appShell"></div>
+
+    <div id="appContent" style="display:none;">
+        <h1 class="app-h1">Ayarlar</h1>
+        <p class="app-sub">Hesap, bağlantı ve güvenlik bilgileri.</p>
+
+        <div class="app-grid" style="grid-template-columns:1fr 1fr;align-items:start;">
+            <div class="app-card">
+                <h2>Hesap</h2>
+                <div id="seAccount" class="ca-muted">Yükleniyor…</div>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.9rem;">
+                    <a class="btn btn-secondary btn-sm" href="hesap.html" target="_blank" rel="noopener">Hesap/Plan Yönetimi (web)</a>
+                    <button type="button" class="btn btn-secondary btn-sm" id="sePassBtn">Şifre Sıfırlama E-postası</button>
+                </div>
+                <div class="ca-muted" id="seMsg" style="margin-top:.5rem;"></div>
+            </div>
+            <div class="app-card">
+                <h2>Bağlantı / Ortam</h2>
+                <div id="seEnv" class="ca-muted">Yükleniyor…</div>
+            </div>
+            <div class="app-card">
+                <h2>Bildirimler</h2>
+                <p class="mut" style="margin:0;">Yüksek riskli canlı ihlallerde e-posta bildirimi worker tarafında yapılandırılır
+                (kamera+tip başına 5 dk'da en çok 1 — spam yok). Uygulama içi push bildirimleri yol haritasındadır;
+                şu an sunulmamaktadır.</p>
+            </div>
+            <div class="app-card">
+                <h2>Güvenlik ve Gizlilik</h2>
+                <p class="mut" style="margin:0 0 .6rem;">Bu uygulama kamera şifresi (RTSP), API anahtarı veya sunucu gizli
+                bilgisi saklamaz. Görüntü kareleri saklanmaz — olaylar metadata'dır. Canlı tespit doğruluğu pilot saha
+                doğrulamasıyla ölçülür.</p>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+                    <a class="btn btn-secondary btn-sm" href="kvkk.html" target="_blank" rel="noopener">KVKK</a>
+                    <a class="btn btn-secondary btn-sm" href="gizlilik.html" target="_blank" rel="noopener">Gizlilik</a>
+                    <a class="btn btn-secondary btn-sm" href="iletisim.html" target="_blank" rel="noopener">Destek</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+    <script src="js/org.js"></script>
+    <script src="js/app-shell.js"></script>
+    <script src="js/app-settings.js"></script>
+</body>
+</html>
