@@ -89,19 +89,21 @@
             ctx.lineWidth = hasVio ? 3 : 2;
             ctx.strokeRect(x, y, w, h);
 
-            // ID etiketi
+            // Kişi etiketi: "İşçi P1" / "Worker P1"
             ctx.font = "700 12px Inter, sans-serif";
-            var idLabel = tr.id;
+            var idLabel = (lang === "en" ? "Worker " : "İşçi ") + tr.id;
             var tw = ctx.measureText(idLabel).width + 12;
             ctx.fillStyle = hasVio ? COLORS.violation : COLORS.person;
             ctx.fillRect(x - 1, Math.max(0, y - 19), tw, 19);
             ctx.fillStyle = "#050505";
             ctx.fillText(idLabel, x + 5, Math.max(13, y - 5));
 
-            // Ekipman durum çipleri (profilde açık olanlar)
+            // Ekipman durum çipleri (profilde açık olanlar).
+            // Kutu alt kenara dayandıysa çipler kutunun İÇİNE (alt iç kenar) çizilir.
             ctx.font = "600 10px Inter, sans-serif";
             var cy2 = y + h + 13;
-            var cx2 = x;
+            if (cy2 > cv.height - 4) cy2 = Math.min(cv.height - 6, y + h - 8);
+            var cx2 = Math.max(2, x);
             Object.keys(tr.equip).forEach(function (k) {
                 if (!profile[k]) return;
                 var stt = tr.equip[k];
@@ -175,6 +177,7 @@
             });
             maybeCollect(tile, frame, res.detections, produced.length > 0);
 
+            tile.lastEngineOut = engineOut;
             tile.stats.frames++;
             tile.stats.violations += produced.length;
             if (produced.length && tile.els.alert) {
@@ -186,6 +189,20 @@
         } catch (e) {
             if (tile.els.engineBadge) tile.els.engineBadge.textContent = "hata: " + String(e.message || e).slice(0, 60);
         } finally { tile.busy = false; }
+    }
+
+    // Eş zamanlı adaptif döngü: sabit aralık YOK — bir tespit biter bitmez,
+    // kısa nefes payıyla yenisi başlar. intervalSec ÜST sınırdır (yavaş modda
+    // pil/CPU korunur); hızlı donanımda (WebGPU) akış gerçek zamanlıya yaklaşır.
+    function scheduleLoop(tile) {
+        if (!tile.running) return;
+        var t0 = performance.now();
+        Promise.resolve(tick(tile)).then(function () {
+            if (!tile.running) return;
+            var elapsed = performance.now() - t0;
+            var target = Math.max(250, (window.miaCore.state.settings.intervalSec || 1) * 1000);
+            tile.timer = setTimeout(function () { scheduleLoop(tile); }, Math.max(150, target - elapsed));
+        });
     }
 
     // ---- Kaynak yaşam döngüsü -------------------------------------------------------
@@ -208,9 +225,7 @@
             tile.els.video.src = tile.videoUrl;
             await tile.els.video.play();
         }
-        var iv = Math.max(500, (window.miaCore.state.settings.intervalSec || 2) * 1000);
-        tile.timer = setInterval(function () { tick(tile); }, iv);
-        tick(tile);
+        scheduleLoop(tile);
         return tile;
     }
 
@@ -218,7 +233,7 @@
         var t = tiles.get(id);
         if (!t) return;
         t.running = false;
-        clearInterval(t.timer);
+        clearTimeout(t.timer);
         if (t.kind === "rtsp") window.mia.rtspStop(id);
         if (t.stream) { t.stream.getTracks().forEach(function (tr) { tr.stop(); }); t.stream = null; }
         if (t.els && t.els.video) { t.els.video.srcObject = null; t.els.video.removeAttribute("src"); }
@@ -229,5 +244,24 @@
     function get(id) { return tiles.get(id); }
     function count() { return tiles.size; }
 
-    window.miaSources = { start: start, stop: stop, stopAll: stopAll, get: get, count: count, COLORS: COLORS };
+    // Sayfa üstü canlı özet: tüm kaynaklardaki taze kişi + aktif ihlal sayısı
+    function summary() {
+        var persons = 0, violations = 0;
+        var profile = window.miaCore.state.settings.profile;
+        tiles.forEach(function (t) {
+            var out = t.lastEngineOut;
+            if (!out) return;
+            out.tracks.forEach(function (tr) {
+                if (!tr.fresh) return;
+                persons++;
+                Object.keys(tr.equip).forEach(function (k) {
+                    if (profile[k] && tr.equip[k] === "violation") violations++;
+                });
+            });
+        });
+        return { sources: tiles.size, persons: persons, violations: violations };
+    }
+
+    window.miaSources = { start: start, stop: stop, stopAll: stopAll, get: get, count: count,
+                          summary: summary, COLORS: COLORS };
 })();

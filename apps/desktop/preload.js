@@ -30,6 +30,8 @@ contextBridge.exposeInMainWorld("mia", {
     saveText: (opts) => ipcRenderer.invoke("file:saveText", opts),
     pickVideo: () => ipcRenderer.invoke("file:pickVideo"),
 
+    modelRead: () => ipcRenderer.invoke("model:read"),
+
     // MIA saha veri seti (ml/ eğitim hattı girdisi — yalnız yerel disk)
     datasetSave: (opts) => ipcRenderer.invoke("dataset:save", opts),
     datasetStats: () => ipcRenderer.invoke("dataset:stats"),

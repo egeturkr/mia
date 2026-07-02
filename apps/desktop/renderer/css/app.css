@@ -1,4 +1,18 @@
 /* === MIA Masaüstü — Tasarım Sistemi (web ile aynı: dark #050505 + gold) === */
+/* Inter Variable — YEREL paket (fonts/), CDN yok, offline çalışır. latin-ext = Türkçe. */
+@font-face {
+    font-family: "Inter";
+    src: url("../fonts/inter-latin-wght-normal.woff2") format("woff2");
+    font-weight: 100 900; font-style: normal; font-display: swap;
+    unicode-range: U+0000-00FF, U+2000-206F, U+2074, U+20AC, U+2212, U+2215;
+}
+@font-face {
+    font-family: "Inter";
+    src: url("../fonts/inter-latin-ext-wght-normal.woff2") format("woff2");
+    font-weight: 100 900; font-style: normal; font-display: swap;
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 :root {
     --bg: #050505; --bg2: #0d0d0f; --card: rgba(255, 255, 255, .04);
     --border: rgba(255, 255, 255, .09); --gold: #F5A300; --gold2: #FFC247;
@@ -9,8 +23,10 @@
 html, body { height: 100%; }
 body {
     background: var(--bg); color: var(--text);
-    font-family: Inter, -apple-system, "SF Pro Text", Helvetica, sans-serif;
-    font-size: 14px; -webkit-font-smoothing: antialiased; overflow: hidden;
+    font-family: "Inter", -apple-system, "SF Pro Text", Helvetica, sans-serif;
+    font-size: 14px; line-height: 1.5; letter-spacing: .01em;
+    -webkit-font-smoothing: antialiased; overflow: hidden;
+    font-feature-settings: "cv05", "cv08", "tnum" 0;
 }
 #shell { display: flex; height: 100vh; }
 
@@ -131,7 +147,9 @@ input[type="range"] { padding: 0; accent-color: var(--gold); }
     opacity: 0; transition: opacity .3s; pointer-events: none;
 }
 .tile-alert.show { opacity: 1; }
-.tile-foot { padding: 8px 14px; }
+.tile-foot { padding: 8px 14px; font-variant-numeric: tabular-nums; }
+.live-summary { font-size: 13px; font-weight: 500; color: var(--muted); margin-left: auto; }
+.live-summary b { font-weight: 700; }
 
 /* ---- Login ---- */
 .login-wrap { display: grid; place-items: center; height: 100vh; }

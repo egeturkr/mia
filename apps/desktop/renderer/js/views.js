@@ -88,7 +88,8 @@
     var liveSeq = 0;
     async function renderLive(root) {
         root.innerHTML = '<h1>' + esc(t("nav_live")) +
-            ' <span id="engineState" class="badge engine">' + esc(t("engine_loading")) + "</span></h1>" +
+            ' <span id="engineState" class="badge engine">' + esc(t("engine_loading")) + "</span>" +
+            ' <span id="liveSummary" class="live-summary"></span></h1>' +
             '<div class="toolbar">' +
             '<button id="addWebcam" class="btn">' + esc(t("live_add_webcam")) + "</button>" +
             '<button id="addVideo" class="btn">' + esc(t("live_add_video")) + "</button>" +
@@ -103,7 +104,15 @@
             var el = $("#engineState");
             if (!el) return;
             if (info.ready) { el.textContent = t("engine_ready") + " (" + info.backend + ")"; el.classList.add("ok"); }
-            else { el.textContent = t("engine_error"); el.classList.add("warn"); }
+            else {
+                var mode = st().settings.engine;
+                el.textContent = mode === "onnx"
+                    ? "Cihaz üstü AI başlatılamadı — Ayarlar'dan Hibrit'e geçin"
+                    : t("engine_error");
+                el.classList.add("warn");
+                el.title = info.error || ""; // fareyle üzerine gel → teknik ayrıntı
+                console.error("[MIA] motor durumu:", info.error);
+            }
         });
 
         $("#addWebcam").addEventListener("click", function () { addWebcamTile().catch(errToast); });
@@ -149,25 +158,58 @@
         return els;
     }
     function footUpdater(els) {
-        return function (res, produced) {
-            var tile = null;
-            els.foot.textContent = res.detections.length + " tespit · " + (res.ms != null ? res.ms + " ms" : "bulut");
+        return function (res, produced, engineOut) {
+            var persons = 0, vios = 0;
+            var profile = st().settings.profile;
+            (engineOut ? engineOut.tracks : []).forEach(function (tr) {
+                if (!tr.fresh) return;
+                persons++;
+                Object.keys(tr.equip).forEach(function (k) {
+                    if (profile[k] && tr.equip[k] === "violation") vios++;
+                });
+            });
+            els.foot.textContent = "👷 " + persons + " kişi · " +
+                (vios ? "✗ " + vios + " aktif ihlal" : "✓ ihlal yok") +
+                (res.ms != null ? " · " + res.ms + " ms" : "");
+            els.foot.style.color = vios ? "var(--red)" : "";
             els.engine.textContent = res.engine;
+            updateLiveSummary();
         };
     }
+    var liveSumTimer = null;
+    function updateLiveSummary() {
+        var el = $("#liveSummary");
+        if (!el) return;
+        var s = window.miaSources.summary();
+        el.innerHTML = s.sources
+            ? "👷 <b>" + s.persons + "</b> kişi izleniyor · " +
+              (s.violations ? '<b style="color:var(--red)">' + s.violations + " aktif ihlal</b>"
+                            : '<b style="color:var(--green)">ihlal yok</b>')
+            : "";
+    }
 
-    // Webcam için cameras satırı bul/oluştur (olaylar kamera kaydına bağlanmalı)
+    // Webcam/video için cameras satırı bul/oluştur (olaylar kamera kaydına bağlanmalı).
+    // Plan kamera limitine takılırsa: yeni kayıt AÇMAZ, mevcut bir kamera kaydını
+    // yeniden kullanır (tespit DURMAZ — olaylar o kayda yazılır, kullanıcı bilgilendirilir).
     async function ensureCameraRow(name, type) {
         var org = st().org;
         var q = await sb().from("cameras").select("id,site_id").eq("org_id", org.id)
-            .eq("camera_type", type).eq("name", name).limit(1);
+            .eq("camera_type", type).eq("name", name).neq("status", "archived").limit(1);
         if (q.data && q.data[0]) return q.data[0];
         var ins = await sb().from("cameras").insert({
             org_id: org.id, name: name, camera_type: type, status: "active",
             created_by: st().user.id
         }).select("id,site_id").single();
-        if (ins.error) throw new Error(ins.error.message);
-        return ins.data;
+        if (!ins.error) return ins.data;
+        if (/camera_limit|limit/i.test(ins.error.message || "")) {
+            var any = await sb().from("cameras").select("id,site_id,name").eq("org_id", org.id)
+                .neq("status", "archived").order("created_at").limit(1);
+            if (any.data && any.data[0]) {
+                window.miaCore.toast("Plan kamera limiti doldu — olaylar '" + any.data[0].name + "' kaydına yazılacak", "info");
+                return any.data[0];
+            }
+        }
+        throw new Error(ins.error.message);
     }
 
     async function addWebcamTile() {
@@ -437,7 +479,7 @@
             "<label>" + esc(t("set_conf")) + ': <b id="confVal">' + Math.round(s.confidence * 100) + '%</b></label>' +
             '<input id="setConf" type="range" min="20" max="80" value="' + Math.round(s.confidence * 100) + '">' +
             "<label>" + esc(t("set_interval")) + "</label>" +
-            sel("setInterval", [["1", "1"], ["2", "2"], ["3", "3"], ["5", "5"], ["10", "10"]]) +
+            sel("setInterval", [["0.5", "0.5 (hızlı)"], ["1", "1"], ["2", "2"], ["5", "5"], ["10", "10"]]) +
             "<h3>" + esc(t("set_profile")) + "</h3>" +
             chk("pHelmet", t("set_helmet"), s.profile.helmet) +
             chk("pVest", t("set_vest"), s.profile.safety_vest) +
@@ -468,7 +510,7 @@
             s.lang = $("#setLang").value;
             s.engine = $("#setEngine").value;
             s.confidence = parseInt($("#setConf").value, 10) / 100;
-            s.intervalSec = parseInt($("#setInterval").value, 10);
+            s.intervalSec = parseFloat($("#setInterval").value) || 1;
             s.profile.helmet = $("#pHelmet").checked;
             s.profile.safety_vest = $("#pVest").checked;
             s.profile.mask = $("#pMask").checked;

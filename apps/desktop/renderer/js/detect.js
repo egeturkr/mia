@@ -17,22 +17,44 @@
     var session = null, initPromise = null, engineInfo = { backend: null, ready: false, error: null };
 
     // ---- ONNX oturumu (webgpu → wasm sırasıyla dener) -------------------------
+    // Sağlamlık: model önce URL'den, olmazsa ANA SÜREÇTEN bayt olarak yüklenir
+    // (mia:// fetch'i herhangi bir nedenle takılırsa bile model çalışır).
+    // wasmPaths MUTLAK verilir — göreli çözümleme sürprizleri elenir.
     function init() {
         if (initPromise) return initPromise;
         initPromise = (async function () {
             if (typeof ort === "undefined") { engineInfo.error = "ort yüklenemedi"; return engineInfo; }
-            ort.env.wasm.wasmPaths = "vendor/";
-            ort.env.wasm.numThreads = (typeof crossOriginIsolated !== "undefined" && crossOriginIsolated)
-                ? Math.min(4, (navigator.hardwareConcurrency || 2)) : 1;
+            try { ort.env.wasm.wasmPaths = new URL("vendor/", location.href).toString(); }
+            catch (e) { ort.env.wasm.wasmPaths = "vendor/"; }
+            ort.env.wasm.numThreads = 1; // worker/COI gerektirmez — en uyumlu mod
+            var errors = [];
+
+            // Model kaynağı: URL → IPC bayt fallback
+            var sources = [MODEL_URL];
+            try {
+                var mr = await window.mia.modelRead();
+                if (mr.ok && mr.data) {
+                    var u8 = mr.data instanceof Uint8Array ? mr.data : new Uint8Array(mr.data.data || mr.data);
+                    sources.push(u8);
+                } else if (mr.error) errors.push("ipc: " + mr.error);
+            } catch (e) { errors.push("ipc: " + String(e && e.message || e)); }
+
             var providers = [["webgpu", "wasm"], ["wasm"]];
-            for (var i = 0; i < providers.length; i++) {
-                try {
-                    session = await ort.InferenceSession.create(MODEL_URL, { executionProviders: providers[i] });
-                    engineInfo.backend = providers[i][0];
-                    engineInfo.ready = true;
-                    return engineInfo;
-                } catch (e) { engineInfo.error = String(e && e.message || e); }
+            for (var s = 0; s < sources.length; s++) {
+                for (var i = 0; i < providers.length; i++) {
+                    try {
+                        session = await ort.InferenceSession.create(sources[s], { executionProviders: providers[i] });
+                        engineInfo.backend = providers[i][0] + (s === 1 ? "+ipc" : "");
+                        engineInfo.ready = true;
+                        engineInfo.error = null;
+                        return engineInfo;
+                    } catch (e) {
+                        errors.push(providers[i][0] + "/" + (s === 0 ? "url" : "bytes") + ": " + String(e && e.message || e));
+                    }
+                }
             }
+            engineInfo.error = errors.join(" | ").slice(0, 500);
+            console.error("[MIA] ONNX init başarısız:", engineInfo.error);
             return engineInfo;
         })();
         return initPromise;

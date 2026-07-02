@@ -23,8 +23,8 @@
     var state = { user: null, org: null, orgs: [], role: null, settings: null };
 
     var DEFAULT_SETTINGS = {
-        lang: "tr", engine: "onnx",     // varsayılan: TAM MIA cihaz üstü — bulut bağımlılığı yok
-        confidence: 0.4, intervalSec: 2,
+        lang: "tr", engine: "hybrid",   // MIA cihaz üstü BİRİNCİL; motor açılamazsa bulut devreye girer (kesintisiz tespit)
+        confidence: 0.4, intervalSec: 1,   // adaptif döngü üst sınırı — donanım hızlıysa daha sık
         dataCollect: false,             // saha veri toplama (KVKK: varsayılan KAPALI)
         profile: { helmet: true, safety_vest: true, mask: false }
     };

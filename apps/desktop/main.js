@@ -276,6 +276,14 @@ function registerIpc() {
         return { ok: true, path: filePaths[0], url: "mia://video/" + encodeURIComponent(filePaths[0]) };
     });
 
+    // Model baytları — renderer'da URL fetch başarısız olursa güvenilir yol (asar dahil).
+    ipcMain.handle("model:read", () => {
+        try {
+            const p = path.join(__dirname, "models", "mia-ppe-yolov8s.onnx");
+            return { ok: true, data: fs.readFileSync(p) }; // Buffer → renderer'da Uint8Array
+        } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+    });
+
     // ---- MIA saha veri seti (ml/ eğitim hattına girdi) --------------------------
     // Veri Toplama Modu açıkken kararsız/ihlalli kareler YOLO formatında yerelde
     // birikir: userData/mia-dataset/{images,labels}. Buluta HİÇBİR görüntü gitmez.
