@@ -18,6 +18,12 @@
     }).join("");
 
     document.addEventListener("mia-app-ready", function () {
+        loadStatus();
+        setInterval(loadStatus, 30000); // Faz 21: çıkarım metadata'sı 30 sn'de tazelenir
+    });
+
+    function loadStatus() {
+        var up = $("adUpdated"); if (up) up.textContent = "Son güncelleme: " + new Date().toLocaleTimeString("tr-TR");
         // Worker / çıkarım durumu
         supabase.from("camera_worker_sessions").select("last_heartbeat_at,metadata")
             .order("last_heartbeat_at", { ascending: false }).limit(1).then(function (r) {
@@ -38,7 +44,15 @@
                       " <span class='ca-muted'>· adaptör: " + esc(m.adapter || "—") +
                       (m.confidence_threshold != null ? " · güven eşiği: " + Math.round(m.confidence_threshold * 100) + "%" : "") +
                       " · son sinyal: " + new Date(row.last_heartbeat_at).toLocaleString("tr-TR") + "</span>" +
-                      "<div class='ca-muted' style='margin-top:.3rem;'>Model env ile değiştirilebilir: ROBOFLOW_MODEL_ID / ROBOFLOW_MODEL_VERSION (worker restart gerekir).</div>";
+                      "<div class='ca-muted' style='margin-top:.3rem;'>Model env ile değiştirilebilir: ROBOFLOW_MODEL_ID / ROBOFLOW_MODEL_VERSION (worker restart gerekir).</div>" +
+                      // Faz 21: ihlal yokken de "AI çalışıyor" görünür — dürüst son-sonuç satırı
+                      (m.last_result ? "<div style='margin-top:.45rem;'>Son çıkarım sonucu: " + ({
+                          no_violation: '<span class="b b-ok">ihlal yok</span> <span class="ca-muted">(çıkarım çalışıyor, ' + (m.detections_count || 0) + ' tespit)</span>',
+                          violation_created: '<span class="b b-warn">ihlal olayı oluşturuldu</span>',
+                          no_person_detected: '<span class="b b-mut">karede tespit yok</span> <span class="ca-muted">(çıkarım çalışıyor)</span>',
+                          inference_error: '<span class="b b-bad">çıkarım hatası</span> <span class="ca-muted">(worker loguna bakın)</span>'
+                      }[m.last_result] || esc(m.last_result)) +
+                      (m.last_inference_at ? " <span class='ca-muted'>· " + new Date(m.last_inference_at).toLocaleTimeString("tr-TR") + "</span>" : "") + "</div>" : "");
             });
 
         // Aktif profil
@@ -58,5 +72,5 @@
                     }).join("") + "</div>" +
                     '<p class="ca-muted" style="margin:.6rem 0 0;">Kapalı ekipmanlar ihlal üretmez; profil değişikliği worker yeniden başlatılınca etkinleşir.</p>';
             });
-    });
+    }
 })();

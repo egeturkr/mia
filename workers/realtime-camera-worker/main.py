@@ -155,6 +155,10 @@ class CameraLoop(threading.Thread):
         # Faz 15: performans ölçümü + mod etiketi
         self.perf = None  # {"capture_ms","infer_ms","total_ms"} — son döngü
         self.mode = "demo" if (stream.startswith("test:") or stream.startswith("webcam:")) else "rtsp"
+        # Faz 21: ihlalsiz-durum geri bildirimi — "hiçbir şey olmuyor" sanılmasın
+        self.last_result = None        # no_violation | violation_created | no_person_detected | inference_error
+        self.last_inference_at = None
+        self.det_count = 0
 
     def open_capture(self):
         s = self.stream
@@ -180,7 +184,10 @@ class CameraLoop(threading.Thread):
                              "model_id": RF_MODEL if INFERENCE_AVAILABLE else None,
                              "adapter": "roboflow" if INFERENCE_AVAILABLE else None,
                              "confidence_threshold": CONFIDENCE if INFERENCE_AVAILABLE else None,
-                             "perf_ms": self.perf or None}}
+                             "perf_ms": self.perf or None,
+                             "last_result": self.last_result,
+                             "last_inference_at": self.last_inference_at,
+                             "detections_count": self.det_count}}
         if self.session_id:
             sb_req("PATCH", "camera_worker_sessions", body, f"?id=eq.{self.session_id}")
 
@@ -286,18 +293,27 @@ class CameraLoop(threading.Thread):
                         preds = infer(frame)               # normalize tespitler (adaptör)
                         t_inf = time.time()
                         ctx = associate_frame(preds)       # kare bağlamı (dürüst, tracking yok)
+                        emitted = False
                         for p in preds:
                             m = self.vmap.get(p["raw_class_name"])  # profil-farkında: kapalı ekipman olay üretmez
                             if m:
+                                emitted = True
                                 self.emit_event(m[0], m[1], {
                                     "confidence": round(p["confidence"] * 100),
                                     "all": preds, "context": ctx})
+                        # Faz 21: dürüst durum — ihlal yoksa da "çıkarım çalışıyor" bilgisi akar
+                        self.last_inference_at = now_iso()
+                        self.det_count = len(preds)
+                        self.last_result = ("violation_created" if emitted
+                                            else "no_violation" if preds
+                                            else "no_person_detected")
                         # Faz 15: performans ölçümü (heartbeat metadata'sına gider)
                         self.perf = {"capture_ms": round((t_cap - t0) * 1000),
                                      "infer_ms": round((t_inf - t_cap) * 1000),
                                      "total_ms": round((time.time() - t0) * 1000)}
                     except Exception as e:
                         log(f"  ! inference hatası: {e}")
+                        self.last_result = "inference_error"
                         self.health("degraded", f"inference: {type(e).__name__}")
                 # ÇIKARIM YOKSA: kare okunur, sağlık/heartbeat akar, olay ÜRETİLMEZ (sahte tespit yok)
                 if time.time() - last_hb > HEARTBEAT_SEC:
@@ -322,7 +338,15 @@ def main():
     if not os.path.exists(cfg):
         sys.exit(f"{cfg} yok — cameras.example.json'u kopyalayıp doldurun.")
     with open(cfg) as f:
-        stream_map = json.load(f)   # { "<camera_uuid>": "rtsp://..." }
+        raw = json.load(f)
+    # İki biçim desteklenir (Faz 21):
+    #   sözlük: { "<camera_uuid>": "rtsp://..." }
+    #   liste:  [ { "id": "<uuid>", "name": "...", "stream_url": "..." }, ... ]
+    if isinstance(raw, list):
+        stream_map = {r["id"]: r["stream_url"] for r in raw
+                      if r.get("id") and r.get("stream_url") and not str(r["id"]).startswith("PASTE")}
+    else:
+        stream_map = {k: v for k, v in raw.items() if not k.startswith("_")}
 
     cams = sb_get("cameras", "?status=in.(active,testing,inactive)&select=*") or []
 

@@ -237,8 +237,13 @@ async function enforce(event, opts) {
   if (event.httpMethod !== "POST") {
     return { ok: false, response: resp(405, { error: "POST only" }, origin) };
   }
-  // Origin allowlist (tarayıcı çağrıları için zorunlu)
-  if (!isOriginAllowed(origin)) {
+  // Origin allowlist (tarayıcı çağrıları için zorunlu).
+  // Faz 18 istisnası: YERLİ istemciler (masaüstü uygulaması) Origin başlığı
+  // GÖNDERMEZ — origin tamamen yoksa VE Bearer token taşıyorsa geçer (token
+  // hemen aşağıda doğrulanır; geçersizse yine reddedilir). Origin VARSA
+  // (tarayıcı bağlamı) allowlist şartı aynen korunur — CSRF duruşu değişmez.
+  const nativeClient = !origin && !!bearer(event);
+  if (!isOriginAllowed(origin) && !nativeClient) {
     return { ok: false, response: resp(403, { error: "origin not allowed" }, origin) };
   }
 
@@ -246,6 +251,11 @@ async function enforce(event, opts) {
   let subject, subjectType, user = null, perMonth = opts.perMonth;
   const token = bearer(event);
   user = token ? await verifyUser(token) : null;
+
+  // Yerli istemcide anonim düşüş YOK: token geçersizse direkt 401.
+  if (nativeClient && !user) {
+    return { ok: false, response: resp(401, { error: "authentication required" }, origin) };
+  }
 
   if (user) {
     subject = "user:" + user.id; subjectType = "user";

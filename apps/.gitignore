@@ -3,3 +3,5 @@
 mobile/android/
 mobile/ios/
 **/package-lock.json
+# postinstall üretir (scripts/copy-vendor.js) — repoya girmez
+desktop/renderer/vendor/

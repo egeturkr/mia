@@ -20,6 +20,12 @@
         var user = ev.detail.user;
         var oid = window.MIAOrg && window.MIAOrg.currentId();
 
+        // Faz 21: canlı bölümler 30 sn'de bir tazelenir (Supabase'i boğmadan; trend grafiği tek sefer)
+        loadLive();
+        setInterval(loadLive, 30000);
+
+        function loadLive() {
+        var up = $("dsUpdated"); if (up) up.textContent = "Son güncelleme: " + new Date().toLocaleTimeString("tr-TR");
         // --- Canlı kamera izleme (çekirdek alan: kart ızgarası) ---
         if (oid) supabase.from("cameras").select("*").eq("org_id", oid).neq("status", "archived")
             .then(function (r) {
@@ -63,7 +69,9 @@
                 }).join("");
             });
 
-        // --- Olaylar + trend ---
+        } // loadLive sonu
+
+        // --- Olaylar + trend (tek sefer — grafik yeniden kurulmaz) ---
         var since = new Date(Date.now() - 14 * 86400000).toISOString();
         var camEvP = oid
             ? supabase.from("camera_events").select("event_type,risk_level,status,frame_timestamp,created_at,cameras(name)")

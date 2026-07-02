@@ -59,6 +59,12 @@
   to = "/.netlify/functions/log-client-error"
   status = 200
 
+# Masaüstü uygulamadan güvenlik olayı alımı — Faz 18 (JWT + org üyelik + kamera doğrulama).
+[[redirects]]
+  from = "/api/camera-event"
+  to = "/.netlify/functions/camera-event"
+  status = 200
+
 # Haftalık güvenlik özeti — her Pazartesi 07:00 UTC.
 [functions."weekly-digest"]
   schedule = "0 7 * * 1"

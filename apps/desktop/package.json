@@ -1,39 +1,52 @@
 {
   "name": "mia-desktop",
   "productName": "MIA AI Safety Intelligence",
-  "version": "0.1.0-pilot",
-  "description": "MIA - AI insaat guvenligi platformu (masaustu kabuk)",
+  "version": "0.3.0",
+  "description": "MIA - AI insaat guvenligi platformu (yerli masaustu uygulamasi: cihaz ustu KKD tespiti, RTSP, raporlama)",
   "main": "main.js",
   "author": "MIA",
   "license": "UNLICENSED",
   "scripts": {
+    "postinstall": "node scripts/copy-vendor.js",
     "start": "electron .",
-    "dist:win": "electron-builder --win nsis",
+    "test": "node test/test-engine.js",
     "dist:mac": "electron-builder --mac dmg",
+    "dist:win": "electron-builder --win nsis",
     "dist:linux": "electron-builder --linux AppImage deb",
-    "dist:all": "electron-builder --win nsis --mac dmg --linux AppImage deb"
+    "release:mac": "bash scripts/release-mac.sh"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "^2.45.0",
     "electron": "^33.0.0",
-    "electron-builder": "^25.0.0"
+    "electron-builder": "^25.0.0",
+    "onnxruntime-web": "^1.19.2"
   },
   "build": {
     "appId": "com.miaissagligi.desktop",
     "productName": "MIA AI Safety Intelligence",
     "icon": "icon.png",
-    "win": {
-      "target": "nsis"
-    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "models/**/*",
+      "!**/*.map"
+    ],
+    "asarUnpack": [
+      "node_modules/ffmpeg-static/**"
+    ],
     "mac": {
       "target": "dmg",
-      "category": "public.app-category.business"
+      "category": "public.app-category.business",
+      "extendInfo": {
+        "NSCameraUsageDescription": "MIA, sahadaki KKD uyumunu izlemek icin kameraya erisir. Goruntuler cihazda islenir.",
+        "NSMicrophoneUsageDescription": "Mikrofon kullanilmaz; kamera API'si gerektirdigi icin listelenir."
+      }
     },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "category": "Office"
-    }
+    "win": { "target": "nsis" },
+    "linux": { "target": ["AppImage", "deb"], "category": "Office" }
   }
 }

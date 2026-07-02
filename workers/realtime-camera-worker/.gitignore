@@ -1,3 +1,5 @@
 cameras.json
 ornek-santiye.mp4
 __pycache__/
+# SIRLAR — asla commit edilmez
+.env

@@ -36,8 +36,9 @@
                 .then(function (u) {
                     planKey = (u && u.plan) || "free";
                     var camLimit = window.MIAPlans ? window.MIAPlans.get(planKey).cameras : 0;
-                    // kamera_ai ve üzeri (cameras >= 10) canlı modül kullanabilir
-                    var allowed = camLimit >= 10 || camLimit === -1;
+                    // Politika (plans.js + sunucu trigger'ı ile tutarlı): cameras 0 olan plan
+                    // (giris) kapalı; free = 1 DEMO kamera; kamera_ai/pro/kurumsal tam erişim.
+                    var allowed = camLimit === -1 || camLimit > 0;
                     $("caPlanBlock").style.display = allowed ? "none" : "block";
                     cb(allowed, camLimit);
                 }).catch(function () { cb(false, 0); });
@@ -58,6 +59,8 @@
                 st.mode = meta && meta.mode || null;
                 st.model = meta && meta.model || null;                 // Faz 15: model sürümü
                 st.perf = meta && meta.perf_ms || null;                // Faz 15: son çıkarım gecikmesi
+                st.lastResult = meta && meta.last_result || null;      // Faz 21: ihlalsiz durum geri bildirimi
+                var up = $("caUpdated"); if (up) up.textContent = "Son güncelleme: " + new Date().toLocaleTimeString("tr-TR");
                 $("caWorkerWarn").style.display = fresh ? "none" : "block";
                 // Worker bağlı AMA çıkarım kapalıysa dürüst uyarı (sahte "çalışıyor" izlenimi yok)
                 $("caInferWarn").style.display = (fresh && meta && meta.inference === false) ? "block" : "none";
@@ -87,7 +90,11 @@
                  : st.inference === null ? "worker bağlanınca belli olur"
                  : (st.model ? "model: " + esc(st.model) : "") +
                    (st.perf && st.perf.infer_ms != null
-                       ? " · son çıkarım: " + st.perf.infer_ms + " ms (döngü " + st.perf.total_ms + " ms)" : "")) +
+                       ? " · son çıkarım: " + st.perf.infer_ms + " ms (döngü " + st.perf.total_ms + " ms)" : "") +
+                   (st.lastResult === "no_violation" ? " · son sonuç: ihlal yok ✓"
+                    : st.lastResult === "violation_created" ? " · son sonuç: olay oluşturuldu"
+                    : st.lastResult === "no_person_detected" ? " · son sonuç: karede tespit yok"
+                    : st.lastResult === "inference_error" ? " · son sonuç: HATA" : "")) +
             (demo && st.workerFresh
                 ? '<div class="ca-muted" style="margin-top:.4rem;">ℹ Bu akış <b>demo/test modudur</b> (webcam veya örnek video) — gerçek müşteri RTSP kamerası değildir.</div>'
                 : '') +
@@ -121,10 +128,13 @@
                         '<div class="ca-meta">Durum: <b>' + esc(c.status) + '</b> / ' + esc(c.health_status) +
                         '<br>Son kare: ' + ago(c.last_frame_at) + ' · Son tespit: ' + ago(c.last_detection_at) + '</div>' +
                         (canManage()
-                            ? '<div style="display:flex;gap:.4rem;margin-top:.5rem;">' +
+                            ? '<div style="display:flex;gap:.4rem;margin-top:.5rem;flex-wrap:wrap;">' +
                               '<button type="button" class="btn btn-secondary btn-sm" data-toggle="' + c.id + '">' +
                               (c.status === "paused" ? "Devam Et" : "Duraklat") + '</button>' +
-                              '<button type="button" class="btn btn-danger btn-sm" data-arch="' + c.id + '">Arşivle</button></div>'
+                              '<button type="button" class="btn btn-secondary btn-sm" data-copyid="' + c.id + '">ID Kopyala</button>' +
+                              '<button type="button" class="btn btn-secondary btn-sm" data-copyjson="' + c.id + '" data-cname="' + esc(c.name) + '">cameras.json Kopyala</button>' +
+                              '<button type="button" class="btn btn-danger btn-sm" data-arch="' + c.id + '">Arşivle</button></div>' +
+                              '<div class="ca-muted" style="margin-top:.4rem;font-size:.7rem;">Worker eşlemesi: bu kamera ID\'sini worker\'daki cameras.json dosyasına ekleyin.</div>'
                             : '') + '</div>';
                 }).join("");
                 Array.prototype.forEach.call($("caGrid").querySelectorAll("[data-toggle]"), function (b) {
@@ -132,6 +142,22 @@
                         var c = cams.filter(function (x) { return x.id === b.getAttribute("data-toggle"); })[0];
                         supabase.from("cameras").update({ status: c.status === "paused" ? "active" : "paused",
                             updated_at: new Date().toISOString() }).eq("id", c.id).then(loadCams);
+                    });
+                });
+                // Faz 21: kurulum kolaylığı — ID / cameras.json snippet'i panoya (RTSP şifresi YOK)
+                function copyTxt(t, btn) {
+                    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject())
+                        .then(function () { var o = btn.textContent; btn.textContent = "✓ Kopyalandı"; setTimeout(function () { btn.textContent = o; }, 1500); })
+                        .catch(function () { window.prompt("Kopyalayın:", t); });
+                }
+                Array.prototype.forEach.call($("caGrid").querySelectorAll("[data-copyid]"), function (b) {
+                    b.addEventListener("click", function () { copyTxt(b.getAttribute("data-copyid"), b); });
+                });
+                Array.prototype.forEach.call($("caGrid").querySelectorAll("[data-copyjson]"), function (b) {
+                    b.addEventListener("click", function () {
+                        copyTxt(JSON.stringify([{ id: b.getAttribute("data-copyjson"),
+                            name: b.getAttribute("data-cname"),
+                            stream_url: "webcam:0  // veya test:./video.mp4 ya da rtsp://... (şifre YALNIZ worker makinesinde)" }], null, 2), b);
                     });
                 });
                 Array.prototype.forEach.call($("caGrid").querySelectorAll("[data-arch]"), function (b) {
