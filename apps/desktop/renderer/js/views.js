@@ -26,7 +26,9 @@
     function renderLogin(root) {
         root.innerHTML =
             '<div class="login-wrap"><div class="login-card">' +
-            '<div class="login-logo">M I A</div><div class="login-sub">AI SAFETY INTELLIGENCE</div>' +
+            '<img src="images/logo-primary.webp" alt="MIA — AI Safety Intelligence" class="login-logo-img" ' +
+            'onerror="this.outerHTML=\'<div class=login-logo>M I A</div>\'">' +
+            '<div class="login-sub">AI SAFETY INTELLIGENCE</div>' +
             '<h2>' + esc(t("login_title")) + "</h2>" +
             '<p class="login-hint">miaissagligi.com hesabınızla giriş yapın</p>' +
             '<label>' + esc(t("login_email")) + '</label><input id="loginEmail" type="email" autocomplete="username">' +

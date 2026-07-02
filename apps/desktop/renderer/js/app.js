@@ -25,8 +25,8 @@
         // ---- Kenar çubuğu -----------------------------------------------------
         var side = document.getElementById("sidebar");
         side.innerHTML =
-            '<div class="brand"><span class="brand-mark">M I A</span></div>' +
-            '<div class="brand-sub">AI SAFETY INTELLIGENCE</div>' +
+            '<div class="brand"><img src="images/logo-horizontal-trim.png" alt="MIA" class="brand-img" ' +
+            'onerror="this.outerHTML=\'<span class=brand-mark>M I A</span>\'"></div>' +
             '<nav>' + NAV_GROUPS.map(function (g) {
                 return '<div class="nav-group">' + esc(t(g.label)) + "</div>" +
                     g.items.map(function (n) {
