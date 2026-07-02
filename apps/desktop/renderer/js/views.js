@@ -15,12 +15,20 @@
     function typeLabel(ty) { return t(TYPE_KEY[ty] || ty); }
     function fmtTime(iso) { return iso ? new Date(iso).toLocaleString(window.miaI18n.getLang() === "tr" ? "tr-TR" : "en-GB") : "—"; }
 
+    // ================= ORTAK: boş durum ==========================================
+    function emptyState(icon, title, desc, ctaHtml) {
+        return '<div class="empty"><div class="e-ico">' + icon + '</div>' +
+            '<div class="e-title">' + esc(title) + '</div>' +
+            '<div class="e-desc">' + esc(desc) + "</div>" + (ctaHtml || "") + "</div>";
+    }
+
     // ================= LOGIN ====================================================
     function renderLogin(root) {
         root.innerHTML =
             '<div class="login-wrap"><div class="login-card">' +
             '<div class="login-logo">M I A</div><div class="login-sub">AI SAFETY INTELLIGENCE</div>' +
             '<h2>' + esc(t("login_title")) + "</h2>" +
+            '<p class="login-hint">miaissagligi.com hesabınızla giriş yapın</p>' +
             '<label>' + esc(t("login_email")) + '</label><input id="loginEmail" type="email" autocomplete="username">' +
             '<label>' + esc(t("login_password")) + '</label><input id="loginPass" type="password" autocomplete="current-password">' +
             '<button id="loginBtn" class="btn btn-primary">' + esc(t("login_btn")) + "</button>" +
@@ -39,12 +47,43 @@
         root.addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
     }
 
-    // ================= DASHBOARD ================================================
+    // ================= DASHBOARD — Komuta Merkezi (Faz 23) ========================
+    // AYNI Supabase sorguları — yalnız sunum yenilendi. Sahte veri YOK; veri yoksa
+    // premium boş durumlar gösterilir.
     async function renderDashboard(root) {
-        root.innerHTML = '<h1>' + esc(t("nav_dashboard")) + '</h1><div class="grid stats" id="statGrid"></div>' +
-            '<div class="grid two"><div class="card"><h3>' + esc(t("dash_by_type")) + '</h3><div id="typeChart"></div></div>' +
-            '<div class="card"><h3>' + esc(t("dash_recent")) + '</h3><div id="recentList"></div></div></div>';
+        root.innerHTML =
+            '<h1>' + esc(t("dash_title")) + '</h1>' +
+            '<p class="page-sub">' + esc(t("dash_sub")) + "</p>" +
+            '<div class="grid stats" id="statGrid">' +
+            '<div class="card stat"><div class="skeleton" style="height:28px;width:60px"></div><div class="skeleton" style="height:10px;margin-top:8px"></div></div>'.repeat(5) +
+            "</div>" +
+            '<div class="grid ops">' +
+            '<div class="card"><h3>' + esc(t("dash_live_section")) +
+            ' <span class="h3-gold">●</span></h3><div id="dashLive"></div></div>' +
+            '<div class="card"><h3>' + esc(t("dash_critical")) + "</h3><div id=\"dashCritical\"></div>" +
+            '<a href="#" id="dashAllEvents" class="btn btn-sm" style="margin-top:12px">' + esc(t("dash_critical_all")) + " →</a></div>" +
+            "</div>" +
+            '<div class="grid three">' +
+            '<div class="card"><h3>' + esc(t("dash_trend")) + '</h3><div id="dashTrend"></div></div>' +
+            '<div class="card"><h3>' + esc(t("dash_dist")) + '</h3><div id="dashDist"></div></div>' +
+            '<div class="card"><h3>' + esc(t("dash_ai_status")) + '</h3><div id="dashAi"></div></div>' +
+            "</div>" +
+            '<div class="card"><h3>' + esc(t("dash_quick")) + '</h3><div class="quick" id="dashQuick"></div></div>';
+
+        $("#dashAllEvents").addEventListener("click", function (e) { e.preventDefault(); window.miaApp.nav("events"); });
+        $("#dashQuick").innerHTML = [
+            ["cameras", "▤", t("qa_add_camera")], ["reports", "▥", t("qa_report")],
+            ["events", "⚠", t("qa_events")], ["settings", "⚙", t("qa_settings")]
+        ].map(function (q) {
+            return '<a href="#" data-q="' + q[0] + '"><i>' + q[1] + "</i>" + esc(q[2]) + "</a>";
+        }).join("");
+        $("#dashQuick").querySelectorAll("[data-q]").forEach(function (a) {
+            a.addEventListener("click", function (e) { e.preventDefault(); window.miaApp.nav(a.getAttribute("data-q")); });
+        });
+
         var org = st().org; if (!org) return;
+
+        // --- Veri (değişmedi: camera_events 7g + cameras) --------------------------
         var since7 = new Date(Date.now() - 7 * 864e5).toISOString();
         var since1 = new Date(); since1.setHours(0, 0, 0, 0);
         var ev = await sb().from("camera_events")
@@ -53,35 +92,158 @@
             .order("created_at", { ascending: false }).limit(500);
         var rows = ev.data || [];
         var today = rows.filter(function (r) { return new Date(r.created_at) >= since1; });
-        var cams = await sb().from("cameras").select("id,status").eq("org_id", org.id);
-        var activeCams = (cams.data || []).filter(function (c) { return c.status === "active"; }).length;
+        var cams = await sb().from("cameras")
+            .select("id,name,status,camera_type,location_label,last_frame_at")
+            .eq("org_id", org.id).neq("status", "archived");
+        var camRows = cams.data || [];
+        var activeCams = camRows.filter(function (c) { return c.status === "active"; }).length;
         var high = rows.filter(function (r) { return r.risk_level === "high" || r.risk_level === "critical"; }).length;
         var score = Math.max(0, 100 - high * 3 - (rows.length - high));
         var q = window.miaEvents.stats();
+
+        // --- KPI şeridi -------------------------------------------------------------
         $("#statGrid").innerHTML =
+            statCard(activeCams + " / " + camRows.length, t("dash_active_cams"), "") +
             statCard(today.length, t("dash_today"), today.length ? "bad" : "good") +
             statCard(rows.length, t("dash_week"), rows.length > 20 ? "bad" : "") +
             statCard(score + "%", t("dash_compliance"), score >= 80 ? "good" : score >= 50 ? "" : "bad") +
-            statCard(activeCams + " / " + (cams.data || []).length, t("dash_active_cams"), "") +
-            statCard(q.pending, t("dash_queue"), q.pending > 50 ? "bad" : "");
-        // Tip dağılımı (basit bar)
+            statCard(q.pending, t("dash_queue"), q.pending > 50 ? "bad" : "good");
+
+        // --- Canlı kamera izleme (merkez) ---------------------------------------------
+        $("#dashLive").innerHTML = camRows.length
+            ? camRows.slice(0, 6).map(function (c) {
+                var on = c.status === "active";
+                return '<div class="cam-row"><span class="c-dot ' + (on ? "on" : "") + '"></span>' +
+                    "<b>" + esc(c.name) + "</b>" +
+                    '<span class="c-meta">' + esc(c.camera_type) + (c.location_label ? " · " + esc(c.location_label) : "") + "</span>" +
+                    '<span class="spacer"></span>' +
+                    '<span class="c-meta">' + (c.last_frame_at ? esc(fmtTime(c.last_frame_at)) : "—") + "</span></div>";
+            }).join("") +
+              '<button class="btn btn-primary btn-sm" id="dashOpenLive" style="margin-top:14px">◉ ' + esc(t("dash_live_open")) + "</button>"
+            : emptyState("▤", t("dash_live_empty_t"), t("dash_live_empty_d"),
+                '<button class="btn btn-primary btn-sm" id="dashOpenLive">◉ ' + esc(t("dash_live_open")) + "</button>");
+        var openLive = $("#dashOpenLive");
+        if (openLive) openLive.addEventListener("click", function () { window.miaApp.nav("live"); });
+
+        // --- Kritik olaylar paneli ------------------------------------------------------
+        var critical = rows.filter(function (r) { return r.risk_level === "high" || r.risk_level === "critical"; }).slice(0, 6);
+        $("#dashCritical").innerHTML = critical.length
+            ? critical.map(function (r) {
+                return '<div class="ev-row">' + riskBadge(r.risk_level) +
+                    '<div style="min-width:0"><div class="ev-title">' + esc(typeLabel(r.event_type)) + "</div>" +
+                    '<div class="muted small">' + esc(r.cameras ? r.cameras.name : "—") + " · " + esc(fmtTime(r.created_at)) +
+                    (r.confidence != null ? " · %" + Math.round(r.confidence * 100) : "") + "</div></div></div>";
+            }).join("")
+            : emptyState("✓", t("dash_no_critical_t"), t("dash_no_critical_d"));
+
+        // --- Trend (7 gün, gerçek byDay) --------------------------------------------------
+        var byDay = {};
+        for (var d = 6; d >= 0; d--) {
+            var day = new Date(Date.now() - d * 864e5);
+            byDay[day.toISOString().slice(0, 10)] = 0;
+        }
+        rows.forEach(function (r) {
+            var k = r.created_at.slice(0, 10);
+            if (byDay[k] != null) byDay[k]++;
+        });
+        var days = Object.keys(byDay).sort();
+        var maxDay = Math.max.apply(null, [1].concat(days.map(function (k) { return byDay[k]; })));
+        $("#dashTrend").innerHTML = rows.length
+            ? '<div class="trend">' + days.map(function (k) {
+                var n = byDay[k];
+                var hPct = Math.round(n / maxDay * 100);
+                return '<div class="t-col"><span class="t-n">' + (n || "") + "</span>" +
+                    '<div class="t-bar ' + (n ? "" : "zero") + '" style="height:' + Math.max(3, hPct) + '%"></div>' +
+                    '<span class="t-lbl">' + esc(k.slice(8, 10) + "." + k.slice(5, 7)) + "</span></div>";
+            }).join("") + "</div>"
+            : emptyState("▁", t("dash_empty"), t("dash_no_critical_d"));
+
+        // --- Dağılım (donut — gerçek byType) -------------------------------------------------
         var byType = {};
         rows.forEach(function (r) { byType[r.event_type] = (byType[r.event_type] || 0) + 1; });
-        var maxN = Math.max.apply(null, [1].concat(Object.keys(byType).map(function (k) { return byType[k]; })));
-        $("#typeChart").innerHTML = Object.keys(byType).length ? Object.keys(byType).map(function (k) {
-            return '<div class="bar-row"><span class="bar-label">' + esc(typeLabel(k)) + "</span>" +
-                '<div class="bar"><div class="bar-fill" style="width:' + (byType[k] / maxN * 100) + '%"></div></div>' +
-                '<span class="bar-n">' + byType[k] + "</span></div>";
-        }).join("") : '<p class="muted">' + esc(t("dash_empty")) + "</p>";
-        $("#recentList").innerHTML = rows.length ? rows.slice(0, 8).map(function (r) {
-            return '<div class="ev-row">' + riskBadge(r.risk_level) +
-                '<span class="ev-title">' + esc(typeLabel(r.event_type)) + "</span>" +
-                '<span class="muted">' + esc(r.cameras ? r.cameras.name : "—") + "</span>" +
-                '<span class="muted small">' + esc(fmtTime(r.created_at)) + "</span></div>";
-        }).join("") : '<p class="muted">' + esc(t("dash_empty")) + "</p>";
+        var typeKeys = Object.keys(byType).sort(function (a, b) { return byType[b] - byType[a]; });
+        if (typeKeys.length) {
+            var palette = ["#E5484D", "#D4AF37", "#E8963C", "#46C476", "#8A8A8A"];
+            var total = rows.length, acc = 0, segs = [];
+            typeKeys.forEach(function (k, i) {
+                var from = acc / total * 360; acc += byType[k];
+                segs.push(palette[i % palette.length] + " " + from + "deg " + (acc / total * 360) + "deg");
+            });
+            $("#dashDist").innerHTML =
+                '<div class="donut-wrap"><div class="donut" style="background:conic-gradient(' + segs.join(",") + ')">' +
+                '<div class="donut-center"><b>' + total + "</b><span>" + esc(t("rep_total_events")) + "</span></div></div>" +
+                '<div class="legend">' + typeKeys.map(function (k, i) {
+                    return '<div class="lg"><span class="sw" style="background:' + palette[i % palette.length] + '"></span>' +
+                        esc(typeLabel(k)) + " <b>" + byType[k] + "</b> (%" + Math.round(byType[k] / total * 100) + ")</div>";
+                }).join("") + "</div></div>";
+        } else {
+            $("#dashDist").innerHTML = emptyState("◔", t("dash_empty"), t("dash_no_critical_d"));
+        }
+
+        // --- AI sistem durumu (gerçek motor bilgisi) --------------------------------------------
+        var info = window.miaDetect.info();
+        var s = st().settings;
+        $("#dashAi").innerHTML =
+            '<div class="kv"><span class="k">' + esc(t("det_ve")) + '</span><span class="v ok">' + esc(t("det_ready")) + "</span></div>" +
+            '<div class="kv"><span class="k">' + esc(t("det_model")) + '</span><span class="v">mia-ppe-yolov8s</span></div>' +
+            '<div class="kv"><span class="k">' + esc(t("det_backend")) + '</span><span class="v ' + (info.ready ? "ok" : "warn") + '">' +
+            (info.ready ? esc(info.backend) : esc(t("engine_error"))) + "</span></div>" +
+            '<div class="kv"><span class="k">' + esc(t("det_conf")) + '</span><span class="v">%' + Math.round(s.confidence * 100) + "</span></div>" +
+            '<div class="kv"><span class="k">' + esc(t("set_profile")) + '</span><span class="v">' +
+            [s.profile.helmet && t("ppe_helmet"), s.profile.safety_vest && t("ppe_vest"), s.profile.mask && t("ppe_mask")]
+                .filter(Boolean).map(esc).join(" · ") + "</span></div>";
     }
     function statCard(v, label, mood) {
-        return '<div class="card stat ' + mood + '"><div class="stat-v">' + v + '</div><div class="stat-l">' + esc(label) + "</div></div>";
+        return '<div class="card stat ' + (mood || "") + '"><div class="stat-v">' + v + '</div><div class="stat-l">' + esc(label) + "</div></div>";
+    }
+
+    // ================= AI TESPİT — durum sayfası (Faz 23, salt sunum) ==============
+    // Mevcut GERÇEK yapılandırmayı gösterir: motor durumu (miaDetect.info),
+    // ayarlar ve KKD sınıf kaydı (ppe-registry ile aynı dürüst durumlar).
+    // Hiçbir tespit/iş mantığı içermez.
+    var PPE_REGISTRY_VIEW = [
+        { key: "ppe_helmet", status: "supported" },
+        { key: "ppe_vest", status: "supported" },
+        { key: "ppe_mask", status: "experimental" },
+        { key: "ppe_gloves", status: "locked" },
+        { key: "ppe_glasses", status: "locked" },
+        { key: "ppe_harness", status: "locked" },
+        { key: "ppe_boots", status: "locked" }
+    ];
+    async function renderDetection(root) {
+        var s = st().settings;
+        root.innerHTML =
+            '<h1>' + esc(t("det_title")) + '</h1><p class="page-sub">' + esc(t("det_sub")) + "</p>" +
+            '<div class="grid three">' +
+            '<div class="card"><h3>' + esc(t("det_engine")) + '</h3><div id="detEngine">' +
+            '<div class="skeleton" style="height:14px;margin:8px 0"></div>'.repeat(3) + "</div></div>" +
+            '<div class="card"><h3>' + esc(t("det_model")) + '</h3>' +
+            '<div class="kv"><span class="k">' + esc(t("det_model")) + '</span><span class="v">mia-ppe-yolov8s</span></div>' +
+            '<div class="kv"><span class="k">Sınıf</span><span class="v">10</span></div>' +
+            '<div class="kv"><span class="k">' + esc(t("det_conf")) + '</span><span class="v">%' + Math.round(s.confidence * 100) + "</span></div>" +
+            '<div class="kv"><span class="k">' + esc(t("det_interval")) + '</span><span class="v">' + esc(String(s.intervalSec)) + " sn</span></div></div>" +
+            '<div class="card"><h3>' + esc(t("det_ve")) + '</h3><p class="muted small" style="margin-bottom:10px">' + esc(t("det_ve_desc")) + "</p>" +
+            '<div class="kv"><span class="k">' + esc(t("set_profile")) + '</span><span class="v">' +
+            [s.profile.helmet && t("ppe_helmet"), s.profile.safety_vest && t("ppe_vest"), s.profile.mask && t("ppe_mask")]
+                .filter(Boolean).map(esc).join(" · ") + "</span></div></div>" +
+            "</div>" +
+            '<div class="card"><h3>' + esc(t("det_registry")) + '</h3><table class="tbl"><tbody>' +
+            PPE_REGISTRY_VIEW.map(function (p) {
+                return "<tr><td><b>" + esc(t(p.key)) + "</b></td><td style=\"text-align:right\">" +
+                    '<span class="badge st-' + p.status + '">' + esc(t("st_" + p.status)) + "</span></td></tr>";
+            }).join("") + "</tbody></table>" +
+            '<p class="muted small" style="margin-top:12px">' + esc(t("set_profile_note")) + "</p></div>";
+
+        window.miaDetect.init().then(function (info) {
+            var el = $("#detEngine");
+            if (!el) return;
+            el.innerHTML =
+                '<div class="kv"><span class="k">' + esc(t("ev_status")) + '</span><span class="v ' + (info.ready ? "ok" : "warn") + '">' +
+                esc(info.ready ? t("det_ready") : t("det_error")) + "</span></div>" +
+                '<div class="kv"><span class="k">' + esc(t("det_backend")) + '</span><span class="v">' + esc(info.backend || "—") + "</span></div>" +
+                '<div class="kv"><span class="k">' + esc(t("set_engine")) + '</span><span class="v">' + esc(s.engine) + "</span></div>" +
+                (info.error ? '<p class="muted small" style="margin-top:10px;word-break:break-all">' + esc(info.error.slice(0, 200)) + "</p>" : "");
+        });
     }
 
     // ================= CANLI İZLEME =============================================
@@ -98,7 +260,8 @@
             " · " + esc(t("live_conf")) + ": " + Math.round(st().settings.confidence * 100) + "%" +
             " · " + esc(t("live_interval")) + ": " + esc(String(st().settings.intervalSec)) + "s</span></div>" +
             '<div id="liveGrid" class="live-grid"></div>' +
-            '<p id="liveEmpty" class="muted">' + esc(t("live_no_cams")) + "</p>";
+            '<div id="liveEmpty" class="card">' +
+            emptyState("◉", t("dash_live_empty_t"), t("live_no_cams")) + "</div>";
 
         window.miaDetect.init().then(function (info) {
             var el = $("#engineState");
@@ -268,7 +431,7 @@
                     '<button class="btn btn-sm" data-mon="' + esc(c.id) + '">' + esc(t("cam_monitor")) + "</button> " +
                     '<button class="btn btn-sm danger" data-del="' + esc(c.id) + '">' + esc(t("cam_delete")) + "</button></td></tr>";
             }).join("") + "</tbody></table></div>" :
-            '<p class="muted">' + esc(t("cam_none")) + "</p>";
+            '<div class="card">' + emptyState("▤", t("cam_none"), t("dash_live_empty_d")) + "</div>";
         box.querySelectorAll("[data-del]").forEach(function (b) {
             b.addEventListener("click", async function () {
                 if (!confirm(t("confirm_delete"))) return;
@@ -353,7 +516,7 @@
                           '<button class="btn btn-sm" data-dis="' + esc(e.id) + '">' + esc(t("ev_dismiss")) + "</button>"
                         : "") + "</td></tr>";
             }).join("") + "</tbody></table></div>" :
-            '<p class="muted">' + esc(t("ev_none")) + "</p>";
+            '<div class="card">' + emptyState("⚠", t("ev_none"), t("dash_no_critical_d")) + "</div>";
         box.querySelectorAll("[data-rev]").forEach(function (b) { b.addEventListener("click", function () { evMark(b.getAttribute("data-rev"), "reviewed"); }); });
         box.querySelectorAll("[data-dis]").forEach(function (b) { b.addEventListener("click", function () { evMark(b.getAttribute("data-dis"), "dismissed"); }); });
     }
@@ -528,6 +691,7 @@
 
     window.miaViews = {
         login: renderLogin, dashboard: renderDashboard, live: renderLive,
+        detection: renderDetection,
         cameras: renderCameras, events: renderEvents, reports: renderReports, settings: renderSettings
     };
 })();
