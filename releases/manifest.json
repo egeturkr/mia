@@ -14,7 +14,7 @@
       "notarized": false,
       "malware_scanned": false,
       "distribution": "internal-pilot",
-      "hosted_url": null
+      "hosted_url": "https://github.com/egeturkr/mia/releases/download/v0.3.0/MIA.AI.Safety.Intelligence-0.3.0-arm64.dmg"
     }
   ],
   "security_status": {
