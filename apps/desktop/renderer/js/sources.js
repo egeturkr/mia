@@ -154,6 +154,27 @@
         });
     }
 
+    // ---- Kanıt karesi: ham görüntü + overlay tek JPEG'de --------------------------
+    function saveEvidence(tile, frame, produced) {
+        try {
+            var c = document.createElement("canvas");
+            var scale = Math.min(1, 1280 / Math.max(frame.w, frame.h));
+            c.width = Math.round(frame.w * scale); c.height = Math.round(frame.h * scale);
+            var ctx2 = c.getContext("2d");
+            ctx2.drawImage(frame.src, 0, 0, c.width, c.height);
+            ctx2.drawImage(tile.els.overlay, 0, 0, c.width, c.height); // etiket katmanı
+            ctx2.fillStyle = "rgba(0,0,0,.6)";
+            ctx2.fillRect(0, c.height - 22, c.width, 22);
+            ctx2.fillStyle = "#fff"; ctx2.font = "11px Inter, sans-serif";
+            ctx2.fillText("MIA · " + tile.name + " · " + new Date().toLocaleString() + " · " +
+                produced.map(function (p) { return p.title; }).join(" · "), 8, c.height - 7);
+            window.mia.evidenceSave({
+                name: Date.now() + "_" + produced[0].type + "_" + String(tile.cameraRowId || tile.id).slice(0, 8),
+                jpegDataUrl: c.toDataURL("image/jpeg", 0.85)
+            });
+        } catch (e) { /* kanıt hatası tespiti durdurmasın */ }
+    }
+
     // ---- Tespit döngüsü -----------------------------------------------------------
     async function tick(tile) {
         if (!tile.running || tile.busy) return;
@@ -178,6 +199,9 @@
             maybeCollect(tile, frame, res.detections, produced.length > 0);
 
             tile.lastEngineOut = engineOut;
+            // Kanıt arşivi: doğrulanmış ihlalin ETİKETLİ karesi yerel diske (KVKK: bulut yok)
+            if (produced.length && st.settings.evidenceArchive) saveEvidence(tile, frame, produced);
+
             tile.stats.frames++;
             tile.stats.violations += produced.length;
             if (produced.length && tile.els.alert) {

@@ -19,6 +19,12 @@ contextBridge.exposeInMainWorld("mia", {
     rtspStop: (id) => ipcRenderer.invoke("rtsp:stop", id),
     rtspMask: (url) => ipcRenderer.invoke("rtsp:mask", url),
     rtspAvailable: () => ipcRenderer.invoke("rtsp:available"),
+    rtspProbe: (url) => ipcRenderer.invoke("rtsp:probe", url),
+
+    // Yerel kanıt arşivi (doğrulanmış ihlallerin etiketli kareleri — yalnız bu cihaz)
+    evidenceSave: (opts) => ipcRenderer.invoke("evidence:save", opts),
+    evidenceStats: () => ipcRenderer.invoke("evidence:stats"),
+    evidenceOpen: () => ipcRenderer.invoke("evidence:open"),
     onRtspFrame: (cb) => { ipcRenderer.on("rtsp:frame", (e, data) => cb(data)); },
     onRtspStatus: (cb) => { ipcRenderer.on("rtsp:status", (e, data) => cb(data)); },
 

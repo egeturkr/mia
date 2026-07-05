@@ -220,6 +220,53 @@ function registerIpc() {
     ipcMain.handle("rtsp:mask", (e, url) => maskRtsp(url));
     ipcMain.handle("rtsp:available", () => !!ffmpegPath());
 
+    // RTSP bağlantı testi — kamera eklerken TEK kare çekmeyi dener (15 sn tavan).
+    // Kurumsal kurulumda saha ekibi URL/şifre doğruluğunu kaydetmeden önce görür.
+    ipcMain.handle("rtsp:probe", (e, url) => new Promise((resolve) => {
+        const ff = ffmpegPath();
+        if (!ff) return resolve({ ok: false, error: "ffmpeg yok (paket hatası)" });
+        if (!/^rtsps?:\/\//.test(String(url))) return resolve({ ok: false, error: "geçersiz RTSP adresi" });
+        const proc = spawn(ff, ["-nostdin", "-loglevel", "error", "-rtsp_transport", "tcp",
+            "-timeout", "10000000", "-i", String(url), "-frames:v", "1", "-f", "null", "-"],
+            { stdio: ["ignore", "ignore", "pipe"] });
+        let err = "";
+        const killer = setTimeout(() => { try { proc.kill("SIGKILL"); } catch (x) { } }, 15000);
+        proc.stderr.on("data", (d) => { err = (err + d.toString()).slice(-300); });
+        proc.on("close", (code) => {
+            clearTimeout(killer);
+            resolve(code === 0 ? { ok: true } : { ok: false, error: maskRtsp(err) || "bağlantı kurulamadı (zaman aşımı)" });
+        });
+    }));
+
+    // ---- Yerel kanıt arşivi -------------------------------------------------------
+    // Doğrulanmış ihlalin ETİKETLİ karesi YALNIZ bu cihaza yazılır (KVKK: bulut yok).
+    // Denetim/itiraz durumunda görsel kanıt sunulur. userData/mia-evidence/YYYY-MM-DD/.
+    const evDir = () => path.join(app.getPath("userData"), "mia-evidence");
+    ipcMain.handle("evidence:save", (e, { name, jpegDataUrl }) => {
+        try {
+            const day = new Date().toISOString().slice(0, 10);
+            const dir = path.join(evDir(), day);
+            fs.mkdirSync(dir, { recursive: true });
+            const safe = String(name).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80) || String(Date.now());
+            const b64 = String(jpegDataUrl).split(",")[1] || "";
+            fs.writeFileSync(path.join(dir, safe + ".jpg"), Buffer.from(b64, "base64"));
+            return { ok: true };
+        } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+    });
+    ipcMain.handle("evidence:stats", () => {
+        try {
+            let n = 0;
+            if (fs.existsSync(evDir())) {
+                for (const d of fs.readdirSync(evDir())) {
+                    const p = path.join(evDir(), d);
+                    if (fs.statSync(p).isDirectory()) n += fs.readdirSync(p).filter(f => f.endsWith(".jpg")).length;
+                }
+            }
+            return { ok: true, count: n, path: evDir() };
+        } catch (err) { return { ok: false, count: 0, path: evDir() }; }
+    });
+    ipcMain.handle("evidence:open", () => { fs.mkdirSync(evDir(), { recursive: true }); shell.openPath(evDir()); return true; });
+
     // MIA API çağrıları — ANA SÜREÇTEN (origin başlığı yok; Bearer JWT ile kimlik).
     ipcMain.handle("api:fetch", async (e, { pathName, method, headers, body }) => {
         try {

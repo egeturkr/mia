@@ -26,6 +26,9 @@
         lang: "tr", engine: "hybrid",   // MIA cihaz üstü BİRİNCİL; motor açılamazsa bulut devreye girer (kesintisiz tespit)
         confidence: 0.4, intervalSec: 1,   // adaptif döngü üst sınırı — donanım hızlıysa daha sık
         dataCollect: false,             // saha veri toplama (KVKK: varsayılan KAPALI)
+        autoMonitor: false,             // açılışta kayıtlı RTSP kameraları otomatik izle
+        emailAlerts: true,              // kritik ihlalde e-posta (yalnız kendi adresine, 5 dk dedup)
+        evidenceArchive: true,          // doğrulanmış ihlalin etiketli karesi YEREL arşive
         profile: { helmet: true, safety_vest: true, mask: false }
     };
 

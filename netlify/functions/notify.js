@@ -9,7 +9,10 @@ exports.handler = async function (event) {
     const origin = guard.getOrigin(event);
     if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: guard.corsHeaders(origin), body: "" };
     if (event.httpMethod !== "POST") return guard.resp(405, { error: "POST only" }, origin);
-    if (!guard.isOriginAllowed(origin)) return guard.resp(403, { error: "origin not allowed" }, origin);
+    // Faz 24: yerli istemci (masaüstü) Origin göndermez — origin YOKSA Bearer zorunlu
+    // (hemen aşağıda doğrulanır, geçersizse 401). Origin VARSA allowlist aynen geçerli.
+    if (origin && !guard.isOriginAllowed(origin)) return guard.resp(403, { error: "origin not allowed" }, origin);
+    if (!origin && !guard.bearer(event)) return guard.resp(403, { error: "origin not allowed" }, origin);
 
     const token = guard.bearer(event);
     const user = token ? await guard.verifyUser(token) : null;
@@ -35,6 +38,59 @@ exports.handler = async function (event) {
     if (!to || to.indexOf("@") === -1) return guard.resp(400, { error: "account has no email" }, origin);
 
     const tr = (p.lang || "tr") === "tr";
+
+    // ---- Faz 24 (additive): masaüstü canlı kamera alarmı ------------------------
+    // kind === "camera_alert" → kısa canlı-ihlal e-postası. Eski video-analiz
+    // gövdesi birebir KORUNUR (aşağıdaki mevcut akış), web davranışı değişmez.
+    if (p.kind === "camera_alert") {
+        const escA = (s) => String(s == null ? "" : s).replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
+        const cam = String(p.camera_name || "Kamera").slice(0, 120);
+        const title = String(p.event_title || (tr ? "KKD ihlali" : "PPE violation")).slice(0, 160);
+        const conf = Number(p.confidence) || 0;
+        const track = String(p.track_id || "").slice(0, 20);
+        const subjA = tr
+            ? `🚨 Canlı ihlal: ${title} — ${cam}`
+            : `🚨 Live violation: ${title} — ${cam}`;
+        const ta = tr
+            ? { head: "Canlı kamerada doğrulanmış ihlal", cam: "Kamera", ev: "Olay", cf: "Güven", tk: "Kişi",
+                cta: "Olayları incele", foot: "Bu e-posta MIA masaüstü uygulamasındaki canlı izleme tarafından gönderildi.",
+                disc: "Bu uyarı AI destekli bir ön değerlendirmedir ve sertifikalı İSG denetiminin yerine geçmez." }
+            : { head: "Confirmed violation on live camera", cam: "Camera", ev: "Event", cf: "Confidence", tk: "Person",
+                cta: "Review events", foot: "Sent by live monitoring in the MIA desktop app.",
+                disc: "This alert is an AI-assisted preliminary assessment and does not replace a certified OHS inspection." };
+        const htmlA = `
+        <div style="background:#0A0A0A;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;">
+          <div style="max-width:560px;margin:0 auto;background:#111;border:1px solid rgba(212,175,55,.3);border-radius:16px;padding:28px;">
+            <div style="font-size:22px;font-weight:800;color:#D4AF37;margin-bottom:14px;">MIA</div>
+            <h2 style="color:#FFF;font-size:18px;margin:0 0 14px;">${ta.head}</h2>
+            <div style="background:#161616;border-radius:12px;padding:16px 20px;">
+              <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <tr><td style="color:#6E6E6E;padding:4px 0;">${ta.cam}</td><td style="color:#FFF;text-align:right;">${escA(cam)}</td></tr>
+                <tr><td style="color:#6E6E6E;padding:4px 0;">${ta.ev}</td><td style="color:#EF4444;font-weight:700;text-align:right;">${escA(title)}</td></tr>
+                <tr><td style="color:#6E6E6E;padding:4px 0;">${ta.tk}</td><td style="color:#FFF;text-align:right;">${escA(track || "-")}</td></tr>
+                <tr><td style="color:#6E6E6E;padding:4px 0;">${ta.cf}</td><td style="color:#D4AF37;font-weight:700;text-align:right;">%${conf}</td></tr>
+              </table>
+            </div>
+            <a href="https://miaissagligi.com/app-events.html" style="display:inline-block;margin-top:20px;background:#D4AF37;color:#0A0A0A;font-weight:700;font-size:14px;padding:10px 22px;border-radius:8px;text-decoration:none;">${ta.cta}</a>
+            <p style="color:#6E6E6E;font-size:11px;margin:22px 0 0;">${ta.foot}</p>
+            <p style="color:#555;font-size:10px;margin:6px 0 0;">${ta.disc}</p>
+          </div>
+        </div>`;
+        try {
+            const rA = await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + apiKey, "Content-Type": "application/json" },
+                body: JSON.stringify({ from, to, subject: subjA, html: htmlA }),
+            });
+            await guard.logUsage(subject, "user", "notify", rA.status);
+            if (!rA.ok) return guard.resp(502, { error: "email send failed" }, origin);
+            return guard.resp(200, { ok: true }, origin);
+        } catch (err) {
+            await guard.logUsage(subject, "user", "notify", 502);
+            return guard.resp(502, { error: "email send failed" }, origin);
+        }
+    }
+
     const score = Number(p.safety_score) || 0;
     const violations = Number(p.violations_count) || 0;
     const safe = Number(p.safe_count) || 0;

@@ -1,7 +1,7 @@
 {
   "name": "mia-desktop",
   "productName": "MIA AI Safety Intelligence",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "MIA - AI insaat guvenligi platformu (yerli masaustu uygulamasi: cihaz ustu KKD tespiti, RTSP, raporlama)",
   "main": "main.js",
   "author": "MIA",

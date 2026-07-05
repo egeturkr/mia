@@ -285,16 +285,28 @@
 
         // Kayıtlı RTSP kameraları listele → tek tıkla izleme
         var org = st().org;
+        var rtspCams = [];
         if (org) {
             var cams = await sb().from("cameras").select("id,name,camera_type,site_id,location_label")
                 .eq("org_id", org.id).neq("status", "archived");
             (cams.data || []).forEach(function (c) {
                 if (c.camera_type !== "rtsp" && c.camera_type !== "onvif") return;
+                rtspCams.push(c);
                 var b = document.createElement("button");
                 b.className = "btn"; b.textContent = "📹 " + c.name;
                 b.addEventListener("click", function () { addRtspTile(c).catch(errToast); });
                 $(".toolbar").insertBefore(b, $(".spacer"));
             });
+        }
+
+        // Otomatik izleme: açılışta kayıtlı RTSP kameraları (yerel kimlik bilgisi
+        // olanları) otomatik başlat — kurumsal kiosk kullanımı. Oturum başına 1 kez.
+        if (st().settings.autoMonitor && !window.__miaAutoStarted && rtspCams.length) {
+            window.__miaAutoStarted = true;
+            for (var ci = 0; ci < Math.min(rtspCams.length, 6); ci++) {
+                var enc = await window.mia.storeGet("rtsp:" + rtspCams[ci].id);
+                if (enc) addRtspTile(rtspCams[ci]).catch(errToast);
+            }
         }
     }
     function errToast(e) { window.miaCore.toast(String(e && e.message || e).slice(0, 120), "err"); }
@@ -453,9 +465,21 @@
             "<label>" + esc(t("cam_location")) + '</label><input id="cfLoc">' +
             "<label>" + esc(t("cam_rtsp_url")) + '</label><input id="cfUrl" placeholder="rtsp://">' +
             '<p class="muted small">' + esc(t("cam_rtsp_note")) + "</p>" +
+            '<button id="cfTest" class="btn">' + esc(t("cam_test")) + "</button> " +
             '<button id="cfSave" class="btn btn-primary">' + esc(t("cam_save")) + "</button> " +
-            '<button id="cfCancel" class="btn">' + esc(t("cam_cancel")) + "</button>";
+            '<button id="cfCancel" class="btn">' + esc(t("cam_cancel")) + "</button>" +
+            '<span id="cfTestOut" class="small" style="margin-left:10px"></span>';
         $("#cfCancel").addEventListener("click", function () { f.style.display = "none"; });
+        $("#cfTest").addEventListener("click", async function () {
+            var url = $("#cfUrl").value.trim(), out = $("#cfTestOut");
+            if (!/^rtsps?:\/\//.test(url)) { out.textContent = t("error_generic"); out.style.color = "var(--red)"; return; }
+            this.disabled = true;
+            out.style.color = "var(--muted)"; out.textContent = t("cam_testing");
+            var r = await window.mia.rtspProbe(url);
+            this.disabled = false;
+            out.style.color = r.ok ? "var(--green)" : "var(--red)";
+            out.textContent = r.ok ? "✓ " + t("cam_test_ok") : "✗ " + (r.error || t("cam_test_fail")).slice(0, 90);
+        });
         $("#cfSave").addEventListener("click", async function () {
             var name = $("#cfName").value.trim(), url = $("#cfUrl").value.trim();
             if (!name || !/^rtsps?:\/\//.test(url)) { window.miaCore.toast(t("error_generic"), "err"); return; }
@@ -650,6 +674,12 @@
             chk("pVest", t("set_vest"), s.profile.safety_vest) +
             chk("pMask", t("set_mask") + " (experimental)", s.profile.mask) +
             '<p class="muted small">' + esc(t("set_profile_note")) + "</p>" +
+            "<h3>" + esc(t("set_ops")) + "</h3>" +
+            chk("pAutoMon", t("set_auto_monitor"), s.autoMonitor) +
+            chk("pEmail", t("set_email_alerts"), s.emailAlerts) +
+            chk("pEvidence", t("set_evidence"), s.evidenceArchive) +
+            '<p class="muted small"><span id="evCount">—</span> ' +
+            '<button id="evOpen" class="btn btn-sm">' + esc(t("set_collect_open")) + "</button></p>" +
             "<h3>" + esc(t("set_collect")) + "</h3>" +
             chk("pCollect", t("set_collect"), s.dataCollect) +
             '<p class="muted small">' + esc(t("set_collect_note")) + "</p>" +
@@ -666,6 +696,10 @@
             $("#dsCount").textContent = t("set_collect_count") + ": " + (r.count || 0);
         });
         $("#dsOpen").addEventListener("click", function () { window.mia.datasetOpen(); });
+        window.mia.evidenceStats().then(function (r) {
+            $("#evCount").textContent = t("set_evidence_count") + ": " + (r.count || 0);
+        });
+        $("#evOpen").addEventListener("click", function () { window.mia.evidenceOpen(); });
         window.mia.version().then(function (v) {
             var info = window.miaDetect.info();
             $("#aboutBox").textContent = "MIA AI Safety Intelligence v" + v +
@@ -680,6 +714,9 @@
             s.profile.safety_vest = $("#pVest").checked;
             s.profile.mask = $("#pMask").checked;
             s.dataCollect = $("#pCollect").checked;
+            s.autoMonitor = $("#pAutoMon").checked;
+            s.emailAlerts = $("#pEmail").checked;
+            s.evidenceArchive = $("#pEvidence").checked;
             await window.miaCore.saveSettings();
             window.miaI18n.setLang(s.lang);
             window.miaApp.renderChrome();

@@ -125,6 +125,17 @@
         return keep;
     }
 
+    // ---- Küresel çıkarım kuyruğu ---------------------------------------------------
+    // KURUMSAL: 4+ kamera aynı anda izlenirken ort oturumuna EŞZAMANLI run çağrısı
+    // kararsızlık yaratır. Tüm çıkarımlar tek kuyruktan sırayla geçer — kamera
+    // sayısı artsa da motor sağlam kalır (adaptif döngü zaten hızı dengeler).
+    var runChain = Promise.resolve();
+    function runExclusive(fn) {
+        var p = runChain.then(fn, fn);
+        runChain = p.then(function () { }, function () { }); // hata kuyruğu kilitlemesin
+        return p;
+    }
+
     // ---- Cihaz üstü tespit --------------------------------------------------------
     // src: <video> | <canvas> | <img> (doğal boyutları verilmeli)
     async function detectLocal(src, sw, sh, confThr) {
@@ -132,7 +143,7 @@
         if (!session) throw new Error("onnx-unavailable: " + (engineInfo.error || ""));
         var pre = letterbox(src, sw, sh);
         var t0 = performance.now();
-        var res = await session.run({ images: pre.tensor });
+        var res = await runExclusive(function () { return session.run({ images: pre.tensor }); });
         var out = res[Object.keys(res)[0]];
         var dets = decode(out, pre.r, pre.dx, pre.dy, confThr || 0.4);
         return { detections: dets, ms: Math.round(performance.now() - t0), engine: "onnx-" + engineInfo.backend };

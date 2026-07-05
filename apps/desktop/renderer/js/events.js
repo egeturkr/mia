@@ -80,11 +80,43 @@
         if (out.length) {
             persist();
             out.forEach(function (o) {
-                if (o.risk === "high" || o.risk === "critical") window.mia.notify("MIA — " + o.title,
-                    (ctx.cameraName || "") + " · " + o.trackId + " · " + Math.round(o.conf * 100) + "%");
+                if (o.risk === "high" || o.risk === "critical") {
+                    window.mia.notify("MIA — " + o.title,
+                        (ctx.cameraName || "") + " · " + o.trackId + " · " + Math.round(o.conf * 100) + "%");
+                    maybeEmailAlert(o, ctx);
+                }
             });
         }
         return out;
+    }
+
+    // ---- Kritik ihlalde e-posta alarmı ------------------------------------------
+    // /api/notify (Resend) — alıcı SUNUCUDA oturum sahibinin adresine sabitlenir.
+    // Dedup: kamera+tip başına 5 dk (worker alarm kuralıyla aynı). Ayarlardan kapatılabilir.
+    var EMAIL_DEDUP_MS = 5 * 60 * 1000;
+    var lastEmail = {};
+    function maybeEmailAlert(o, ctx) {
+        try {
+            var s = window.miaCore.state.settings;
+            if (!s.emailAlerts) return;
+            var key = ctx.cameraId + "|" + o.type;
+            var now = Date.now();
+            if (lastEmail[key] != null && now - lastEmail[key] < EMAIL_DEDUP_MS) return;
+            lastEmail[key] = now;
+            window.miaCore.authHeaders().then(function (auth) {
+                if (!auth) return;
+                window.mia.apiFetch({
+                    pathName: "/api/notify", method: "POST", headers: auth,
+                    body: {
+                        kind: "camera_alert", lang: s.lang,
+                        camera_name: ctx.cameraName || "Kamera",
+                        event_title: o.title, event_type: o.type,
+                        track_id: o.trackId,
+                        confidence: Math.round(o.conf * 100)
+                    }
+                });
+            });
+        } catch (e) { /* alarm hatası tespiti durdurmasın */ }
     }
 
     // ---- Kuyruk boşaltma -----------------------------------------------------------

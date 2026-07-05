@@ -156,7 +156,8 @@
         // Olay kuyruğu boşaltıcıyı başlat + AI modelini arkada ısıt
         window.miaEvents.startFlusher(window.miaCore.authHeaders);
         window.miaDetect.init();
-        nav("dashboard");
+        // Otomatik izleme açıksa doğrudan canlı izlemeye gir (kiosk/saha modu)
+        nav(st.settings.autoMonitor ? "live" : "dashboard");
     }
 
     async function boot() {
