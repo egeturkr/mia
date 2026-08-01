@@ -90,6 +90,13 @@
 
         // Motor durumu rozeti (gerçek durum — miaDetect.init sonucu)
         window.miaDetect.init().then(function (info) {
+            // MODEL YETENEĞİNİ KKD kaydına bağla: kilitler modelin GERÇEK sınıflarına
+            // göre belirlenir. v2 modeli konunca gözlük/eldiven kendiliğinden açılır.
+            if (info.classes) {
+                window.miaPpe.bind(info.classes);
+                window.miaCore.state.settings.profile =
+                    window.miaPpe.sanitize(window.miaCore.state.settings.profile);
+            }
             var el = document.getElementById("tbEngine");
             if (!el) return;
             if (info.ready) {

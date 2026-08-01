@@ -1,4 +1,24 @@
-# MIA Masaüstü Uygulaması (v0.2.0 — yerli müşteri uygulaması)
+# MIA Masaüstü Uygulaması (v0.6.0 — yerli müşteri uygulaması)
+
+## Model yetenek tespiti (v0.6.0 — kritik mimari)
+Uygulama, hangi KKD ekipmanını tarayabileceğini **yüklü modelin gerçek sınıf
+listesinden** öğrenir (`models/model.json`). Kural: bir ekipman ancak modelde
+HEM uyumlu HEM ihlal sınıfı varsa taranabilir olur.
+
+- v2 modelini `models/` içine koy → **gözlük ve eldiven kilidi kendiliğinden açılır**
+- Modeli geri al → kilitler kendiliğinden kapanır
+- Kod düzenlemesi gerekmez; olmayan yeteneği vaat etme riski **yapısal olarak** yok
+
+Yeni model üretimi: `ml/MIA_Model_Training.ipynb` (Colab, "Tümünü çalıştır").
+14 sınıflı birleşik veri seti (44k görüntü) gözlük + eldiven + düşme + merdiven getirir.
+
+## Doğruluk korumaları (yanlış alarm azaltma)
+- **Uzak/küçük kişi filtresi:** kare yüksekliğinin %14'ünden küçük kişide KKD kararı
+  verilmez ("uzak — KKD değerlendirilmedi"); takip sürer, sahte ihlal üretilmez
+- **Asimetrik eşik:** ihlal kararı (%55) uyumlu karardan (%35) daha sıkı; küçük
+  nesnelerde (gözlük/eldiven) +%10 ek eşik
+- **Güven ağırlıklı oylama:** 6 karede 4 ihlal + güven toplamı ≥ 2.2
+- **Kutu yumuşatma (EMA):** titreşen tespit kutuları bandı bozmaz
 
 Faz 18: ince web kabuğu → **tam yerli kurumsal uygulama**. Büyük inşaat
 müşterileri için: kamera bağla, KKD tespiti cihazda çalışsın, olaylar buluta

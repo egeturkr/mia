@@ -40,23 +40,25 @@
                     en: "Class exists in the model; false-positive rate on site not yet measured." }
         },
         // --- Aşağıdakiler MEVCUT MODELDE YOK → kilitli. ml/ eğitim hattı bunları açar.
+        // Aşağıdaki iki sınıf v2 modelinde (14 sınıflı birleşik veri seti) VAR.
+        // Model yüklendiğinde sınıfları içeriyorsa KİLİT OTOMATİK AÇILIR (bind()).
         {
             key: "safety_glasses", status: "requires_training",
             label: { tr: "Koruyucu Gözlük", en: "Safety glasses" },
-            okClass: null, violationClass: null,
+            okClass: "Goggles", violationClass: "NO-Goggles",
             eventType: "ppe_violation", risk: "medium",
-            band: [0.00, 0.30],
-            note: { tr: "Model eğitimi gerekir (ml/ hattı). Küçük nesne — yüz açısı kritik.",
-                    en: "Requires model training. Small object — face angle is critical." }
+            band: [0.00, 0.30], confBoost: 0.10,   // küçük nesne → ihlal için daha yüksek eşik
+            note: { tr: "v2 modeli gerekir (ml/ hattı). Küçük nesne — yüz açısı kritik.",
+                    en: "Requires the v2 model. Small object — face angle is critical." }
         },
         {
             key: "gloves", status: "requires_training",
             label: { tr: "Eldiven", en: "Gloves" },
-            okClass: null, violationClass: null,
+            okClass: "Gloves", violationClass: "NO-Gloves",
             eventType: "ppe_violation", risk: "medium",
-            band: [0.30, 0.85],
-            note: { tr: "Model eğitimi gerekir (ml/ hattı). El görünürlüğü değişken.",
-                    en: "Requires model training. Hand visibility varies." }
+            band: [0.30, 0.90], confBoost: 0.10,
+            note: { tr: "v2 modeli gerekir (ml/ hattı). El görünürlüğü değişken.",
+                    en: "Requires the v2 model. Hand visibility varies." }
         },
         {
             key: "safety_harness", status: "requires_training",
@@ -90,19 +92,46 @@
     var byKey = {};
     REGISTRY.forEach(function (r) { byKey[r.key] = r; });
 
+    // ---- MODEL YETENEK BAĞLAMA (kilitlerin GERÇEK kaynağı) -----------------------
+    // Uygulama yüklü modelin sınıf listesini öğrenince çağrılır (detect.js → app.js).
+    // Kural: bir ekipman ancak modelde HEM ok HEM violation sınıfı varsa taranabilir.
+    // → v2 modeli (Goggles/NO-Goggles, Gloves/NO-Gloves) konunca kilit KENDİLİĞİNDEN açılır.
+    // → Model geri alınırsa kilit KENDİLİĞİNDEN kapanır. Kod düzenlemesi gerekmez,
+    //   olmayan yeteneği vaat etme riski YAPISAL olarak ortadan kalkar.
+    var modelClasses = null;   // null = model henüz bilinmiyor → bildirilen status geçerli
+    function bind(classes) {
+        modelClasses = Array.isArray(classes) ? classes.slice() : null;
+        REGISTRY.forEach(function (r) {
+            if (!modelClasses) { r.effective = r.status; return; }
+            var has = r.okClass && r.violationClass &&
+                      modelClasses.indexOf(r.okClass) !== -1 &&
+                      modelClasses.indexOf(r.violationClass) !== -1;
+            if (!has) { r.effective = "requires_training"; return; }
+            // Model sınıfı var: bildirilen statüden AŞAĞI düşmez, yukarı da çıkmaz.
+            // requires_training + model var → 'experimental' (saha doğrulaması ayrı iş).
+            r.effective = (r.status === "requires_training") ? "experimental" : r.status;
+        });
+        return REGISTRY;
+    }
+    function statusOf(key) {
+        var r = byKey[key];
+        if (!r) return "requires_training";
+        return r.effective || r.status;
+    }
+
     // Taranabilir = modelde gerçekten sınıfı olanlar (supported + experimental).
     function scannable() {
-        return REGISTRY.filter(function (r) { return r.status !== "requires_training"; });
+        return REGISTRY.filter(function (r) { return statusOf(r.key) !== "requires_training"; });
     }
     function isLocked(key) {
-        var r = byKey[key];
-        return !r || r.status === "requires_training";
+        return statusOf(key) === "requires_training";
     }
     // Vision Engine'in kullandığı geometri haritası — kayıttan ÜRETİLİR.
     function geometry() {
         var g = {};
         scannable().forEach(function (r) {
-            g[r.key] = { okCls: r.okClass, noCls: r.violationClass, band: r.band };
+            g[r.key] = { okCls: r.okClass, noCls: r.violationClass, band: r.band,
+                         confBoost: r.confBoost || 0 };
         });
         return g;
     }
@@ -113,7 +142,7 @@
     // Varsayılan profil: supported AÇIK, experimental KAPALI, kilitli KAPALI.
     function defaultProfile() {
         var p = {};
-        REGISTRY.forEach(function (r) { p[r.key] = r.status === "supported"; });
+        REGISTRY.forEach(function (r) { p[r.key] = statusOf(r.key) === "supported"; });
         return p;
     }
     // Profil temizliği: kilitli ekipman ASLA açık kalamaz (dürüstlük korumasi).
@@ -128,7 +157,8 @@
 
     var api = {
         REGISTRY: REGISTRY, byKey: byKey, scannable: scannable, isLocked: isLocked,
-        geometry: geometry, label: label, defaultProfile: defaultProfile, sanitize: sanitize
+        geometry: geometry, label: label, defaultProfile: defaultProfile, sanitize: sanitize,
+        bind: bind, statusOf: statusOf, modelClasses: function () { return modelClasses; }
     };
     if (typeof window !== "undefined") window.miaPpe = api;
     if (typeof module !== "undefined" && module.exports) module.exports = api; // Node testleri

@@ -13,6 +13,28 @@
                      ppe_violation: "type_ppe_violation", camera_offline: "type_camera_offline" };
     function riskBadge(r) { return '<span class="badge risk-' + esc(r) + '">' + esc(t(RISK_TR[r] || r)) + "</span>"; }
     function typeLabel(ty) { return t(TYPE_KEY[ty] || ty); }
+
+    // EKİPMAN FARKINDA ETİKET (kusursuz raporlamanın anahtarı).
+    // Yeni sınıflar (gözlük, eldiven) 'ppe_violation' tipiyle kaydedilir — tip tek
+    // başına hangi ekipmanın eksik olduğunu söylemez. missing_equipment alanı söyler.
+    // Bu fonksiyon her yerde (liste, filtre, panel, PDF, CSV) TEK kaynak olarak kullanılır.
+    function eventLabel(ev) {
+        var lang = window.miaI18n.getLang();
+        var me = ev && ev.missing_equipment;
+        if (Array.isArray(me) && me.length) {
+            return me.map(function (k) { return window.miaPpe.label(k, lang); }).join(" + ");
+        }
+        return typeLabel(ev && ev.event_type);
+    }
+    // Olayı ekipman anahtarlarına indirger (kırılım/raporlama için).
+    // Eski kayıtlarda missing_equipment yoksa event_type'tan türetilir — veri kaybı yok.
+    var TYPE_TO_EQUIP = { no_helmet: "helmet", no_vest: "safety_vest", no_mask: "mask" };
+    function eventEquip(ev) {
+        var me = ev && ev.missing_equipment;
+        if (Array.isArray(me) && me.length) return me;
+        var k = TYPE_TO_EQUIP[ev && ev.event_type];
+        return k ? [k] : [];
+    }
     function fmtTime(iso) { return iso ? new Date(iso).toLocaleString(window.miaI18n.getLang() === "tr" ? "tr-TR" : "en-GB") : "—"; }
 
     // ================= ORTAK: boş durum ==========================================
@@ -114,7 +136,7 @@
         var since7 = new Date(Date.now() - 7 * 864e5).toISOString();
         var since1 = new Date(); since1.setHours(0, 0, 0, 0);
         var ev = await sb().from("camera_events")
-            .select("id, event_type, risk_level, created_at, confidence, status, cameras(name)")
+            .select("id, event_type, risk_level, created_at, confidence, status, missing_equipment, person_track_id, cameras(name)")
             .eq("org_id", org.id).gte("created_at", since7)
             .order("created_at", { ascending: false }).limit(500);
         var rows = ev.data || [];
@@ -157,7 +179,8 @@
         $("#dashCritical").innerHTML = critical.length
             ? critical.map(function (r) {
                 return '<div class="ev-row">' + riskBadge(r.risk_level) +
-                    '<div style="min-width:0"><div class="ev-title">' + esc(typeLabel(r.event_type)) + "</div>" +
+                    '<div style="min-width:0"><div class="ev-title">' + esc(eventLabel(r)) +
+                    (r.person_track_id ? ' <span class="muted small">· ' + esc(r.person_track_id) + "</span>" : "") + "</div>" +
                     '<div class="muted small">' + esc(r.cameras ? r.cameras.name : "—") + " · " + esc(fmtTime(r.created_at)) +
                     (r.confidence != null ? " · %" + Math.round(r.confidence * 100) : "") + "</div></div></div>";
             }).join("")
@@ -186,8 +209,14 @@
             : emptyState("▁", t("dash_empty"), t("dash_no_critical_d"));
 
         // --- Dağılım (donut — gerçek byType) -------------------------------------------------
-        var byType = {};
-        rows.forEach(function (r) { byType[r.event_type] = (byType[r.event_type] || 0) + 1; });
+        // Ekipman kırılımı (event_type değil) — gözlük/eldiven açıldığında ayrışır.
+        var byType = {}, lang0 = window.miaI18n.getLang();
+        rows.forEach(function (r) {
+            eventEquip(r).forEach(function (k) {
+                var lbl = window.miaPpe.label(k, lang0);
+                byType[lbl] = (byType[lbl] || 0) + 1;
+            });
+        });
         var typeKeys = Object.keys(byType).sort(function (a, b) { return byType[b] - byType[a]; });
         if (typeKeys.length) {
             var palette = ["#E5484D", "#D4AF37", "#E8963C", "#46C476", "#8A8A8A"];
@@ -201,7 +230,7 @@
                 '<div class="donut-center"><b>' + total + "</b><span>" + esc(t("rep_total_events")) + "</span></div></div>" +
                 '<div class="legend">' + typeKeys.map(function (k, i) {
                     return '<div class="lg"><span class="sw" style="background:' + palette[i % palette.length] + '"></span>' +
-                        esc(typeLabel(k)) + " <b>" + byType[k] + "</b> (%" + Math.round(byType[k] / total * 100) + ")</div>";
+                        esc(k) + " <b>" + byType[k] + "</b> (%" + Math.round(byType[k] / total * 100) + ")</div>";
                 }).join("") + "</div></div>";
         } else {
             $("#dashDist").innerHTML = emptyState("◔", t("dash_empty"), t("dash_no_critical_d"));
@@ -281,9 +310,13 @@
             '<span class="muted small">' + esc(t("live_engine")) + ": " + esc(st().settings.engine) +
             " · " + esc(t("live_conf")) + ": " + Math.round(st().settings.confidence * 100) + "%" +
             " · " + esc(t("live_interval")) + ": " + esc(String(st().settings.intervalSec)) + "s</span></div>" +
+            '<div class="grid ops"><div>' +
             '<div id="liveGrid" class="live-grid"></div>' +
             '<div id="liveEmpty" class="card">' +
-            emptyState("◉", t("dash_live_empty_t"), t("live_no_cams")) + "</div>";
+            emptyState("◉", t("dash_live_empty_t"), t("live_no_cams")) + "</div></div>" +
+            '<div class="card"><h3>' + esc(t("live_feed")) + ' <span class="h3-gold">●</span></h3>' +
+            '<div id="liveFeed"></div></div></div>';
+        renderLiveFeed();
 
         window.miaDetect.init().then(function (info) {
             var el = $("#engineState");
@@ -396,6 +429,13 @@
             var persons = 0, vios = 0;
             var tile = window.miaSources.get(els._tileId);
             var profile = (tile && tile.profile) || st().settings.profile;
+            // Doğrulanmış ihlalleri canlı akışa yaz (eş zamanlı görünürlük)
+            if (produced && produced.length) {
+                pushLiveFeed(produced.map(function (p) {
+                    return { ts: Date.now(), camera: (tile && tile.name) || "—",
+                             label: p.title, trackId: p.trackId, risk: p.risk };
+                }));
+            }
             (engineOut ? engineOut.tracks : []).forEach(function (tr) {
                 if (!tr.fresh) return;
                 persons++;
@@ -411,6 +451,27 @@
             updateLiveSummary();
         };
     }
+    // ---- Canlı olay akışı (oturum içi) -------------------------------------------
+    // Operatör sayfa değiştirmeden doğrulanmış ihlalleri anlık görür. Bellekte tutulur;
+    // kalıcı kayıt zaten camera_events'e gider (Olaylar sekmesi).
+    var liveFeed = [];   // {ts, camera, label, trackId, risk}
+    function pushLiveFeed(items) {
+        items.forEach(function (i) { liveFeed.unshift(i); });
+        if (liveFeed.length > 50) liveFeed.length = 50;
+        renderLiveFeed();
+    }
+    function renderLiveFeed() {
+        var el = $("#liveFeed");
+        if (!el) return;
+        el.innerHTML = liveFeed.length ? liveFeed.slice(0, 12).map(function (f) {
+            return '<div class="ev-row">' + riskBadge(f.risk) +
+                '<div style="min-width:0"><div class="ev-title">' + esc(f.label) + "</div>" +
+                '<div class="muted small">' + esc(f.camera) + " · " + esc(f.trackId) + " · " +
+                esc(new Date(f.ts).toLocaleTimeString(window.miaI18n.getLang() === "tr" ? "tr-TR" : "en-GB")) +
+                "</div></div></div>";
+        }).join("") : '<p class="muted small">' + esc(t("live_feed_empty")) + "</p>";
+    }
+
     var liveSumTimer = null;
     function updateLiveSummary() {
         var el = $("#liveSummary");
@@ -563,12 +624,14 @@
     async function renderEvents(root) {
         root.innerHTML = '<h1>' + esc(t("ev_title")) + '</h1>' +
             '<div class="toolbar">' +
-            sel("fType", [["", t("ev_all")], ["no_helmet", typeLabel("no_helmet")], ["no_vest", typeLabel("no_vest")], ["no_mask", typeLabel("no_mask")]]) +
+            sel("fEquip", [["", t("ev_all")]].concat(window.miaPpe.REGISTRY.map(function (r) {
+                return [r.key, window.miaPpe.label(r.key, window.miaI18n.getLang())];
+            }))) +
             sel("fRisk", [["", t("ev_all")], ["critical", t("risk_critical")], ["high", t("risk_high")], ["medium", t("risk_medium")], ["low", t("risk_low")]]) +
             sel("fStatus", [["", t("ev_all")], ["open", t("ev_open")], ["reviewed", t("ev_reviewed")], ["dismissed", t("ev_dismissed")]]) +
             '<span class="spacer"></span><button id="evCsv" class="btn">' + esc(t("ev_export")) + "</button></div>" +
             '<div id="evList"></div>';
-        ["fType", "fRisk", "fStatus"].forEach(function (id) { $("#" + id).addEventListener("change", evList); });
+        ["fEquip", "fRisk", "fStatus"].forEach(function (id) { $("#" + id).addEventListener("change", evList); });
         $("#evCsv").addEventListener("click", evCsv);
         await evList();
     }
@@ -582,20 +645,23 @@
         var org = st().org, box = $("#evList");
         if (!org || !box) return;
         var q = sb().from("camera_events")
-            .select("id,event_type,risk_level,confidence,created_at,status,model_name,cameras(name)")
+            .select("id,event_type,risk_level,confidence,created_at,status,model_name,missing_equipment,person_track_id,cameras(name)")
             .eq("org_id", org.id).order("created_at", { ascending: false }).limit(300);
-        var ft = $("#fType").value, fr = $("#fRisk").value, fs = $("#fStatus").value;
-        if (ft) q = q.eq("event_type", ft);
+        var fe = $("#fEquip").value, fr = $("#fRisk").value, fs = $("#fStatus").value;
         if (fr) q = q.eq("risk_level", fr);
         if (fs) q = q.eq("status", fs);
         var r = await q;
         evCache = r.data || [];
+        // Ekipman filtresi istemcide: missing_equipment jsonb dizisi (eski kayıtlarda
+        // event_type'tan türetilir) — sunucu sorgusu değişmediği için geriye uyumlu.
+        if (fe) evCache = evCache.filter(function (e) { return eventEquip(e).indexOf(fe) !== -1; });
         var canReview = ["owner", "admin", "safety_manager"].indexOf(st().role) !== -1;
         box.innerHTML = evCache.length ? '<div class="card"><table class="tbl"><thead><tr><th>' +
-            [t("ev_time"), t("ev_type"), t("ev_risk"), t("ev_camera"), t("ev_conf"), t("ev_status"), ""].map(esc).join("</th><th>") +
+            [t("ev_time"), t("ev_type"), t("ev_risk"), t("ev_camera"), t("ev_person"), t("ev_conf"), t("ev_status"), ""].map(esc).join("</th><th>") +
             "</th></tr></thead><tbody>" + evCache.map(function (e) {
-                return "<tr><td class=\"small\">" + esc(fmtTime(e.created_at)) + "</td><td><b>" + esc(typeLabel(e.event_type)) +
+                return "<tr><td class=\"small\">" + esc(fmtTime(e.created_at)) + "</td><td><b>" + esc(eventLabel(e)) +
                     "</b></td><td>" + riskBadge(e.risk_level) + "</td><td>" + esc(e.cameras ? e.cameras.name : "—") +
+                    "</td><td>" + esc(e.person_track_id || "—") +
                     "</td><td>" + (e.confidence != null ? Math.round(e.confidence * 100) + "%" : "—") +
                     "</td><td>" + esc(t("ev_" + e.status) || e.status) + "</td><td>" +
                     (canReview && e.status === "open"
@@ -614,9 +680,10 @@
         evList();
     }
     async function evCsv() {
-        var head = ["time", "event_type", "risk", "camera", "confidence", "status", "model"];
+        var head = ["time", "equipment", "event_type", "risk", "camera", "person", "confidence", "status", "model"];
         var lines = [head.join(";")].concat(evCache.map(function (e) {
-            return [e.created_at, e.event_type, e.risk_level, (e.cameras ? e.cameras.name : ""),
+            return [e.created_at, eventEquip(e).join("|"), e.event_type, e.risk_level,
+                    (e.cameras ? e.cameras.name : ""), e.person_track_id || "",
                     e.confidence != null ? e.confidence : "", e.status, e.model_name || ""].map(function (v) {
                 return '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
             }).join(";");
@@ -641,19 +708,25 @@
         var days = parseInt($("#repDays").value, 10) || 7;
         var since = new Date(Date.now() - days * 864e5).toISOString();
         var r = await sb().from("camera_events")
-            .select("event_type,risk_level,created_at,cameras(name)")
+            .select("event_type,risk_level,created_at,missing_equipment,person_track_id,cameras(name)")
             .eq("org_id", st().org.id).gte("created_at", since).limit(5000);
         var rows = r.data || [];
-        var byType = {}, byCam = {}, byDay = {};
+        var byType = {}, byCam = {}, byDay = {}, byPerson = {};
+        var lang = window.miaI18n.getLang();
         rows.forEach(function (e) {
-            byType[e.event_type] = (byType[e.event_type] || 0) + 1;
+            // EKİPMAN kırılımı (event_type değil) — yeni sınıflar kendiliğinden ayrışır
+            eventEquip(e).forEach(function (k) {
+                var lbl = window.miaPpe.label(k, lang);
+                byType[lbl] = (byType[lbl] || 0) + 1;
+            });
             var cn = e.cameras ? e.cameras.name : "—";
             byCam[cn] = (byCam[cn] || 0) + 1;
-            var d = e.created_at.slice(0, 10);
-            byDay[d] = (byDay[d] || 0) + 1;
+            byDay[e.created_at.slice(0, 10)] = (byDay[e.created_at.slice(0, 10)] || 0) + 1;
+            if (e.person_track_id) byPerson[e.person_track_id] = (byPerson[e.person_track_id] || 0) + 1;
         });
         var high = rows.filter(function (e) { return e.risk_level === "high" || e.risk_level === "critical"; }).length;
-        return { days: days, total: rows.length, high: high, byType: byType, byCam: byCam, byDay: byDay };
+        return { days: days, total: rows.length, high: high, byType: byType,
+                 byCam: byCam, byDay: byDay, byPerson: byPerson, persons: Object.keys(byPerson).length };
     }
     async function repBody() {
         var a = await repAggregate();
@@ -661,7 +734,8 @@
             '<div class="grid stats">' +
             statCard(a.total, t("rep_total_events"), a.total ? "" : "good") +
             statCard(a.high, t("rep_high"), a.high ? "bad" : "good") +
-            statCard(Math.max(0, 100 - a.high * 3 - (a.total - a.high)) + "%", t("dash_compliance"), "") + "</div>" +
+            statCard(Math.max(0, 100 - a.high * 3 - (a.total - a.high)) + "%", t("dash_compliance"), "") +
+            statCard(a.persons, t("rep_persons"), "") + "</div>" +
             '<div class="grid two">' +
             '<div class="card"><h3>' + esc(t("dash_by_type")) + "</h3>" + barTable(a.byType) + "</div>" +
             '<div class="card"><h3>' + esc(t("rep_by_cam")) + "</h3>" + barTable(a.byCam) + "</div></div>" +
@@ -673,8 +747,7 @@
         keys.sort(sortKey ? undefined : function (x, y) { return map[y] - map[x]; });
         var maxN = Math.max.apply(null, keys.map(function (k) { return map[k]; }));
         return keys.map(function (k) {
-            var label = TYPE_KEY[k] ? typeLabel(k) : k;
-            return '<div class="bar-row"><span class="bar-label">' + esc(label) + "</span>" +
+            return '<div class="bar-row"><span class="bar-label">' + esc(k) + "</span>" +
                 '<div class="bar"><div class="bar-fill" style="width:' + (map[k] / maxN * 100) + '%"></div></div>' +
                 '<span class="bar-n">' + map[k] + "</span></div>";
         }).join("");
@@ -685,8 +758,7 @@
         var org = st().org;
         var rowsHtml = function (map) {
             return Object.keys(map).sort(function (x, y) { return map[y] - map[x]; }).map(function (k) {
-                var label = TYPE_KEY[k] ? typeLabel(k) : k;
-                return "<tr><td>" + esc(label) + "</td><td style='text-align:right'>" + map[k] + "</td></tr>";
+                return "<tr><td>" + esc(k) + "</td><td style='text-align:right'>" + map[k] + "</td></tr>";
             }).join("");
         };
         var html = "<!doctype html><html><head><meta charset='utf-8'><style>" +
@@ -702,10 +774,16 @@
             " · MIA AI Safety Intelligence v0.2.0</p>" +
             "<div><span class='kpi'><b>" + a.total + "</b>" + esc(t("rep_total_events")) + "</span>" +
             "<span class='kpi'><b>" + a.high + "</b>" + esc(t("rep_high")) + "</span>" +
-            "<span class='kpi'><b>" + Math.max(0, 100 - a.high * 3 - (a.total - a.high)) + "%</b>" + esc(t("dash_compliance")) + "</span></div>" +
+            "<span class='kpi'><b>" + Math.max(0, 100 - a.high * 3 - (a.total - a.high)) + "%</b>" + esc(t("dash_compliance")) + "</span>" +
+            "<span class='kpi'><b>" + a.persons + "</b>" + esc(t("rep_persons")) + "</span></div>" +
             "<p class='meta'>" + esc(t("rep_compliance_note")) + "</p>" +
+            "<p class='meta'>" + esc(t("rep_scanned")) + ": " +
+            esc(window.miaPpe.scannable().filter(function (r2) { return st().settings.profile[r2.key]; })
+                .map(function (r2) { return window.miaPpe.label(r2.key, lang); }).join(", ") || "—") + "</p>" +
             "<h2>" + esc(t("dash_by_type")) + "</h2><table>" + (rowsHtml(a.byType) || "") + "</table>" +
             "<h2>" + esc(t("rep_by_cam")) + "</h2><table>" + (rowsHtml(a.byCam) || "") + "</table>" +
+            "<h2>" + esc(t("rep_by_person")) + "</h2><table>" + (rowsHtml(a.byPerson) ||
+                "<tr><td colspan=2>" + esc(t("dash_empty")) + "</td></tr>") + "</table>" +
             "<h2>" + esc(t("rep_by_day")) + "</h2><table>" +
             Object.keys(a.byDay).sort().map(function (d) {
                 return "<tr><td>" + esc(d) + "</td><td style='text-align:right'>" + a.byDay[d] + "</td></tr>";

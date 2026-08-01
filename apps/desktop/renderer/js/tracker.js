@@ -21,7 +21,13 @@
         voteWindow: 6,         // oylama penceresi (kare)
         voteConfirm: 4,        // ihlal onayı için pencerede asgari ihlal karesi
         voteMinSamples: 3,     // karar için asgari örnek
-        reconfirmOkFrames: 3   // ihlal sonrası bu kadar 'ok' karesi gelirse durum sıfırlanır
+        reconfirmOkFrames: 3,  // ihlal sonrası bu kadar 'ok' karesi gelirse durum sıfırlanır
+        // --- Doğruluk korumaları (yanlış alarm azaltma) ---
+        minPersonHeightRatio: 0.14,  // kare yüksekliğinin <%14'ü olan kişi: takip EVET, KKD kararı HAYIR
+        violationConfMin: 0.55,      // ihlal (NO-*) gözlemi için asgari güven — 'ok'tan DAHA SIKI
+        okConfMin: 0.35,             // uyumlu gözlem için asgari güven
+        voteConfSum: 2.2,            // penceredeki ihlal güven TOPLAMI bu eşiği geçmeli
+        boxSmooth: 0.5               // kutu yumuşatma (EMA) — titremeyi azaltır
     };
 
     // Ekipman eşleme geometrisi: KKD kutusunun MERKEZİ, kişi kutusunun hangi
@@ -64,8 +70,9 @@
     }
 
     // dets: [{cls, conf, x, y, w, h}] — kaynak koordinatlarında. ts: ms.
+    // frameH: kare yüksekliği (uzak/küçük kişi filtresi için; verilmezse filtre kapalı)
     // Dönüş: { tracks: [...görsel katman için...], confirmed: [{trackId, equip, conf}] }
-    Tracker.prototype.update = function (dets, ts) {
+    Tracker.prototype.update = function (dets, ts, frameH) {
         var self = this, cfg = this.cfg;
         var persons = dets.filter(function (d) { return d.cls === "Person"; });
         var equipment = dets.filter(function (d) { return d.cls !== "Person"; });
@@ -84,7 +91,15 @@
             if (usedT[pr.ti] || usedP[pr.pi]) return;
             usedT[pr.ti] = true; usedP[pr.pi] = true;
             var tr = self.tracks[pr.ti], p = persons[pr.pi];
-            tr.box = p; tr.lastTs = ts; tr.hits++; tr.conf = p.conf;
+            // Kutu yumuşatma (EMA): tespit kutusu karelerde titrer; overlay ve
+            // ekipman eşleme bandı bundan etkilenmesin diye yumuşatılır.
+            var a = cfg.boxSmooth;
+            tr.box = {
+                x: tr.box.x * (1 - a) + p.x * a, y: tr.box.y * (1 - a) + p.y * a,
+                w: tr.box.w * (1 - a) + p.w * a, h: tr.box.h * (1 - a) + p.h * a,
+                cls: "Person", conf: p.conf
+            };
+            tr.lastTs = ts; tr.hits++; tr.conf = p.conf;
         });
         persons.forEach(function (p, pi) {
             if (usedP[pi]) return;
@@ -100,13 +115,30 @@
         var confirmed = [];
         this.tracks.forEach(function (tr) {
             if (tr.lastTs !== ts) return; // bu karede görülmeyen kişiye gözlem yazılmaz
+            // UZAK/KÜÇÜK KİŞİ KORUMASI: kare yüksekliğinin çok altında kalan kişide
+            // KKD kararı güvenilir değildir (baret 5 piksel olur). Takip devam eder,
+            // ama ekipman durumu 'unknown' kalır — sahte ihlal üretilmez.
+            tr.tooSmall = !!(frameH && tr.box.h < frameH * cfg.minPersonHeightRatio);
+            if (tr.tooSmall) {
+                EQUIP_KEYS.forEach(function (key) {
+                    var s = tr.equip[key];
+                    s.history.length = 0; s.okStreak = 0;
+                    if (s.state !== "violation") s.state = "unknown";
+                });
+                return;
+            }
             EQUIP_KEYS.forEach(function (key) {
                 var g = GEOM[key];
                 var obs = null, obsConf = 0; // 'ok' | 'violation' | null(kararsız)
                 equipment.forEach(function (e) {
                     if (e.cls !== g.okCls && e.cls !== g.noCls) return;
                     if (!centerInBand(e, tr.box, g.band)) return;
-                    if (e.conf > obsConf) { obsConf = e.conf; obs = (e.cls === g.noCls) ? "violation" : "ok"; }
+                    // Sınıfa özel asgari güven: İHLAL kararı 'uygun' kararından DAHA SIKI.
+                    // Küçük nesnelerde (gözlük/eldiven) confBoost ile eşik yükseltilir.
+                    var isVio = (e.cls === g.noCls);
+                    var need = (isVio ? cfg.violationConfMin : cfg.okConfMin) + (g.confBoost || 0);
+                    if (e.conf < need) return;
+                    if (e.conf > obsConf) { obsConf = e.conf; obs = isVio ? "violation" : "ok"; }
                 });
                 var st = tr.equip[key];
                 st.history.push({ obs: obs, conf: obsConf });
@@ -124,8 +156,12 @@
                 // --- 3) Oylama ---------------------------------------------------
                 var votes = st.history.filter(function (h) { return h.obs; });
                 var vio = votes.filter(function (h) { return h.obs === "violation"; });
+                // GÜVEN AĞIRLIKLI OYLAMA: yalnız kare SAYISI değil, ihlal gözlemlerinin
+                // güven TOPLAMI da eşiği geçmeli. 4 zayıf gözlem (0.56×4=2.24) ile
+                // 4 güçlü gözlem (0.9×4=3.6) aynı sayılmaz; sınırdaki durumlar elenir.
+                var vioConfSum = vio.reduce(function (s2, h) { return s2 + h.conf; }, 0);
                 if (votes.length >= cfg.voteMinSamples && vio.length >= cfg.voteConfirm &&
-                    st.okStreak < cfg.reconfirmOkFrames) {
+                    vioConfSum >= cfg.voteConfSum && st.okStreak < cfg.reconfirmOkFrames) {
                     st.state = "violation";
                     if (!st.firedViolation) {
                         st.firedViolation = true;
@@ -144,7 +180,8 @@
             tracks: this.tracks.map(function (tr) {
                 var equip = {};
                 EQUIP_KEYS.forEach(function (k) { equip[k] = tr.equip[k].state; });
-                return { id: tr.id, box: tr.box, conf: tr.conf, hits: tr.hits, fresh: tr.lastTs === ts, equip: equip };
+                return { id: tr.id, box: tr.box, conf: tr.conf, hits: tr.hits,
+                         fresh: tr.lastTs === ts, tooSmall: !!tr.tooSmall, equip: equip };
             }),
             confirmed: confirmed
         };

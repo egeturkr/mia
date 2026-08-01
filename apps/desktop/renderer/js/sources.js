@@ -98,6 +98,14 @@
             ctx.fillStyle = "#050505";
             ctx.fillText(idLabel, x + 5, Math.max(13, y - 5));
 
+            // Uzak/küçük kişi: KKD kararı verilmez — bunu SAKLAMA, açıkça yaz.
+            if (tr.tooSmall) {
+                ctx.font = "600 10px Inter, sans-serif";
+                ctx.fillStyle = COLORS.context;
+                ctx.fillText(lang === "en" ? "too far — PPE not assessed" : "uzak — KKD değerlendirilmedi",
+                    x + 2, Math.min(cv.height - 3, y + h + 12));
+                return;
+            }
             // Ekipman durum çipleri (profilde açık olanlar).
             // Kutu alt kenara dayandıysa çipler kutunun İÇİNE (alt iç kenar) çizilir.
             ctx.font = "600 10px Inter, sans-serif";
@@ -190,7 +198,7 @@
                 mode: st.settings.engine, confidence: st.settings.confidence, auth: auth
             });
             // MIA Vision Engine: takip + eşleme + oylama
-            var engineOut = tile.tracker.update(res.detections, Date.now());
+            var engineOut = tile.tracker.update(res.detections, Date.now(), frame.h);
             tile.lastDetections = res.detections;
             drawOverlay(tile, engineOut, res.detections, frame.w, frame.h, res);
 

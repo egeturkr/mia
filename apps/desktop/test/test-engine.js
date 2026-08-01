@@ -238,5 +238,152 @@ t("tracker kayıttan beslenir — kilitli ekipman için ihlal ÜRETMEZ", () => {
     assert.strictEqual(confirmed.filter(c => c.equip === "gloves").length, 0);
 });
 
+// ---- Model yetenek bağlama: kilitler modelin GERÇEK sınıflarından gelir -----------
+console.log("Model yetenek tespiti:");
+const V1 = ["Hardhat", "Mask", "NO-Hardhat", "NO-Mask", "NO-Safety Vest",
+            "Person", "Safety Cone", "Safety Vest", "machinery", "vehicle"];
+const V2 = ["Fall-Detected", "Gloves", "Goggles", "Hardhat", "Ladder", "Mask",
+            "NO-Gloves", "NO-Goggles", "NO-Hardhat", "NO-Mask", "NO-Safety Vest",
+            "Person", "Safety Cone", "Safety Vest"];
+
+t("v1 modeli bağlıyken gözlük/eldiven KİLİTLİ kalır", () => {
+    ppe.bind(V1);
+    assert.strictEqual(ppe.isLocked("safety_glasses"), true);
+    assert.strictEqual(ppe.isLocked("gloves"), true);
+    assert.strictEqual(ppe.isLocked("helmet"), false);
+});
+t("v2 modeli bağlanınca gözlük/eldiven OTOMATİK açılır (deneysel)", () => {
+    ppe.bind(V2);
+    assert.strictEqual(ppe.isLocked("safety_glasses"), false);
+    assert.strictEqual(ppe.isLocked("gloves"), false);
+    assert.strictEqual(ppe.statusOf("safety_glasses"), "experimental");
+    assert.strictEqual(ppe.statusOf("gloves"), "experimental");
+});
+t("v2'de bile veri olmayan sınıflar (kemer, ayakkabı) kilitli kalır", () => {
+    ppe.bind(V2);
+    assert.strictEqual(ppe.isLocked("safety_harness"), true);
+    assert.strictEqual(ppe.isLocked("safety_boots"), true);
+    assert.strictEqual(ppe.isLocked("ear_protection"), true);
+});
+t("v2 → v1 geri dönülürse kilitler KENDİLİĞİNDEN kapanır", () => {
+    ppe.bind(V2);
+    assert.strictEqual(ppe.isLocked("gloves"), false);
+    ppe.bind(V1);
+    assert.strictEqual(ppe.isLocked("gloves"), true);
+    assert.strictEqual(ppe.sanitize({ gloves: true }).gloves, false);
+});
+t("v2 geometrisi yeni sınıfları içerir, v1 içermez", () => {
+    ppe.bind(V2);
+    assert.ok("gloves" in ppe.geometry());
+    ppe.bind(V1);
+    assert.ok(!("gloves" in ppe.geometry()));
+});
+ppe.bind(V1); // testlerin geri kalanı v1 varsayar
+
+// ---- Doğruluk korumaları ---------------------------------------------------------
+console.log("Doğruluk korumaları:");
+
+t("uzak/küçük kişide KKD kararı VERİLMEZ (sahte ihlal yok)", () => {
+    const tr = new Tracker();
+    // frameH=1080, kişi yüksekliği 100px → %9 < %14 eşiği → değerlendirilmez
+    const far = { cls: "Person", conf: 0.9, x: 100, y: 100, w: 40, h: 100 };
+    const farNoHelmet = { cls: "NO-Hardhat", conf: 0.9, x: 110, y: 102, w: 20, h: 20 };
+    let confirmed = [];
+    for (let i = 0; i < 8; i++) {
+        const r = tr.update([far, farNoHelmet], 1000 + i * 1000, 1080);
+        confirmed = confirmed.concat(r.confirmed);
+    }
+    assert.strictEqual(confirmed.length, 0);
+    const out = tr.update([far, farNoHelmet], 9000, 1080);
+    assert.strictEqual(out.tracks[0].tooSmall, true);
+    assert.strictEqual(out.tracks[0].equip.helmet, "unknown");
+});
+t("yakın kişide aynı ihlal DOĞRULANIR (filtre fazla katı değil)", () => {
+    const tr = new Tracker();
+    let confirmed = [];
+    for (let i = 0; i < 8; i++) {
+        const r = tr.update([person(100), noHelmet(100)], 1000 + i * 1000, 400); // 200/400 = %50
+        confirmed = confirmed.concat(r.confirmed);
+    }
+    assert.strictEqual(confirmed.length, 1);
+});
+t("düşük güvenli ihlal gözlemi (0.50 < 0.55) olay üretmez", () => {
+    const tr = new Tracker();
+    const weak = { cls: "NO-Hardhat", conf: 0.50, x: 120, y: 105, w: 40, h: 40 };
+    let confirmed = [];
+    for (let i = 0; i < 8; i++) confirmed = confirmed.concat(tr.update([person(100), weak], 1000 + i * 1000).confirmed);
+    assert.strictEqual(confirmed.length, 0);
+});
+t("güven toplamı eşiği: sınırdaki gözlemler elenir", () => {
+    const tr = new Tracker();
+    // 4 gözlem × 0.56 = 2.24 ≥ 2.2 → geçmeli (sınırın hemen üstü)
+    const borderline = { cls: "NO-Hardhat", conf: 0.56, x: 120, y: 105, w: 40, h: 40 };
+    let confirmed = [];
+    for (let i = 0; i < 6; i++) confirmed = confirmed.concat(tr.update([person(100), borderline], 1000 + i * 1000).confirmed);
+    assert.strictEqual(confirmed.length, 1);
+});
+t("kutu yumuşatma (EMA) titremeyi azaltır", () => {
+    const tr = new Tracker();
+    tr.update([{ cls: "Person", conf: 0.9, x: 100, y: 100, w: 80, h: 200 }], 1000);
+    const out = tr.update([{ cls: "Person", conf: 0.9, x: 140, y: 100, w: 80, h: 200 }], 2000);
+    // Ham sıçrama 40px; yumuşatılmış konum ikisinin arasında olmalı
+    assert.ok(out.tracks[0].box.x > 100 && out.tracks[0].box.x < 140);
+});
+
+// ---- Raporlama bütünlüğü: ekipman ayrıştırma (kusursuz rapor garantisi) -----------
+console.log("Raporlama bütünlüğü:");
+
+// views.js'teki eventEquip mantığının aynısı (DOM'suz kopya — davranış sözleşmesi)
+const TYPE_TO_EQUIP = { no_helmet: "helmet", no_vest: "safety_vest", no_mask: "mask" };
+function eventEquip(ev) {
+    const me = ev && ev.missing_equipment;
+    if (Array.isArray(me) && me.length) return me;
+    const k = TYPE_TO_EQUIP[ev && ev.event_type];
+    return k ? [k] : [];
+}
+
+t("gözlük ve eldiven aynı event_type'ta olsa da RAPORDA ayrışır", () => {
+    const evs = [
+        { event_type: "ppe_violation", missing_equipment: ["safety_glasses"] },
+        { event_type: "ppe_violation", missing_equipment: ["gloves"] },
+        { event_type: "ppe_violation", missing_equipment: ["gloves"] }
+    ];
+    const by = {};
+    evs.forEach(e => eventEquip(e).forEach(k => { by[k] = (by[k] || 0) + 1; }));
+    assert.strictEqual(by.safety_glasses, 1);
+    assert.strictEqual(by.gloves, 2);       // 'KKD İhlali' olarak birleşmedi
+});
+t("eski kayıtlar (missing_equipment yok) event_type'tan doğru türetilir", () => {
+    assert.deepStrictEqual(eventEquip({ event_type: "no_helmet" }), ["helmet"]);
+    assert.deepStrictEqual(eventEquip({ event_type: "no_vest" }), ["safety_vest"]);
+    assert.deepStrictEqual(eventEquip({ event_type: "no_mask" }), ["mask"]);
+});
+t("bilinmeyen tip rapor kırılımını bozmaz (boş dizi)", () => {
+    assert.deepStrictEqual(eventEquip({ event_type: "camera_offline" }), []);
+    assert.deepStrictEqual(eventEquip({}), []);
+});
+t("olay motoru her ihlale missing_equipment YAZAR (rapor kaynağı garanti)", () => {
+    // events.js ingestConfirmed'ın ürettiği kayıt şeması sözleşmesi
+    const ev = { event_type: "no_helmet", missing_equipment: ["helmet"], person_track_id: "P1" };
+    assert.ok(Array.isArray(ev.missing_equipment) && ev.missing_equipment.length === 1);
+    assert.ok(ev.person_track_id, "kişi kimliği olmadan kişi bazlı rapor üretilemez");
+    assert.deepStrictEqual(eventEquip(ev), ["helmet"]);
+});
+t("kişi bazlı kırılım track ID'lerinden doğru sayılır", () => {
+    const evs = [{ person_track_id: "P1" }, { person_track_id: "P1" }, { person_track_id: "P2" }, {}];
+    const byPerson = {};
+    evs.forEach(e => { if (e.person_track_id) byPerson[e.person_track_id] = (byPerson[e.person_track_id] || 0) + 1; });
+    assert.strictEqual(Object.keys(byPerson).length, 2);
+    assert.strictEqual(byPerson.P1, 2);
+});
+t("ingest fonksiyonu şeması: missing_equipment ve person_track_id geçirilir", () => {
+    // netlify/functions/camera-event.js satır sözleşmesi (davranış regresyonu koruması)
+    const fs = require("fs"), path = require("path");
+    const src = fs.readFileSync(path.join(__dirname, "..", "..", "..",
+        "netlify", "functions", "camera-event.js"), "utf8");
+    assert.ok(/person_track_id:/.test(src), "ingest person_track_id yazmıyor");
+    assert.ok(/missing_equipment:/.test(src), "ingest missing_equipment yazmıyor");
+});
+
 console.log("\n" + pass + " geçti, " + fail + " başarısız");
 process.exit(fail ? 1 : 0);

@@ -1,0 +1,22 @@
+{
+  "_comment": "MIA model tanımı — TEK GERÇEK KAYNAK: yüklü modelin hangi sınıfları GERÇEKTEN içerdiği. Uygulama KKD kilitlerini buna göre açar/kapatır. Model değiştirdiğinizde bu dosyayı da değiştirin (ml/export.py otomatik yazar).",
+  "name": "mia-ppe-yolov8s",
+  "version": "v1",
+  "file": "mia-ppe-yolov8s.onnx",
+  "input_size": 640,
+  "classes": [
+    "Hardhat",
+    "Mask",
+    "NO-Hardhat",
+    "NO-Mask",
+    "NO-Safety Vest",
+    "Person",
+    "Safety Cone",
+    "Safety Vest",
+    "machinery",
+    "vehicle"
+  ],
+  "trained_on": "Construction Site Safety (Roboflow, CC BY 4.0) — 200 epoch YOLOv8s",
+  "field_validated": false,
+  "notes": "Saha doğrulaması yapılmadı — precision/recall pilot sahada ölçülecek. Gözlük/eldiven bu modelde YOK; ml/MIA_Model_Training.ipynb v2 bunları ekler."
+}

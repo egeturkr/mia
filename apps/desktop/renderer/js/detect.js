@@ -9,12 +9,32 @@
 (function () {
     "use strict";
 
-    var NAMES = ["Hardhat", "Mask", "NO-Hardhat", "NO-Mask", "NO-Safety Vest",
-                 "Person", "Safety Cone", "Safety Vest", "machinery", "vehicle"];
+    // Sınıf listesi models/model.json'dan YÜKLENİR — modeli değiştirince uygulama
+    // yeni sınıfları kendiliğinden tanır (gözlük/eldiven kilidi otomatik açılır).
+    // Yükleme başarısızsa v1 listesine düşer (geri uyumluluk).
+    var FALLBACK_NAMES = ["Hardhat", "Mask", "NO-Hardhat", "NO-Mask", "NO-Safety Vest",
+                          "Person", "Safety Cone", "Safety Vest", "machinery", "vehicle"];
+    var NAMES = FALLBACK_NAMES.slice();
+    var MODEL_META = { name: "mia-ppe-yolov8s", version: "v1", input_size: 640, field_validated: false };
     var MODEL_URL = "/models/mia-ppe-yolov8s.onnx"; // mia://app/models/... (main.js protokol handler'ı)
     var INPUT = 640;
 
-    var session = null, initPromise = null, engineInfo = { backend: null, ready: false, error: null };
+    var session = null, initPromise = null, engineInfo = { backend: null, ready: false, error: null, classes: NAMES };
+
+    async function loadModelMeta() {
+        try {
+            var r = await fetch("/models/model.json");
+            if (!r.ok) return;
+            var m = await r.json();
+            if (Array.isArray(m.classes) && m.classes.length >= 2) {
+                NAMES = m.classes;
+                MODEL_META = m;
+                MODEL_URL = "/models/" + (m.file || "mia-ppe-yolov8s.onnx");
+                INPUT = m.input_size || 640;
+                engineInfo.classes = NAMES;
+            }
+        } catch (e) { /* model.json yoksa varsayılan liste kullanılır */ }
+    }
 
     // ---- ONNX oturumu (webgpu → wasm sırasıyla dener) -------------------------
     // Sağlamlık: model önce URL'den, olmazsa ANA SÜREÇTEN bayt olarak yüklenir
@@ -24,6 +44,7 @@
         if (initPromise) return initPromise;
         initPromise = (async function () {
             if (typeof ort === "undefined") { engineInfo.error = "ort yüklenemedi"; return engineInfo; }
+            await loadModelMeta();   // sınıf listesi + model dosya adı
             try { ort.env.wasm.wasmPaths = new URL("vendor/", location.href).toString(); }
             catch (e) { ort.env.wasm.wasmPaths = "vendor/"; }
             ort.env.wasm.numThreads = 1; // worker/COI gerektirmez — en uyumlu mod
@@ -47,6 +68,10 @@
                         engineInfo.backend = providers[i][0] + (s === 1 ? "+ipc" : "");
                         engineInfo.ready = true;
                         engineInfo.error = null;
+                        engineInfo.model = MODEL_META.name + " " + (MODEL_META.version || "");
+                        // Sınıf listesi ile modelin çıktı boyutu UYUŞUYOR MU? (model.json yanlışsa
+                        // sessizce yanlış etiket üretmek yerine açıkça uyar.)
+                        verifyClassCount();
                         return engineInfo;
                     } catch (e) {
                         errors.push(providers[i][0] + "/" + (s === 0 ? "url" : "bytes") + ": " + String(e && e.message || e));
@@ -58,6 +83,25 @@
             return engineInfo;
         })();
         return initPromise;
+    }
+
+    // Model çıktısı [1, 4+nc, 8400] → nc sınıf sayısı. model.json ile uyuşmalı.
+    // Uyuşmazsa etiketler kayar (baret → maske gibi) — bu SESSİZ olmamalı.
+    function verifyClassCount() {
+        try {
+            var t = new ort.Tensor("float32", new Float32Array(3 * INPUT * INPUT), [1, 3, INPUT, INPUT]);
+            session.run({ images: t }).then(function (res) {
+                var out = res[Object.keys(res)[0]];
+                var nc = out.dims[1] - 4;
+                if (nc !== NAMES.length) {
+                    engineInfo.classMismatch = { modelClasses: nc, declared: NAMES.length };
+                    console.error("[MIA] SINIF UYUŞMAZLIĞI: model " + nc + " sınıf üretiyor, " +
+                        "model.json " + NAMES.length + " sınıf bildiriyor. models/model.json'u düzeltin.");
+                } else {
+                    engineInfo.classMismatch = null;
+                }
+            }).catch(function () { /* doğrulama başarısızsa tespit yine çalışır */ });
+        } catch (e) { /* sessiz */ }
     }
 
     // ---- Ön işleme: letterbox 640x640 (gri dolgu 114) --------------------------
