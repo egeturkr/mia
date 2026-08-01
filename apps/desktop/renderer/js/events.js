@@ -7,17 +7,27 @@
 (function () {
     "use strict";
 
-    // Ekipman → olay eşlemesi (ppe-registry.js ile senkron).
+    // Ekipman → olay eşlemesi. KAYNAK: ppe-registry.js (tek gerçek kaynak).
     // camera_events.event_type CHECK kısıtı: no_helmet|no_vest|no_mask|ppe_violation|...
     // MIA Vision Engine (tracker.js) ekipman ANAHTARIYLA doğrulanmış ihlal üretir.
-    var VIOLATIONS = {
-        helmet:      { type: "no_helmet", risk: "high",   cls: "NO-Hardhat",
-                       tr: "Baretsiz çalışan tespit edildi (doğrulandı)", en: "Worker without hardhat (confirmed)" },
-        safety_vest: { type: "no_vest",   risk: "high",   cls: "NO-Safety Vest",
-                       tr: "Yelek eksikliği tespit edildi (doğrulandı)", en: "Missing safety vest (confirmed)" },
-        mask:        { type: "no_mask",   risk: "medium", cls: "NO-Mask",
-                       tr: "Maske eksikliği tespit edildi (doğrulandı)", en: "Missing mask (confirmed)" }
+    // Yeni ekipman kayda eklenince başlık/olay tipi otomatik oluşur — kod değişmez.
+    var TITLES = {
+        helmet:         { tr: "Baretsiz çalışan tespit edildi", en: "Worker without hard hat" },
+        safety_vest:    { tr: "Yelek eksikliği tespit edildi", en: "Missing safety vest" },
+        mask:           { tr: "Maske eksikliği tespit edildi", en: "Missing mask" },
+        safety_glasses: { tr: "Koruyucu gözlük eksikliği", en: "Missing safety glasses" },
+        gloves:         { tr: "Eldiven eksikliği", en: "Missing gloves" },
+        safety_harness: { tr: "Emniyet kemeri eksikliği", en: "Missing safety harness" },
+        safety_boots:   { tr: "İş ayakkabısı eksikliği", en: "Missing safety boots" },
+        ear_protection: { tr: "Kulak koruyucu eksikliği", en: "Missing ear protection" }
     };
+    function violationOf(key) {
+        var r = window.miaPpe && window.miaPpe.byKey[key];
+        if (!r) return null;
+        var ti = TITLES[key] || { tr: r.label.tr + " eksikliği", en: "Missing " + r.label.en };
+        return { type: r.eventType, risk: r.risk,
+                 tr: ti.tr + " (doğrulandı)", en: ti.en + " (confirmed)" };
+    }
 
     var DEDUP_MS = 60 * 1000;       // kamera+tip başına 1 olay / 60 sn
     var FLUSH_MS = 10 * 1000;       // kuyruk boşaltma periyodu
@@ -44,7 +54,9 @@
     function ingestConfirmed(confirmed, rawDets, profile, ctx) {
         var now = Date.now(), out = [];
         (confirmed || []).forEach(function (c) {
-            var v = VIOLATIONS[c.equip];
+            // ÜÇ KAPI: (1) kayıtta tanımlı mı (2) KİLİTLİ değil mi (3) profilde açık mı
+            if (window.miaPpe && window.miaPpe.isLocked(c.equip)) return; // kilitli → asla olay
+            var v = violationOf(c.equip);
             if (!v || !profile[c.equip]) return; // profilde kapalı ekipman ihlal üretmez
             // Dedup: kamera+tip+track — aynı kişi 60 sn'de bir; farklı kişi (track) ayrı olay.
             var key = ctx.cameraId + "|" + v.type + "|" + c.trackId;
@@ -155,7 +167,7 @@
     window.miaEvents = {
         ingestConfirmed: ingestConfirmed, startFlusher: startFlusher, flush: flush,
         stats: function () { return Object.assign({ pending: queue.length }, stats); },
-        VIOLATIONS: VIOLATIONS,
+        violationOf: violationOf,
         _internals: { lastEmit: lastEmit, DEDUP_MS: DEDUP_MS }
     };
 })();

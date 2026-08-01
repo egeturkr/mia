@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  MIA Masaüstü — Hardened Runtime yetkilendirmeleri (macOS imzalama/notarization).
+  YALNIZ gerçekten gereken izinler; her satırın nedeni aşağıda.
+-->
+<plist version="1.0">
+<dict>
+    <!-- Electron/V8 JIT derleme + ONNX Runtime WASM yürütmesi için ZORUNLU.
+         Bunlar olmadan hardened runtime altında cihaz üstü AI motoru başlamaz. -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+
+    <!-- Kamera: webcam ile canlı KKD izleme (kullanıcı onayı ayrıca istenir). -->
+    <key>com.apple.security.device.camera</key>
+    <true/>
+
+    <!-- Ağ: Supabase (oturum/olay), MIA API, RTSP IP kameralar (yerel ağ). -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- Kullanıcının seçtiği dosyalar: video analizi girdisi, PDF/CSV dışa aktarma. -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+</dict>
+</plist>

@@ -296,6 +296,30 @@ input[type="range"] { padding: 0; accent-color: var(--gold); }
 .tile-head { display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-bottom: 1px solid var(--border); }
 .tile-head b { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tile-status { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* KKD canlı aç/kapa çubuğu (kamera bazlı) */
+.ppe-bar {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    padding: 9px 14px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.015);
+}
+.ppe-bar-t {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--faint); margin-right: 2px;
+}
+.ppe-chip {
+    display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+    font-family: inherit; font-size: 11px; font-weight: 600; padding: 4px 10px;
+    border-radius: 20px; border: 1px solid var(--border); background: transparent;
+    color: var(--muted); transition: .13s;
+}
+.ppe-chip.on { color: var(--green); border-color: rgba(70,196,118,.4); background: var(--green-dim); }
+.ppe-chip.off { color: var(--faint); }
+.ppe-chip.off:hover { color: var(--text); border-color: var(--border-hi); }
+.ppe-chip.on:hover { filter: brightness(1.15); }
+.ppe-chip.locked { opacity: .42; cursor: not-allowed; border-style: dashed; }
+.ppe-chip .exp { font-style: normal; color: var(--orange); font-size: 9px; }
+.chk.dis { opacity: .5; }
+.muted.ind { margin: -4px 0 8px 26px; }
+
 .tile-body { position: relative; aspect-ratio: 16/9; background: #000; }
 .tile-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .tile-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }

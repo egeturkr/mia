@@ -182,5 +182,61 @@ t("görünmeyen track 3 sn sonra düşer", () => {
     assert.strictEqual(r.tracks.length, 0);
 });
 
+// ---- KKD Kaydı: kilitli sınıf koruması (dürüstlük garantisi) --------------------
+const ppe = require("../renderer/js/ppe-registry.js");
+console.log("KKD Kaydı:");
+
+t("kilitli ekipmanlar geometriye GİRMEZ (motor onları hiç aramaz)", () => {
+    const g = ppe.geometry();
+    assert.ok(!("gloves" in g), "eldiven geometriye girmemeli");
+    assert.ok(!("safety_glasses" in g), "gözlük geometriye girmemeli");
+    assert.ok("helmet" in g && "safety_vest" in g && "mask" in g);
+});
+t("sanitize kilitli ekipmanı AÇIK bırakamaz", () => {
+    const p = ppe.sanitize({ gloves: true, safety_glasses: true, safety_harness: true, helmet: true });
+    assert.strictEqual(p.gloves, false);
+    assert.strictEqual(p.safety_glasses, false);
+    assert.strictEqual(p.safety_harness, false);
+    assert.strictEqual(p.helmet, true);
+});
+t("varsayılan profil: supported AÇIK, experimental/kilitli KAPALI", () => {
+    const d = ppe.defaultProfile();
+    assert.strictEqual(d.helmet, true);
+    assert.strictEqual(d.safety_vest, true);
+    assert.strictEqual(d.mask, false);        // experimental
+    assert.strictEqual(d.gloves, false);      // kilitli
+});
+t("kullanıcı taranabilir ekipmanı kapatabilir (aç/kapa gerçekten çalışır)", () => {
+    const p = ppe.sanitize({ helmet: false, safety_vest: true, mask: true });
+    assert.strictEqual(p.helmet, false);      // kapatma serbest
+    assert.strictEqual(p.mask, true);         // experimental açılabilir
+});
+t("her taranabilir kayıtta ok/violation sınıfı ve band tanımlı", () => {
+    ppe.scannable().forEach(r => {
+        assert.ok(r.okClass && r.violationClass, r.key + " sınıf eşlemesi eksik");
+        assert.ok(Array.isArray(r.band) && r.band.length === 2, r.key + " band eksik");
+        assert.ok(r.band[0] < r.band[1], r.key + " band aralığı geçersiz");
+    });
+});
+t("model sınıfları kayıtla uyumlu (senkron kontrolü)", () => {
+    const MODEL = ["Hardhat", "Mask", "NO-Hardhat", "NO-Mask", "NO-Safety Vest",
+                   "Person", "Safety Cone", "Safety Vest", "machinery", "vehicle"];
+    ppe.scannable().forEach(r => {
+        assert.ok(MODEL.includes(r.okClass), r.okClass + " modelde yok — kayıt yanlış!");
+        assert.ok(MODEL.includes(r.violationClass), r.violationClass + " modelde yok — kayıt yanlış!");
+    });
+});
+t("tracker kayıttan beslenir — kilitli ekipman için ihlal ÜRETMEZ", () => {
+    const tr = new Tracker();
+    // Eldiven ihlali gibi görünen sentetik kutu — modelde sınıf yok, olay çıkmamalı
+    const fakeGlove = { cls: "NO-Gloves", conf: 0.95, x: 130, y: 220, w: 30, h: 30 };
+    let confirmed = [];
+    for (let i = 0; i < 8; i++) {
+        const r = tr.update([person(100), fakeGlove], 1000 + i * 1000);
+        confirmed = confirmed.concat(r.confirmed);
+    }
+    assert.strictEqual(confirmed.filter(c => c.equip === "gloves").length, 0);
+});
+
 console.log("\n" + pass + " geçti, " + fail + " başarısız");
 process.exit(fail ? 1 : 0);

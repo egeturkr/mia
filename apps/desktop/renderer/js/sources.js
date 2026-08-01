@@ -10,12 +10,12 @@
         violation: "#FF4D4D", ok: "#37D67A", pending: "#FF8A3D",
         person: "#F5A300", context: "#9AA0A6"
     };
-    var EQUIP_LABELS = {
-        helmet: { tr: "Baret", en: "Helmet" },
-        safety_vest: { tr: "Yelek", en: "Vest" },
-        mask: { tr: "Maske", en: "Mask" }
-    };
     var CONTEXT_CLS = { "machinery": 1, "vehicle": 1, "Safety Cone": 1 };
+    // Overlay çipi için kısa etiket — kayıttan, sığması için ilk kelime.
+    function shortLabel(key, lang) {
+        var full = window.miaPpe.label(key, lang);
+        return full.split(" ")[0].replace("/", "");
+    }
 
     var tiles = new Map();      // tileId → tile
     var rtspFrames = new Map(); // tileId → { img, ts }
@@ -68,7 +68,7 @@
         var r = Math.min(cv.width / srcW, cv.height / srcH);
         var ox = (cv.width - srcW * r) / 2, oy = (cv.height - srcH * r) / 2;
         var lang = window.miaI18n.getLang();
-        var profile = window.miaCore.state.settings.profile;
+        var profile = tile.profile || window.miaCore.state.settings.profile;
 
         // Bağlam nesneleri (ince)
         ctx.font = "600 10px Inter, sans-serif";
@@ -108,7 +108,7 @@
                 if (!profile[k]) return;
                 var stt = tr.equip[k];
                 var sym = stt === "ok" ? "✓" : stt === "violation" ? "✗" : stt === "pending" ? "?" : "·";
-                var lbl = sym + " " + (EQUIP_LABELS[k] ? EQUIP_LABELS[k][lang] || EQUIP_LABELS[k].tr : k);
+                var lbl = sym + " " + shortLabel(k, lang);
                 var cw = ctx.measureText(lbl).width + 10;
                 ctx.fillStyle = stt === "ok" ? COLORS.ok : stt === "violation" ? COLORS.violation :
                                stt === "pending" ? COLORS.pending : COLORS.context;
@@ -184,6 +184,8 @@
         try {
             var st = window.miaCore.state;
             var auth = await window.miaCore.authHeaders();
+            // Kamera bazlı KKD profili — canlı aç/kapa ANINDA burada okunur.
+            tile.profile = window.miaCore.cameraProfile(tile.cameraRowId || tile.id);
             var res = await window.miaDetect.detect(frame.src, frame.w, frame.h, {
                 mode: st.settings.engine, confidence: st.settings.confidence, auth: auth
             });
@@ -192,7 +194,7 @@
             tile.lastDetections = res.detections;
             drawOverlay(tile, engineOut, res.detections, frame.w, frame.h, res);
 
-            var produced = window.miaEvents.ingestConfirmed(engineOut.confirmed, res.detections, st.settings.profile, {
+            var produced = window.miaEvents.ingestConfirmed(engineOut.confirmed, res.detections, tile.profile, {
                 orgId: st.org && st.org.id, cameraId: tile.cameraRowId, siteId: tile.siteId,
                 engine: res.engine, lang: st.settings.lang, cameraName: tile.name
             });
@@ -271,10 +273,10 @@
     // Sayfa üstü canlı özet: tüm kaynaklardaki taze kişi + aktif ihlal sayısı
     function summary() {
         var persons = 0, violations = 0;
-        var profile = window.miaCore.state.settings.profile;
         tiles.forEach(function (t) {
             var out = t.lastEngineOut;
             if (!out) return;
+            var profile = t.profile || window.miaCore.state.settings.profile;
             out.tracks.forEach(function (tr) {
                 if (!tr.fresh) return;
                 persons++;

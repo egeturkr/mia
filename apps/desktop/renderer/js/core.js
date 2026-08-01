@@ -20,7 +20,7 @@
                 storageKey: "mia.desktop.auth", storage: ipcStorage }
     });
 
-    var state = { user: null, org: null, orgs: [], role: null, settings: null };
+    var state = { user: null, org: null, orgs: [], role: null, settings: null, camProfiles: {} };
 
     var DEFAULT_SETTINGS = {
         lang: "tr", engine: "hybrid",   // MIA cihaz üstü BİRİNCİL; motor açılamazsa bulut devreye girer (kesintisiz tespit)
@@ -29,17 +29,37 @@
         autoMonitor: false,             // açılışta kayıtlı RTSP kameraları otomatik izle
         emailAlerts: true,              // kritik ihlalde e-posta (yalnız kendi adresine, 5 dk dedup)
         evidenceArchive: true,          // doğrulanmış ihlalin etiketli karesi YEREL arşive
-        profile: { helmet: true, safety_vest: true, mask: false }
+        profile: null // kayıttan üretilir (loadSettings)
     };
 
     async function loadSettings() {
         var s = (await window.mia.storeGet("settings")) || {};
-        state.settings = Object.assign({}, DEFAULT_SETTINGS, s,
-            { profile: Object.assign({}, DEFAULT_SETTINGS.profile, s.profile || {}) });
+        state.settings = Object.assign({}, DEFAULT_SETTINGS, s);
+        // Profil DAİMA kayıttan geçer: kilitli ekipman açık kalamaz, yeni ekipman otomatik gelir.
+        state.settings.profile = window.miaPpe.sanitize(s.profile);
+        state.camProfiles = (await window.mia.storeGet("camProfiles")) || {};
         window.miaI18n.setLang(state.settings.lang);
         return state.settings;
     }
     function saveSettings() { return window.mia.storeSet("settings", state.settings); }
+
+    // ---- Kamera bazlı KKD profili ------------------------------------------------
+    // Her kameranın kendi profili olabilir (kazı alanı: baret+yelek, kaynak: +gözlük).
+    // Kaydı olmayan kamera GLOBAL profili kullanır. Kilitli ekipman her durumda kapalı.
+    function cameraProfile(cameraId) {
+        var cp = state.camProfiles && state.camProfiles[cameraId];
+        return window.miaPpe.sanitize(cp || state.settings.profile);
+    }
+    function setCameraProfile(cameraId, profile) {
+        state.camProfiles = state.camProfiles || {};
+        state.camProfiles[cameraId] = window.miaPpe.sanitize(profile);
+        window.mia.storeSet("camProfiles", state.camProfiles);
+        return state.camProfiles[cameraId];
+    }
+    function clearCameraProfile(cameraId) {
+        if (state.camProfiles) delete state.camProfiles[cameraId];
+        window.mia.storeSet("camProfiles", state.camProfiles || {});
+    }
 
     async function getSession() {
         var r = await client.auth.getSession();
@@ -100,6 +120,7 @@
     window.miaCore = {
         client: client, state: state,
         loadSettings: loadSettings, saveSettings: saveSettings,
+        cameraProfile: cameraProfile, setCameraProfile: setCameraProfile, clearCameraProfile: clearCameraProfile,
         getSession: getSession, authHeaders: authHeaders,
         resolveOrgs: resolveOrgs, setOrg: setOrg,
         esc: esc, toast: toast

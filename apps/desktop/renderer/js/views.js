@@ -37,12 +37,37 @@
             '<div id="loginErr" class="login-err"></div>' +
             "</div></div>";
         var doLogin = async function () {
-            var btn = $("#loginBtn"); btn.disabled = true;
-            var r = await sb().auth.signInWithPassword({
-                email: $("#loginEmail").value.trim(), password: $("#loginPass").value
-            });
+            var btn = $("#loginBtn"), err = $("#loginErr");
+            btn.disabled = true;
+            err.style.color = "var(--muted)";
+            err.textContent = t("login_wait");
+            var r;
+            try {
+                r = await sb().auth.signInWithPassword({
+                    email: $("#loginEmail").value.trim(), password: $("#loginPass").value
+                });
+            } catch (ex) {
+                // Ağ/istemci istisnası — jenerik mesaj yerine GERÇEK nedeni göster
+                btn.disabled = false;
+                err.style.color = "var(--red)";
+                err.textContent = t("login_net") + " — " + String(ex && ex.message || ex).slice(0, 120);
+                console.error("[MIA] login istisnası:", ex);
+                return;
+            }
             btn.disabled = false;
-            if (r.error) { $("#loginErr").textContent = t("login_err"); return; }
+            if (r.error) {
+                console.error("[MIA] login hatası:", r.error);
+                var m = String(r.error.message || "");
+                err.style.color = "var(--red)";
+                // Supabase'in bilinen hata mesajlarını anlaşılır Türkçeye çevir,
+                // tanımadığımız hatayı OLDUĞU GİBİ göster (kör hata ayıklama yok).
+                if (/Invalid login credentials/i.test(m)) err.textContent = t("login_err");
+                else if (/Email not confirmed/i.test(m)) err.textContent = t("login_unconfirmed");
+                else if (/rate limit|too many/i.test(m)) err.textContent = t("login_rate");
+                else if (/fetch|network|Failed to fetch/i.test(m)) err.textContent = t("login_net");
+                else err.textContent = m || t("login_err");
+                return;
+            }
             window.miaApp.onAuthed();
         };
         $("#loginBtn").addEventListener("click", doLogin);
@@ -203,15 +228,7 @@
     // Mevcut GERÇEK yapılandırmayı gösterir: motor durumu (miaDetect.info),
     // ayarlar ve KKD sınıf kaydı (ppe-registry ile aynı dürüst durumlar).
     // Hiçbir tespit/iş mantığı içermez.
-    var PPE_REGISTRY_VIEW = [
-        { key: "ppe_helmet", status: "supported" },
-        { key: "ppe_vest", status: "supported" },
-        { key: "ppe_mask", status: "experimental" },
-        { key: "ppe_gloves", status: "locked" },
-        { key: "ppe_glasses", status: "locked" },
-        { key: "ppe_harness", status: "locked" },
-        { key: "ppe_boots", status: "locked" }
-    ];
+    var STATUS_BADGE = { supported: "supported", experimental: "experimental", requires_training: "locked" };
     async function renderDetection(root) {
         var s = st().settings;
         root.innerHTML =
@@ -230,9 +247,12 @@
                 .filter(Boolean).map(esc).join(" · ") + "</span></div></div>" +
             "</div>" +
             '<div class="card"><h3>' + esc(t("det_registry")) + '</h3><table class="tbl"><tbody>' +
-            PPE_REGISTRY_VIEW.map(function (p) {
-                return "<tr><td><b>" + esc(t(p.key)) + "</b></td><td style=\"text-align:right\">" +
-                    '<span class="badge st-' + p.status + '">' + esc(t("st_" + p.status)) + "</span></td></tr>";
+            window.miaPpe.REGISTRY.map(function (r) {
+                var lang = window.miaI18n.getLang(), b = STATUS_BADGE[r.status];
+                return "<tr><td><b>" + esc(window.miaPpe.label(r.key, lang)) + "</b><br>" +
+                    '<span class="muted small">' + esc(r.note[lang] || r.note.tr) + "</span></td>" +
+                    '<td style="text-align:right;white-space:nowrap">' +
+                    '<span class="badge st-' + b + '">' + esc(t("st_" + b)) + "</span></td></tr>";
             }).join("") + "</tbody></table>" +
             '<p class="muted small" style="margin-top:12px">' + esc(t("set_profile_note")) + "</p></div>";
 
@@ -319,6 +339,7 @@
             '<div class="tile-head"><b>' + esc(name) + '</b><span class="tile-status" data-r="status"></span>' +
             '<span class="badge engine" data-r="engine"></span>' +
             '<button class="btn btn-sm" data-r="stop">' + esc(t("live_stop")) + "</button></div>" +
+            '<div class="ppe-bar" data-r="ppebar"></div>' +
             '<div class="tile-body" data-r="wrap">' +
             (kind === "rtsp" ? '<canvas class="tile-video" data-r="preview"></canvas>'
                              : '<video class="tile-video" muted playsinline' + (kind === "video" ? " controls loop" : "") + " data-r=\"video\"></video>") +
@@ -334,10 +355,47 @@
         });
         return els;
     }
+
+    // ---- Canlı KKD aç/kapa çubuğu (kamera bazlı) ----------------------------------
+    // Tıklandığı anda o ekipmanın taranması durur/başlar — yeniden başlatma YOK.
+    // Kilitli ekipmanlar (modelde sınıfı olmayan) tıklanamaz; nedeni tooltip'te.
+    function renderPpeBar(els, cameraId) {
+        var lang = window.miaI18n.getLang();
+        var prof = window.miaCore.cameraProfile(cameraId);
+        els.ppebar.innerHTML =
+            '<span class="ppe-bar-t">' + esc(t("ppe_scan")) + "</span>" +
+            window.miaPpe.REGISTRY.map(function (r) {
+                var locked = r.status === "requires_training";
+                var on = !!prof[r.key];
+                var cls = "ppe-chip" + (locked ? " locked" : on ? " on" : " off");
+                var mark = locked ? "🔒" : on ? "●" : "○";
+                var tip = locked ? r.note[lang] || r.note.tr
+                    : (on ? t("ppe_click_off") : t("ppe_click_on")) +
+                      (r.status === "experimental" ? " · " + t("st_experimental") : "");
+                return '<button class="' + cls + '" data-ppe="' + esc(r.key) + '"' +
+                    (locked ? " disabled" : "") + ' title="' + esc(tip) + '">' +
+                    mark + " " + esc(window.miaPpe.label(r.key, lang)) +
+                    (r.status === "experimental" ? ' <i class="exp">β</i>' : "") + "</button>";
+            }).join("");
+        els.ppebar.querySelectorAll("[data-ppe]").forEach(function (b) {
+            b.addEventListener("click", function () {
+                var key = b.getAttribute("data-ppe");
+                var p = window.miaCore.cameraProfile(cameraId);
+                p[key] = !p[key];
+                window.miaCore.setCameraProfile(cameraId, p);
+                renderPpeBar(els, cameraId);          // çipi anında güncelle
+                var tile = window.miaSources.get(els._tileId);
+                if (tile) tile.profile = window.miaCore.cameraProfile(cameraId);
+                window.miaCore.toast(window.miaPpe.label(key, lang) + " · " +
+                    (p[key] ? t("ppe_now_on") : t("ppe_now_off")), p[key] ? "ok" : "info");
+            });
+        });
+    }
     function footUpdater(els) {
         return function (res, produced, engineOut) {
             var persons = 0, vios = 0;
-            var profile = st().settings.profile;
+            var tile = window.miaSources.get(els._tileId);
+            var profile = (tile && tile.profile) || st().settings.profile;
             (engineOut ? engineOut.tracks : []).forEach(function (tr) {
                 if (!tr.fresh) return;
                 persons++;
@@ -394,6 +452,7 @@
         var row = await ensureCameraRow(name, "browser_webcam");
         var id = "w" + (++liveSeq);
         var els = tileDom(id, name, "webcam");
+        els._tileId = id; renderPpeBar(els, row.id);
         await window.miaSources.start({ id: id, cameraRowId: row.id, siteId: row.site_id, name: name,
             kind: "webcam", els: els, onFrame: footUpdater(els) });
     }
@@ -404,6 +463,7 @@
         var row = await ensureCameraRow(name, "test_stream");
         var id = "v" + (++liveSeq);
         var els = tileDom(id, name + " — " + pick.path.split("/").pop(), "video");
+        els._tileId = id; renderPpeBar(els, row.id);
         await window.miaSources.start({ id: id, cameraRowId: row.id, siteId: row.site_id, name: name,
             kind: "video", videoUrl: pick.url, els: els, onFrame: footUpdater(els) });
     }
@@ -415,6 +475,7 @@
         var id = "r-" + cam.id;
         if (window.miaSources.get(id)) return; // zaten açık
         var els = tileDom(id, cam.name, "rtsp");
+        els._tileId = id; renderPpeBar(els, cam.id);
         await window.miaSources.start({ id: id, cameraRowId: cam.id, siteId: cam.site_id, name: cam.name,
             kind: "rtsp", rtspUrl: dec.value, els: els, onFrame: footUpdater(els) });
         sb().from("cameras").update({ status: "active", last_frame_at: new Date().toISOString() }).eq("id", cam.id)
@@ -669,10 +730,18 @@
             '<input id="setConf" type="range" min="20" max="80" value="' + Math.round(s.confidence * 100) + '">' +
             "<label>" + esc(t("set_interval")) + "</label>" +
             sel("setInterval", [["0.5", "0.5 (hızlı)"], ["1", "1"], ["2", "2"], ["5", "5"], ["10", "10"]]) +
-            "<h3>" + esc(t("set_profile")) + "</h3>" +
-            chk("pHelmet", t("set_helmet"), s.profile.helmet) +
-            chk("pVest", t("set_vest"), s.profile.safety_vest) +
-            chk("pMask", t("set_mask") + " (experimental)", s.profile.mask) +
+            "<h3>" + esc(t("set_profile")) + " — " + esc(t("set_profile_global")) + "</h3>" +
+            window.miaPpe.REGISTRY.map(function (r) {
+                var lang = window.miaI18n.getLang();
+                var locked = r.status === "requires_training";
+                var suffix = locked ? " 🔒 " + t("st_locked")
+                    : r.status === "experimental" ? " · β " + t("st_experimental") : "";
+                return '<label class="chk' + (locked ? " dis" : "") + '">' +
+                    '<input type="checkbox" data-prof="' + esc(r.key) + '"' +
+                    (s.profile[r.key] ? " checked" : "") + (locked ? " disabled" : "") + "> " +
+                    esc(window.miaPpe.label(r.key, lang) + suffix) + "</label>" +
+                    (locked ? '<p class="muted small ind">' + esc(r.note[lang] || r.note.tr) + "</p>" : "");
+            }).join("") +
             '<p class="muted small">' + esc(t("set_profile_note")) + "</p>" +
             "<h3>" + esc(t("set_ops")) + "</h3>" +
             chk("pAutoMon", t("set_auto_monitor"), s.autoMonitor) +
@@ -710,9 +779,11 @@
             s.engine = $("#setEngine").value;
             s.confidence = parseInt($("#setConf").value, 10) / 100;
             s.intervalSec = parseFloat($("#setInterval").value) || 1;
-            s.profile.helmet = $("#pHelmet").checked;
-            s.profile.safety_vest = $("#pVest").checked;
-            s.profile.mask = $("#pMask").checked;
+            var prof = {};
+            root.querySelectorAll("[data-prof]").forEach(function (c) {
+                prof[c.getAttribute("data-prof")] = c.checked;
+            });
+            s.profile = window.miaPpe.sanitize(prof); // kilitli ekipman açık kalamaz
             s.dataCollect = $("#pCollect").checked;
             s.autoMonitor = $("#pAutoMon").checked;
             s.emailAlerts = $("#pEmail").checked;

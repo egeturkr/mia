@@ -26,11 +26,21 @@
 
     // Ekipman eşleme geometrisi: KKD kutusunun MERKEZİ, kişi kutusunun hangi
     // dikey bandında aranır (üstten oran).
-    var GEOM = {
-        helmet:      { okCls: "Hardhat",     noCls: "NO-Hardhat",     band: [0.0, 0.45] },
-        mask:        { okCls: "Mask",        noCls: "NO-Mask",        band: [0.0, 0.40] },
-        safety_vest: { okCls: "Safety Vest", noCls: "NO-Safety Vest", band: [0.15, 0.75] }
-    };
+    // KAYNAK: ppe-registry.js — yeni sınıf eklemek KOD DEĞİL kayıt işidir.
+    // Kayıt yüklenemezse (test ortamı) güvenli varsayılana düşer.
+    function loadGeom() {
+        var reg = (typeof window !== "undefined" && window.miaPpe) ||
+                  (typeof require === "function" && (function () {
+                      try { return require("./ppe-registry.js"); } catch (e) { return null; }
+                  })());
+        if (reg && reg.geometry) return reg.geometry();
+        return {
+            helmet:      { okCls: "Hardhat",     noCls: "NO-Hardhat",     band: [0.0, 0.45] },
+            mask:        { okCls: "Mask",        noCls: "NO-Mask",        band: [0.0, 0.40] },
+            safety_vest: { okCls: "Safety Vest", noCls: "NO-Safety Vest", band: [0.15, 0.75] }
+        };
+    }
+    var GEOM = loadGeom();
     var EQUIP_KEYS = Object.keys(GEOM);
 
     function iou(a, b) {
